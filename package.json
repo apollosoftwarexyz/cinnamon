@@ -12,6 +12,7 @@
     "distributions/*"
   ],
   "scripts": {
-    "dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev"
+    "docs:dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev",
+    "docs:generate": "yarn workspace @apollosoftwarexyz/cinnamon-docs generate"
   }
 }
