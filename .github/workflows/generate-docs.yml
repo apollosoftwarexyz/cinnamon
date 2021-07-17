@@ -15,11 +15,17 @@ jobs:
           node-version: '16'
           cache: 'yarn'
 
+      - name: Backup .yarnrc.yml
+        run: cp .yarnrc.yml .yarnrc.bak.yml
+
       - name: Switch to Yarn Berry
-        run: /usr/local/bin/yarn set version berry
+        run: yarn set version berry
+
+      - name: Restore .yarnrc.yml
+        run: mv -f .yarnrc.bak.yml .yarnrc.yml
 
       - name: Install Dependencies
-        run: yarn
+        run: yarn install
 
       - name: Generate Documentation
         run: yarn docs:generate
