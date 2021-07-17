@@ -16,7 +16,7 @@ jobs:
           cache: 'yarn'
 
       - name: Switch to Yarn Berry
-        run: yarn set version berry
+        run: /usr/local/bin/yarn set version berry
 
       - name: Install Dependencies
         run: yarn
