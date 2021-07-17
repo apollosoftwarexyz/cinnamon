@@ -1,0 +1,17 @@
+{
+  "name": "@apollosoftwarexyz/cinnamon-workspaces",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git"
+  },
+  "workspaces": [
+    "docs",
+    "packages/*",
+    "distributions/*"
+  ],
+  "scripts": {
+    "dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev"
+  }
+}
