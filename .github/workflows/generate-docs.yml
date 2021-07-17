@@ -29,3 +29,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: docs
+          publish_dir: ./docs/dist
+          cname: cinnamon.apollosoftware.xyz
