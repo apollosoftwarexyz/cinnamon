@@ -15,14 +15,8 @@ jobs:
           node-version: '16'
           cache: 'yarn'
 
-      - name: Backup .yarnrc.yml
-        run: cp .yarnrc.yml .yarnrc.bak.yml
-
       - name: Switch to Yarn Berry
-        run: yarn set version berry
-
-      - name: Restore .yarnrc.yml
-        run: mv -f .yarnrc.bak.yml .yarnrc.yml
+        run: npm install -g yarn@berry
 
       - name: Install Dependencies
         run: yarn install
