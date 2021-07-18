@@ -10,10 +10,15 @@
   "workspaces": [
     "docs",
     "packages/*",
+    "examples/*",
     "distributions/*"
   ],
   "scripts": {
+    "build": "yarn workspace @apollosoftwarexyz/cinnamon build",
     "docs:dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev",
     "docs:generate": "yarn workspace @apollosoftwarexyz/cinnamon-docs generate"
+  },
+  "devDependencies": {
+    "typescript": "^4.3.5"
   }
 }

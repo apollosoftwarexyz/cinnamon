@@ -1,0 +1,14 @@
+{
+  "name": "@apollosoftwarexyz/cinnamon-logger",
+  "license": "MIT",
+  "main": "src/main.ts",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",
+    "directory": "packages/logger/"
+  },
+  "dependencies": {
+    "chalk": "^4.1.1"
+  }
+}

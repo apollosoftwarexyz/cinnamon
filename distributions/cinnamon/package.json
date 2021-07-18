@@ -1,9 +1,13 @@
 {
   "name": "@apollosoftwarexyz/cinnamon",
   "license": "MIT",
+  "main": "dist/main.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",
     "directory": "distributions/cinnamon/"
+  },
+  "scripts": {
+    "build": "tsc --build"
   }
 }
