@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./packages",
+    "paths": {
+      "@apollosoftwarexyz/cinnamon-core": ["core/src/*"],
+      "@apollosoftwarexyz/cinnamon-cli": ["cli/src/*"]
+    }
+  }
+}

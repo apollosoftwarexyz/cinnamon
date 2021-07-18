@@ -137,6 +137,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@apollosoftwarexyz/cinnamon-cli@workspace:packages/cli":
+  version: 0.0.0-use.local
+  resolution: "@apollosoftwarexyz/cinnamon-cli@workspace:packages/cli"
+  languageName: unknown
+  linkType: soft
+
+"@apollosoftwarexyz/cinnamon-core@workspace:packages/core":
+  version: 0.0.0-use.local
+  resolution: "@apollosoftwarexyz/cinnamon-core@workspace:packages/core"
+  languageName: unknown
+  linkType: soft
+
 "@apollosoftwarexyz/cinnamon-docs@workspace:docs":
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon-docs@workspace:docs"
