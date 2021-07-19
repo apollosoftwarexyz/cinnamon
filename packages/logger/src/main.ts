@@ -1,4 +1,5 @@
 import * as chalk from 'chalk';
+import Cinnamon, { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core";
 
 enum LogLevel {
     DEBUG,
@@ -43,9 +44,8 @@ interface DelegateLogEntry extends LogEntry {
 
 type DelegateLogFunction = (message: DelegateLogEntry) => void;
 
-export class Logger {
+export class Logger extends CinnamonModule {
 
-    private readonly prefix: string;
     private readonly showDebugMessages: boolean;
 
     private readonly logDelegate?: DelegateLogFunction;
@@ -53,13 +53,13 @@ export class Logger {
     /**
      * Initializes a Cinnamon Framework logger.
      *
-     * @param prefix The application-specific prefix to display before each message.
+     * @param framework The Cinnamon Framework instance
      * @param showDebugMessages If true, messages with the debug log level will be shown.
      * @param logDelegate An optional promise predicate that is passed each log message, so that
      *                    it may be logged with a remote dashboard, for example.
      */
-    constructor(prefix: string, showDebugMessages: boolean = false, logDelegate?: DelegateLogFunction) {
-        this.prefix = prefix;
+    constructor(framework: Cinnamon, showDebugMessages: boolean = false, logDelegate?: DelegateLogFunction) {
+        super(framework);
         this.showDebugMessages = showDebugMessages;
         this.logDelegate = logDelegate;
     }
@@ -101,28 +101,34 @@ export class Logger {
      * @param entry The log entry to be displayed and passed to the remote log delegate.
      */
     log(entry: LogEntry) {
-        let printFunction = entry.level !== LogLevel.ERROR ? console.error : console.log;
+        // The function that will print the content to the underlying OS POSIX stream.
+        // (Essentially STDERR vs STDOUT)
+        let posixPrintFunction = entry.level !== LogLevel.ERROR ? console.error : console.log;
 
+        let printFunction;
         switch (entry.level) {
             case LogLevel.DEBUG:
-                printFunction = (_) => printFunction(chalk.gray(_));
+                printFunction = (...data: any[]) => posixPrintFunction(chalk.gray(...data));
                 break;
             case LogLevel.WARN:
-                printFunction = (_) => printFunction(chalk.red(_));
+                printFunction = (...data: any[]) => posixPrintFunction(chalk.red(...data));
                 break;
             case LogLevel.ERROR:
-                printFunction = (_) => printFunction(chalk.bgRed.whiteBright.bold(_));
+                printFunction = (...data: any[]) => posixPrintFunction(chalk.bgRed.whiteBright.bold(...data));
+                break;
+            default:
+                printFunction = (...data: any[]) => posixPrintFunction(...data);
                 break;
         }
 
         // Log in the console locally.
-        printFunction(`${LogLevel[entry.level]}\t[${this.prefix}] [${Logger.timestampStringFor(entry.timestamp)}] ${entry.message}`);
+        printFunction(`${LogLevel[entry.level]}\t[${this.framework.appName}] [${Logger.timestampStringFor(entry.timestamp)}] ${entry.message}`);
 
         // Now pass to the delegate, if it exists.
         if (this.logDelegate != null) this.logDelegate({
             ...entry,
             levelString: LogLevel[entry.level],
-            prefix: this.prefix,
+            prefix: this.framework.appName,
             timestampString: Logger.timestampStringFor(entry.timestamp)
         });
     }
