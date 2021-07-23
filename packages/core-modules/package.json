@@ -1,5 +1,6 @@
 {
   "name": "@apollosoftwarexyz/cinnamon-core-modules",
+  "description": "This package acts as a 'holder' for Cinnamon's core module class aliases.",
   "license": "MIT",
   "main": "src/main.ts",
   "private": true,

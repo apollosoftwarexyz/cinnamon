@@ -2,12 +2,11 @@ import * as fs from 'fs';
 import { parse as parseToml } from 'toml';
 import { promisify } from 'util';
 import {directoryExists, fileExists, toAbsolutePath} from "./_utils/fs";
+import {initializeCoreModules} from "@apollosoftwarexyz/cinnamon-core-modules";
+import Logger from "@apollosoftwarexyz/cinnamon-logger";
 
 import CinnamonModule from "./module";
 export { CinnamonModule };
-
-import { Logger } from "@apollosoftwarexyz/cinnamon-logger";
-
 
 /**
  * The main class of the Cinnamon framework. To initialize the framework, you initialize
@@ -170,12 +169,11 @@ export default class Cinnamon {
             process.exit(3);
         }
 
+        // If we're the default instance (i.e., if the instantiated framework variable is equal to
+        // the value of Cinnamon.defaultInstance), we can go ahead and initialize the global core
+        // modules fields with the modules registered with this instance.
         if (Cinnamon.defaultInstance == framework) initializeCoreModules();
         return framework;
     }
 
 }
-
-import * as modules from "@apollosoftwarexyz/cinnamon-core-modules";
-import {initializeCoreModules} from "@apollosoftwarexyz/cinnamon-core-modules";
-export { modules };

@@ -44,7 +44,7 @@ interface DelegateLogEntry extends LogEntry {
 
 type DelegateLogFunction = (message: DelegateLogEntry) => void;
 
-export class Logger extends CinnamonModule {
+export default class Logger extends CinnamonModule {
 
     private readonly showDebugMessages: boolean;
 
