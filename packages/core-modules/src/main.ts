@@ -1,5 +1,5 @@
 import Cinnamon from "@apollosoftwarexyz/cinnamon-core";
-import { Logger as LoggerModule } from "@apollosoftwarexyz/cinnamon-logger";
+import { default as LoggerModule } from "@apollosoftwarexyz/cinnamon-logger";
 
 export let Logger: LoggerModule;
 
