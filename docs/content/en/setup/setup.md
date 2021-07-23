@@ -40,8 +40,8 @@ manually create this file.
         port = 1234
 
     [framework.structure]
-        controllers = "controllers/"
-        models = "models/"
+        controllers = "src/controllers/"
+        models = "src/models/"
 
 # Your app-specific settings go here.
 [app]
@@ -84,9 +84,9 @@ These HTTP settings are passed to Cinnamon's internal HTTP server ([Koa](https:/
 ### `[framework.structure]` table
 These settings indicate your directory structure to Cinnamon. We recommend that you leave these as the defaults which are tried and tested in our products.
 
-- `controllers` (default: `controllers/`) - this is the directory (relative to your project root) that contains the API route controllers.
+- `controllers` (default: `src/controllers/`) - this is the directory (relative to your project root) that contains the API route controllers.
 
-- `models` (default: `models/`) - this is the directory (relative to your project root) that contains the API models.
+- `models` (default: `src/models/`) - this is the directory (relative to your project root) that contains the API models.
 
 ## `[app]` table
 This table contains your app settings. You are free to organize this as you please.

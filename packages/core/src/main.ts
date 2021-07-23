@@ -1,11 +1,13 @@
 import * as fs from 'fs';
 import { parse as parseToml } from 'toml';
 import { promisify } from 'util';
-import { fileExists } from "./_utils/fs";
-import CinnamonModule from "./module";
-import {Logger} from "@apollosoftwarexyz/cinnamon-logger";
+import {directoryExists, fileExists, toAbsolutePath} from "./_utils/fs";
 
+import CinnamonModule from "./module";
 export { CinnamonModule };
+
+import { Logger } from "@apollosoftwarexyz/cinnamon-logger";
+
 
 /**
  * The main class of the Cinnamon framework. To initialize the framework, you initialize
@@ -14,6 +16,16 @@ export { CinnamonModule };
  * This will, in turn, initialize all of Cinnamon's default module set.
  */
 export default class Cinnamon {
+
+    /**
+     * Gets the default instance of Cinnamon. This is ordinarily the only instance of Cinnamon
+     * that would be running, however it may be desired that the framework run twice in the
+     * same application, in which case this will be the first instance that was started.
+     *
+     * If no instance of Cinnamon has been initialized, this will be undefined.
+     */
+    public static get defaultInstance() { return Cinnamon._defaultInstance; };
+    private static _defaultInstance?: Cinnamon;
 
     private readonly devMode: boolean;
     public readonly appName: string;
@@ -28,6 +40,9 @@ export default class Cinnamon {
         this.appName = props.appName ?? 'cinnamon';
 
         this.modules = [];
+
+        // Populate the default instance of Cinnamon, if it does not already exist.
+        if (!Cinnamon._defaultInstance) Cinnamon._defaultInstance = this;
     }
 
     /**
@@ -85,12 +100,16 @@ export default class Cinnamon {
         }
 
         // If the file exists, we're ready to load cinnamon.toml, and to process and validate the contents.
-        console.log("Initializing Apollo Framework...");
+        console.log("Initializing Cinnamon...");
         const projectConfigFile = (await promisify(fs.readFile)('./cinnamon.toml', 'utf-8'));
 
         let projectConfig;
         try {
-            projectConfig = Object.assign(parseToml(projectConfigFile), {
+            // Save the project config into a JS object. Any missing properties will be set as
+            // one of the defaults specified in the structure below. We use Object.assign to
+            // copy anything from the TOML file (source parameter) into the in-memory object
+            // (target parameter).
+            projectConfig = Object.assign({
                 framework: {
                     core: {
                         development_mode: false
@@ -103,27 +122,60 @@ export default class Cinnamon {
                         port: 5213
                     },
                     structure: {
-                        controllers: 'controllers/',
-                        models: 'models/'
+                        controllers: 'src/controllers/',
+                        models: 'src/models/'
                     }
                 }
-            });
+            }, parseToml(projectConfigFile));
         } catch(ex) {
             console.error(`(!) Failed to parse cinnamon.toml:`);
             console.error(`(!) ...parsing failed on line ${ex.line}, at column ${ex.column}: ${ex.message}`);
             return process.exit(2);
         }
 
+        // Check NODE_ENV environment variable.
+        let forceDevMode = false;
+        if (process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "development") {
+            forceDevMode = true;
+        }
+
         // Initialize the framework using the project configuration.
         const framework = new Cinnamon({
-            devMode: projectConfig.framework.core.development_mode,
+            devMode: forceDevMode ? forceDevMode : projectConfig.framework.core.development_mode,
             appName: projectConfig.framework.app.name
         });
 
         framework.registerModule(new Logger(framework, framework.devMode));
-        framework.getModule<Logger>(Logger.prototype).info("Hello, world!");
+        framework.getModule<Logger>(Logger.prototype).info("Starting Cinnamon...");
 
+        // Display a warning if the framework is running in development mode. This is helpful for
+        // various reasons - if development mode was erroneously enabled in production, this may
+        // indicate the cause for potential performance degradation on account of hot-reload tech,
+        // etc., and could even help mitigate security risks due to ensuring development-only code
+        // is not accidentally enabled on a production service.
+        if (framework.devMode)
+            framework.getModule<Logger>(Logger.prototype).warn("Application running in DEVELOPMENT mode.");
+
+        // It's important that ORM is initialized before the web routes, wherever possible, to
+        // ensure that full functionality is available and unexpected errors won't occur immediately
+        // after startup.
+        // TODO: Initialize ORM.
+
+        // Initialize web service controllers.
+        framework.getModule<Logger>(Logger.prototype).info("Initializing web service controllers...");
+        const controllersPath = toAbsolutePath(projectConfig.framework.structure.controllers);
+        if (!await directoryExists(controllersPath)) {
+            framework.getModule<Logger>(Logger.prototype).error(`(!) The specified controllers path does not exist: ${projectConfig.framework.structure.controllers}`);
+            framework.getModule<Logger>(Logger.prototype).error(`(!) Full resolved path: ${controllersPath}`);
+            process.exit(3);
+        }
+
+        if (Cinnamon.defaultInstance == framework) initializeCoreModules();
         return framework;
     }
 
 }
+
+import * as modules from "@apollosoftwarexyz/cinnamon-core-modules";
+import {initializeCoreModules} from "@apollosoftwarexyz/cinnamon-core-modules";
+export { modules };

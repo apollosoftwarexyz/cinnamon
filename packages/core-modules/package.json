@@ -1,0 +1,14 @@
+{
+  "name": "@apollosoftwarexyz/cinnamon-core-modules",
+  "license": "MIT",
+  "main": "src/main.ts",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",
+    "directory": "packages/core-modules/"
+  },
+  "dependencies": {
+    "chalk": "^4.1.1"
+  }
+}
