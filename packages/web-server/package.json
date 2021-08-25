@@ -1,0 +1,14 @@
+{
+  "name": "@apollosoftwarexyz/cinnamon-web-server",
+  "license": "MIT",
+  "main": "src/main.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",
+    "directory": "packages/web-server/"
+  },
+  "dependencies": {
+    "@types/koa": "^2.13.4",
+    "koa": "^2.13.1"
+  }
+}

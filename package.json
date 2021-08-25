@@ -14,9 +14,12 @@
     "distributions/*"
   ],
   "scripts": {
+    "prerelease": "yarn workspace @apollosoftwarexyz/cinnamon prerelease",
+    "prepublishOnly": "yarn prerelease",
     "build": "yarn workspace @apollosoftwarexyz/cinnamon build",
     "docs:dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev",
-    "docs:generate": "yarn workspace @apollosoftwarexyz/cinnamon-docs generate"
+    "docs:generate": "yarn workspace @apollosoftwarexyz/cinnamon-docs generate",
+    "example:start": "yarn workspace @apollosoftwarexyz/cinnamon-examples-basic-webserver start"
   },
   "devDependencies": {
     "typescript": "^4.3.5"

@@ -8,6 +8,10 @@
     "directory": "distributions/cinnamon/"
   },
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "prerelease": "ts-node utils/prerelease.ts"
+  },
+  "devDependencies": {
+    "chalk": "^4.1.2"
   }
 }

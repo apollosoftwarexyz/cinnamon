@@ -1,12 +1,20 @@
 import * as fs from 'fs';
 import { parse as parseToml } from 'toml';
 import { promisify } from 'util';
-import {directoryExists, fileExists, toAbsolutePath} from "./_utils/fs";
-import {initializeCoreModules} from "@apollosoftwarexyz/cinnamon-core-modules";
-import Logger from "@apollosoftwarexyz/cinnamon-logger";
+import { directoryExists, fileExists, toAbsolutePath } from "./_utils/fs";
+import { initializeCoreModules } from "@apollosoftwarexyz/cinnamon-core-modules";
 
 import CinnamonModule from "./module";
 export { CinnamonModule };
+
+import Logger from "@apollosoftwarexyz/cinnamon-logger";
+import WebServer from "@apollosoftwarexyz/cinnamon-web-server";
+
+/**
+ * Whether the underlying framework is in debug mode.
+ * This needs to be turned off for releases.
+ */
+export const CINNAMON_CORE_DEBUG_MODE = true;
 
 /**
  * The main class of the Cinnamon framework. To initialize the framework, you initialize
@@ -144,7 +152,9 @@ export default class Cinnamon {
             appName: projectConfig.framework.app.name
         });
 
-        framework.registerModule(new Logger(framework, framework.devMode));
+        framework.registerModule(new Logger(framework, framework.devMode, {
+            showFrameworkDebugMessages: CINNAMON_CORE_DEBUG_MODE
+        }));
         framework.getModule<Logger>(Logger.prototype).info("Starting Cinnamon...");
 
         // Display a warning if the framework is running in development mode. This is helpful for
@@ -155,25 +165,51 @@ export default class Cinnamon {
         if (framework.devMode)
             framework.getModule<Logger>(Logger.prototype).warn("Application running in DEVELOPMENT mode.");
 
-        // It's important that ORM is initialized before the web routes, wherever possible, to
-        // ensure that full functionality is available and unexpected errors won't occur immediately
-        // after startup.
-        // TODO: Initialize ORM.
+        try {
+            // It's important that ORM is initialized before the web routes, wherever possible, to
+            // ensure that full functionality is available and unexpected errors won't occur immediately
+            // after startup.
+            // TODO: Initialize ORM.
 
-        // Initialize web service controllers.
-        framework.getModule<Logger>(Logger.prototype).info("Initializing web service controllers...");
-        const controllersPath = toAbsolutePath(projectConfig.framework.structure.controllers);
-        if (!await directoryExists(controllersPath)) {
-            framework.getModule<Logger>(Logger.prototype).error(`(!) The specified controllers path does not exist: ${projectConfig.framework.structure.controllers}`);
-            framework.getModule<Logger>(Logger.prototype).error(`(!) Full resolved path: ${controllersPath}`);
-            process.exit(3);
+            // Initialize web service controllers.
+            framework.getModule<Logger>(Logger.prototype).info("Initializing web service controllers...");
+
+            const controllersPath = toAbsolutePath(projectConfig.framework.structure.controllers);
+            if (!await directoryExists(controllersPath)) {
+                framework.getModule<Logger>(Logger.prototype).error(`(!) The specified controllers path does not exist: ${projectConfig.framework.structure.controllers}`);
+                framework.getModule<Logger>(Logger.prototype).error(`(!) Full resolved path: ${controllersPath}`);
+                process.exit(3);
+            }
+
+            framework.registerModule(new WebServer(framework, controllersPath));
+            framework.getModule<WebServer>(WebServer.prototype).initialize();
+
+            // If we're the default instance (i.e., if the instantiated framework variable is equal to
+            // the value of Cinnamon.defaultInstance), we can go ahead and initialize the global core
+            // modules fields with the modules registered with this instance.
+            if (Cinnamon.defaultInstance == framework) initializeCoreModules({
+                Logger: framework.getModule<Logger>(Logger.prototype)
+            });
+
+            await framework.getModule<WebServer>(WebServer.prototype).start({
+                host: projectConfig.framework.http.host,
+                port: projectConfig.framework.http.port,
+            });
+
+            return framework;
+        } catch(ex) {
+            framework.getModule<Logger>(Logger.prototype).error(
+                "Failed to start Cinnamon. If you believe this is a framework error, please open an issue in the " +
+                "Cinnamon project repository.\n" +
+                "(Apollo Software only): please consider opening an issue with the Internal Projects team." +
+                "\n" +
+                "https://github.com/apollosoftwarexyz/cinnamon/issues/new\n"
+            );
+            framework.getModule<Logger>(Logger.prototype).error(ex.message);
+            console.error('');
+            console.error(ex);
+            process.exit(1);
         }
-
-        // If we're the default instance (i.e., if the instantiated framework variable is equal to
-        // the value of Cinnamon.defaultInstance), we can go ahead and initialize the global core
-        // modules fields with the modules registered with this instance.
-        if (Cinnamon.defaultInstance == framework) initializeCoreModules();
-        return framework;
     }
 
 }
