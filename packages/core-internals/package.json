@@ -1,0 +1,14 @@
+{
+  "name": "@apollosoftwarexyz/cinnamon-core-internals",
+  "license": "MIT",
+  "private": true,
+  "main": "src/main.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",
+    "directory": "packages/core-internals/"
+  },
+  "dependencies": {
+    "toml": "^3.0.0"
+  }
+}

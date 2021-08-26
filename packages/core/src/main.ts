@@ -1,12 +1,12 @@
 import * as fs from 'fs';
-import { parse as parseToml } from 'toml';
 import { promisify } from 'util';
-import { directoryExists, fileExists, toAbsolutePath } from "./_utils/fs";
+import { parse as parseToml } from 'toml';
 import { initializeCoreModules } from "@apollosoftwarexyz/cinnamon-core-modules";
 
 import CinnamonModule from "./module";
 export { CinnamonModule };
 
+import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
 import WebServer from "@apollosoftwarexyz/cinnamon-web-server";
 
@@ -100,7 +100,7 @@ export default class Cinnamon {
     static async initialize() : Promise<Cinnamon> {
         // Stat cinnamon.toml to make sure it exists.
         // This doubles as making sure the process is started in the project root.
-        if (!await fileExists(('./cinnamon.toml'))) {
+        if (!await cinnamonInternals.fs.fileExists(('./cinnamon.toml'))) {
             console.error(`(!) cinnamon.toml not found in ${process.cwd()}`);
             console.error(`(!) Please make sure your current working directory is the project's root directory and that your project's cinnamon.toml exists.`);
             return process.exit(1);
@@ -174,8 +174,8 @@ export default class Cinnamon {
             // Initialize web service controllers.
             framework.getModule<Logger>(Logger.prototype).info("Initializing web service controllers...");
 
-            const controllersPath = toAbsolutePath(projectConfig.framework.structure.controllers);
-            if (!await directoryExists(controllersPath)) {
+            const controllersPath = cinnamonInternals.fs.toAbsolutePath(projectConfig.framework.structure.controllers);
+            if (!await cinnamonInternals.fs.directoryExists(controllersPath)) {
                 framework.getModule<Logger>(Logger.prototype).error(`(!) The specified controllers path does not exist: ${projectConfig.framework.structure.controllers}`);
                 framework.getModule<Logger>(Logger.prototype).error(`(!) Full resolved path: ${controllersPath}`);
                 process.exit(3);

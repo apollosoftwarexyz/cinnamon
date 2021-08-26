@@ -143,6 +143,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@apollosoftwarexyz/cinnamon-core-internals@workspace:packages/core-internals":
+  version: 0.0.0-use.local
+  resolution: "@apollosoftwarexyz/cinnamon-core-internals@workspace:packages/core-internals"
+  dependencies:
+    toml: ^3.0.0
+  languageName: unknown
+  linkType: soft
+
 "@apollosoftwarexyz/cinnamon-core-modules@workspace:packages/core-modules":
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon-core-modules@workspace:packages/core-modules"

@@ -63,6 +63,8 @@ export default class WebServer extends CinnamonModule {
     public initialize() {
         this.logger.frameworkDebug("WebServer module is loading route controllers now.");
 
+        
+
         this.logger.frameworkDebug("The internal web server is ready to be started.");
         this.currentState = WebServerModuleState.READY;
     }
