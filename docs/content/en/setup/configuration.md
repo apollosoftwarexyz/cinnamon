@@ -38,6 +38,8 @@ manually create this file.
     [framework.http]
         host = "0.0.0.0"
         port = 1234
+        
+        enable_logging = false
 
     [framework.structure]
         controllers = "src/controllers/"
@@ -73,13 +75,16 @@ These settings tell Cinnamon about your application.
 - `name` (default: `cinnamon`) - this is your app's identifier. These are used in logs. It's recommended that you use lowercase, URL-safe characters in your app's identifier for maximum flexibility with this identifier.
 
 ### `[framework.http]` table
-These HTTP settings are passed to Cinnamon's internal HTTP server ([Koa](https://koajs.com)).
+These HTTP settings are passed to Cinnamon's internal WebServer module (which in turn passes most of them to [Koa](https://koajs.com)).
 
 - `host` (default: `0.0.0.0` - all hosts) - this is the HTTP host interface that the server will listen on. Typically, this will be one of:
   - `127.0.0.1` (the loopback interface) which means only users on the local system can access the server, useful for development, or:
   - `0.0.0.0` (all hosts) which means the server will be bound to any interface. This is the expected default for any public web service.
 
 - `port` (default: `5213`) - this is the port the HTTP server will listen on. For permission and conflict-avoidance reasons, this does not default to port `80`.
+
+- `enable_logging` (default: `false`) - whether web requests should be logged as they are made. _We leave this off by default because in production on medium to large apps this can cause **huge** file sizes if you're using disk-based logging_, however the expectation is that this would almost always be kept on for debugging and may be useful for auditing secure web services too.
+  - Regardless of whether `enable_logging` is `true` or `false`, web requests that resulted in a server error (>= 500) will *always* be logged.
 
 ### `[framework.structure]` table
 These settings indicate your directory structure to Cinnamon. We recommend that you leave these as the defaults which are tried and tested in our products.

@@ -4,6 +4,7 @@
     "paths": {
       "@apollosoftwarexyz/cinnamon-core/*": ["core/src/*"],
       "@apollosoftwarexyz/cinnamon-cli/*": ["cli/src/*"]
-    }
+    },
+    "experimentalDecorators": true
   }
 }

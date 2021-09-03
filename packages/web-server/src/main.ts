@@ -1,9 +1,11 @@
 import Cinnamon, { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
+import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 
 import * as Koa from 'koa';
 import { Server } from 'http';
 import { Socket } from 'net';
+import Loader from "./loader";
 
 type ActiveConnectionMap = {
     [key: string]: Socket;
@@ -16,16 +18,23 @@ enum WebServerModuleState {
     ERRORED
 }
 
+export { Method } from './api/Method';
+export { default as Controller } from './api/Controller';
+export { default as Route } from './api/Route';
+export { default as Middleware } from './api/Middleware';
+
 /**
  * @private
  */
 export default class WebServer extends CinnamonModule {
 
     private readonly controllersPath: string;
+    private readonly controllersLoader: Loader;
 
     private currentState: WebServerModuleState;
+    private enableLogging: boolean;
 
-    private server: Koa;
+    private readonly server: Koa;
     private underlyingServer?: Server;
     private readonly activeConnections: ActiveConnectionMap;
 
@@ -44,13 +53,25 @@ export default class WebServer extends CinnamonModule {
         this.underlyingServer = undefined;
         this.activeConnections = {};
         this.currentState = WebServerModuleState.INITIAL;
+        this.enableLogging = false;
+
+        this.controllersLoader = new Loader({
+            framework,
+            owner: this,
+            server: this.server,
+            controllersPath: this.controllersPath
+        });
     }
 
     /**
      * The current framework instance's logger.
-     * @private
      */
-    private get logger() { return this.framework.getModule<Logger>(Logger.prototype); }
+    public get logger() { return this.framework.getModule<Logger>(Logger.prototype); }
+
+    /**
+     * Whether or not logging is enabled on the web server.
+     */
+    public get isLoggingEnabled() { return this.enableLogging; }
 
     /**
      * Initializes the router with the controllers path that was passed to the constructor.
@@ -60,16 +81,34 @@ export default class WebServer extends CinnamonModule {
      * - registering the controller methods (optionally with hot reload if the framework is in dev mode)
      * @private
      */
-    public initialize() {
+    public async initialize() {
         this.logger.frameworkDebug("WebServer module is loading route controllers now.");
 
-        
+        // Ensure the controllers directory is loaded.
+        // We do this check in core startup, but this will ensure we're in the correct state
+        // even if this module is loaded independently of the default distribution's core class.
+        if(!await cinnamonInternals.fs.directoryExists(this.controllersPath)) {
+            this.logger.error(`Unable to load web server controllers due to missing controllers directory: ${cinnamonInternals.fs.toAbsolutePath(this.controllersPath)}`);
+            await this.framework.terminate(true);
+            return;
+        }
+
+        const trackingControllersCount = await this.controllersLoader.scanForControllers();
+        this.logger.info(`Found ${trackingControllersCount} controller${trackingControllersCount !== 1 ? 's' : ''}.`, 'webserver');
+
+        await this.controllersLoader.registerControllers();
 
         this.logger.frameworkDebug("The internal web server is ready to be started.");
         this.currentState = WebServerModuleState.READY;
     }
 
-    public async start(options: { host: string, port: number }) : Promise<void> {
+    public async start(options: { host: string, port: number, enable_logging?: boolean }) : Promise<void> {
+        // If enable_logging is set (i.e., not null) and different to this.enableLogging
+        // (the instance variable), then update the instance variable.
+        if (this.enableLogging !== (options.enable_logging ?? false)) {
+            this.enableLogging = options.enable_logging ?? false;
+        }
+
         if (this.currentState != WebServerModuleState.READY) {
             let reason = "because it is in an invalid state.";
             if (this.currentState === WebServerModuleState.ONLINE) reason = "because it is already running.";

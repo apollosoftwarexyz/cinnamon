@@ -47,4 +47,39 @@ export namespace fs {
     export function toAbsolutePath(childPath: string): string {
         return path.join(process.cwd(), childPath);
     }
+
+    /**
+     * Recursively lists the paths of files in a directory and its children.
+     * A string list of the absolute paths of all the child files is returned.
+     *
+     * @param directoryPath The path of the root directory to search.
+     */
+    export async function listRecursively(directoryPath: string) : Promise<string[]> {
+
+        let discoveredFiles = [];
+
+        for (const filePath of await promisify(_fs.readdir)(directoryPath)) {
+            const absoluteFilePath = path.join(directoryPath, filePath);
+
+            // If the current 'file' is a directory, search _it_ recursively
+            // with the same function.
+            if ((await promisify(_fs.stat)(absoluteFilePath)).isDirectory())
+                discoveredFiles.push(...await listRecursively(absoluteFilePath));
+            // Otherwise, add the absolute file path we discovered to the list.
+            else discoveredFiles.push(absoluteFilePath);
+        }
+
+        return discoveredFiles;
+
+    }
+
+    /**
+     * Returns the date the path was previously modified.
+     *
+     * @param path The path to get the modification date of.
+     */
+    export async function getLastModification(path: string) : Promise<Date> {
+        return (await promisify(_fs.stat)(path)).mtime;
+    }
+
 }

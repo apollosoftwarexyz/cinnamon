@@ -73,6 +73,10 @@ interface LogEntry {
      */
     timestamp: Date;
     /**
+     * The module that generated the log entry. Leave as none for default (application).
+     */
+    module?: string;
+    /**
      * The textual message that was logged.
      */
     message: string;
@@ -148,44 +152,50 @@ export default class Logger extends CinnamonModule {
     /**
      * Logs an internal framework messages. Intended for internal framework-use only.
      * @param message The framework message to log.
+     * @param module The module that generated the log.
      * @private
      */
-    frameworkDebug(message: string) {
+    frameworkDebug(message: string, module?: string) {
         this.log({
             level: LogLevel.FRAMEWORK,
             timestamp: new Date(),
+            module,
             message
         })
     }
 
-    debug(message: string) {
+    debug(message: string, module?: string) {
         this.log({
             level: LogLevel.DEBUG,
             timestamp: new Date(),
+            module,
             message
         });
     }
 
-    info(message: string) {
+    info(message: string, module?: string) {
         this.log({
             level: LogLevel.INFO,
             timestamp: new Date(),
+            module,
             message
         });
     }
 
-    warn(message: string) {
+    warn(message: string, module?: string) {
         this.log({
             level: LogLevel.WARN,
             timestamp: new Date(),
+            module,
             message
         });
     }
 
-    error(message: string) {
+    error(message: string, module?: string) {
         this.log({
             level: LogLevel.ERROR,
             timestamp: new Date(),
+            module,
             message
         });
     }
@@ -226,9 +236,12 @@ export default class Logger extends CinnamonModule {
                 break;
         }
 
+        // Generate the module name.
+        const moduleName = entry.module ? ` [${entry.module}]` : '';
+
         // Log in the console locally.
         if (printFunction !== null)
-            printFunction(`${LogLevel[entry.level]}\t[${this.framework.appName}] [${Logger.timestampStringFor(entry.timestamp)}] ${entry.message}`);
+            printFunction(`${LogLevel[entry.level]}\t[${this.framework.appName}]${moduleName} [${Logger.timestampStringFor(entry.timestamp)}] ${entry.message}`);
 
         // Now pass to the delegate, if it exists, and we aren't logging a framework debugging message without it being
         // explicitly enabled.

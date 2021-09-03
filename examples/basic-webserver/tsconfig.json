@@ -6,5 +6,8 @@
   "strict": true,
   "skipLibCheck": true,
   "skipDefaultLibCheck": true,
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "compilerOptions": {
+    "experimentalDecorators": true
+  }
 }

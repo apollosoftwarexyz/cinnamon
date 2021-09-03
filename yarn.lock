@@ -197,8 +197,17 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon-web-server@workspace:packages/web-server"
   dependencies:
+    "@types/chalk": ^2.2.0
+    "@types/co": ^4.6.2
     "@types/koa": ^2.13.4
+    "@types/koa-router": ^7.4.4
+    "@types/uuid": ^8.3.1
+    chalk: ^4.1.2
+    chokidar: ^3.5.2
+    co: ^4.6.0
     koa: ^2.13.1
+    koa-router: ^10.1.1
+    uuid: ^8.3.2
   languageName: unknown
   linkType: soft
 
@@ -2347,6 +2356,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/chalk@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "@types/chalk@npm:2.2.0"
+  dependencies:
+    chalk: "*"
+  checksum: 9cded9031f180268be59010fc1e13c7b4384e51f0ca8b75bc7a40bdd46f5f3c4859953525fb53663287e5bb25ca5df59396c276ce5c09e1a83aa7a2aec6a9f59
+  languageName: node
+  linkType: hard
+
 "@types/clean-css@npm:*":
   version: 4.2.5
   resolution: "@types/clean-css@npm:4.2.5"
@@ -2354,6 +2372,13 @@ __metadata:
     "@types/node": "*"
     source-map: ^0.6.0
   checksum: 478434371d5a81516a9aa073673e7e3f6fe58dc68d2bda800bc5aa068fbf5a476967d60fd5ecd479248575e8d0a466058ba7b0514fa6fc605181102ce431fd55
+  languageName: node
+  linkType: hard
+
+"@types/co@npm:^4.6.2":
+  version: 4.6.2
+  resolution: "@types/co@npm:4.6.2"
+  checksum: fedf60bc32addaee2311942753f03864bdb4c626880ee957ebaba909a22c4074dfcc3dedfdae9954d5ef72d49775bce39cfa8be9b818c93ecce35df7ddae65e4
   languageName: node
   linkType: hard
 
@@ -2528,6 +2553,15 @@ __metadata:
   dependencies:
     "@types/koa": "*"
   checksum: bb6cae03095752d2f351e650ec4f5631c4512aec85bf5f7bab210a91a04714fbe0e75edac120cb56aff2cee5c6549bd6bf7a0ccc35f3adc0aa41d463b0a1f310
+  languageName: node
+  linkType: hard
+
+"@types/koa-router@npm:^7.4.4":
+  version: 7.4.4
+  resolution: "@types/koa-router@npm:7.4.4"
+  dependencies:
+    "@types/koa": "*"
+  checksum: ffbe276633daca7d9db9ae4dd3a169481413ba6379d9b22f608ffa61eaa25d9be6e495dab0b3e7071ba31c8e2cf55bd17c98c50d32bdaf32d27ec86f3af41ba7
   languageName: node
   linkType: hard
 
@@ -2730,6 +2764,13 @@ __metadata:
   version: 2.0.6
   resolution: "@types/unist@npm:2.0.6"
   checksum: 0b98b3b1e21cb316cc68dcc73e960233a80771ebf477cf6cf58d43b181a3d586edd4eeab994f1885eebefec9acc97c9b97c067dfe9ef7ff1d65786c564594d0b
+  languageName: node
+  linkType: hard
+
+"@types/uuid@npm:^8.3.1":
+  version: 8.3.1
+  resolution: "@types/uuid@npm:8.3.1"
+  checksum: 5864be83031f5836be985187ecebb2769936bf223bad896dac381f1a0fdd2ae239f448263196f752d62a4ecc8563817d6d94e329eb2099a28e743ab206e7bfea
   languageName: node
   linkType: hard
 
@@ -4169,6 +4210,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chalk@npm:*, chalk@npm:^3.0.0 || ^4.0.0, chalk@npm:^4.1.0, chalk@npm:^4.1.1, chalk@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "chalk@npm:4.1.2"
+  dependencies:
+    ansi-styles: ^4.1.0
+    supports-color: ^7.1.0
+  checksum: e3901b97d953991712bf0b941d586175be7ca5da56a97d25187e07453c6b26cae0ac8d9c7aa9e87e7c5c986fff870771b3a8e2705b3becda868829e2e12c2a65
+  languageName: node
+  linkType: hard
+
 "chalk@npm:^1.1.3":
   version: 1.1.3
   resolution: "chalk@npm:1.1.3"
@@ -4190,16 +4241,6 @@ __metadata:
     escape-string-regexp: ^1.0.5
     supports-color: ^5.3.0
   checksum: 22c7b7b5bc761c882bb6516454a1a671923f1c53ff972860065aa0b28a195f230163c1d46ee88bcc7a03e5539177d896457d8bc727de7f244c6e87032743038e
-  languageName: node
-  linkType: hard
-
-"chalk@npm:^3.0.0 || ^4.0.0, chalk@npm:^4.1.0, chalk@npm:^4.1.1, chalk@npm:^4.1.2":
-  version: 4.1.2
-  resolution: "chalk@npm:4.1.2"
-  dependencies:
-    ansi-styles: ^4.1.0
-    supports-color: ^7.1.0
-  checksum: e3901b97d953991712bf0b941d586175be7ca5da56a97d25187e07453c6b26cae0ac8d9c7aa9e87e7c5c986fff870771b3a8e2705b3becda868829e2e12c2a65
   languageName: node
   linkType: hard
 
@@ -7937,6 +7978,19 @@ fsevents@~2.3.2:
     co: ^4.6.0
     koa-compose: ^3.0.0
   checksum: d74bafebae527ef5b26f9f7d66928ca9f62cabba2eb8cc8fff1742a5ed5de21a32ca9ddb0a63b0e6a3e3ae04163be95b3a0efdaed662303f921c655527e16955
+  languageName: node
+  linkType: hard
+
+"koa-router@npm:^10.1.1":
+  version: 10.1.1
+  resolution: "koa-router@npm:10.1.1"
+  dependencies:
+    debug: ^4.1.1
+    http-errors: ^1.7.3
+    koa-compose: ^4.1.0
+    methods: ^1.1.2
+    path-to-regexp: ^6.1.0
+  checksum: bb188c7c93a420782a5d65c23dd463328512b6ca419f10d012e01e7a3ea1295970893440192b2a388a8a67fc90a459b1f5042464cf11542e2712cfc1352e4db1
   languageName: node
   linkType: hard
 
@@ -13338,6 +13392,15 @@ typescript@^4.3.5:
   version: 1.0.1
   resolution: "utils-merge@npm:1.0.1"
   checksum: a457956ebc09efbda05da8bf213ab89140bb9dffa3c42b3315dd8fc3c45d67a1b802741f58b7bba4872113201fc275fc86470289d8bd32b74297b5e5b5980705
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^8.3.2":
+  version: 8.3.2
+  resolution: "uuid@npm:8.3.2"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: aed2bcef341f95635f308fea8831fb9038b18c485fe7e71feb89d2e05602dfecad0cb6f2246fae096d4da425cca6e8a71056f28abd97ad98cf770a2018853248
   languageName: node
   linkType: hard
 

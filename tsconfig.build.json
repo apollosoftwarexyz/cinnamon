@@ -6,6 +6,7 @@
     "module": "CommonJS",
     "strict": true,
     "skipLibCheck": true,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "experimentalDecorators": true
   }
 }

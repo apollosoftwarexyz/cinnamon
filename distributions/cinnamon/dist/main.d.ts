@@ -6,3 +6,7 @@ import Cinnamon, { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core";
 export default Cinnamon;
 export { CinnamonModule };
 export * from '@apollosoftwarexyz/cinnamon-core-modules';
+export { Method, Controller, Route, Middleware } from '@apollosoftwarexyz/cinnamon-web-server';
+import * as Koa from 'koa';
+import { Context, Next } from 'koa';
+export { Koa, Context, Next };

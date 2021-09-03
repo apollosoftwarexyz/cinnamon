@@ -53,6 +53,15 @@ export default class Cinnamon {
     }
 
     /**
+     * Whether the framework is in application development mode.
+     * When set to true, features such as hot-reload will be automatically enabled.
+     *
+     * You should set this to false for production applications as there may be a performance
+     * or security penalty present when certain development features are active.
+     */
+    get inDevMode() { return this.devMode; }
+
+    /**
      * Checks if the specified module is registered in the framework based on its type.
      * If it is, the module is returned, otherwise false is returned.
      *
@@ -126,7 +135,8 @@ export default class Cinnamon {
                     },
                     http: {
                         host: '0.0.0.0',
-                        port: 5213
+                        port: 5213,
+                        enable_logging: false
                     },
                     structure: {
                         controllers: 'src/controllers/',
@@ -182,7 +192,8 @@ export default class Cinnamon {
             }
 
             framework.registerModule(new WebServer(framework, controllersPath));
-            framework.getModule<WebServer>(WebServer.prototype).initialize();
+            await framework.getModule<WebServer>(WebServer.prototype).initialize();
+            framework.getModule<Logger>(Logger.prototype).info("Successfully initialized web service controllers.");
 
             // If we're the default instance (i.e., if the instantiated framework variable is equal to
             // the value of Cinnamon.defaultInstance), we can go ahead and initialize the global core
@@ -191,10 +202,7 @@ export default class Cinnamon {
                 Logger: framework.getModule<Logger>(Logger.prototype)
             });
 
-            await framework.getModule<WebServer>(WebServer.prototype).start({
-                host: projectConfig.framework.http.host,
-                port: projectConfig.framework.http.port,
-            });
+            await framework.getModule<WebServer>(WebServer.prototype).start(projectConfig.framework.http);
 
             return framework;
         } catch(ex) {
@@ -210,6 +218,27 @@ export default class Cinnamon {
             console.error(ex);
             process.exit(1);
         }
+    }
+
+    /**
+     * Attempts to shut down any applicable modules, and then terminates the application.
+     * This should be used if an unrecoverable exception is encountered with inErrorState
+     * set to true.
+     *
+     * If you're just shutting down the web server for normal reasons, e.g. to install
+     * updates, per user request, use terminate with inErrorState set to false.
+     *
+     * @param inErrorState Whether the application had to shut down because of an error
+     * (true) or not (false).
+     */
+    async terminate(inErrorState: boolean = false) : Promise<void> {
+        // Presently, we just terminate the WebServer module, however once a proper, fully-fledged,
+        // module system is in place, we'll terminate all the modules.
+        await this.getModule<WebServer>(WebServer.prototype).terminate();
+
+        // Exit with a POSIX exit code of non-zero if error, or zero if no error (implied by
+        // inErrorState = false).
+        process.exit(inErrorState ? 1 : 0);
     }
 
 }
