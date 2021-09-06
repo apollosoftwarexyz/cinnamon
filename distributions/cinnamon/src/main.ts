@@ -19,6 +19,7 @@ export { CinnamonModule };
 ////////////////
 export * from '@apollosoftwarexyz/cinnamon-core-modules';
 export { Method, Controller, Route, Middleware } from '@apollosoftwarexyz/cinnamon-web-server';
+export * from '@apollosoftwarexyz/cinnamon-validator';
 
 ////////////////
 // Third Party.

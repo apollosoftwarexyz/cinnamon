@@ -30,6 +30,7 @@ Object.defineProperty(exports, "Method", { enumerable: true, get: function () { 
 Object.defineProperty(exports, "Controller", { enumerable: true, get: function () { return cinnamon_web_server_1.Controller; } });
 Object.defineProperty(exports, "Route", { enumerable: true, get: function () { return cinnamon_web_server_1.Route; } });
 Object.defineProperty(exports, "Middleware", { enumerable: true, get: function () { return cinnamon_web_server_1.Middleware; } });
+__exportStar(require("@apollosoftwarexyz/cinnamon-validator"), exports);
 ////////////////
 // Third Party.
 ////////////////

@@ -19,7 +19,8 @@
     "build": "yarn workspace @apollosoftwarexyz/cinnamon build",
     "docs:dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev",
     "docs:generate": "yarn workspace @apollosoftwarexyz/cinnamon-docs generate",
-    "example:start": "yarn workspace @apollosoftwarexyz/cinnamon-examples-basic-webserver start"
+    "example:start": "yarn workspace @apollosoftwarexyz/cinnamon-examples-basic-webserver start",
+    "example-validation:start": "yarn workspace @apollosoftwarexyz/cinnamon-examples-validation start"
   },
   "devDependencies": {
     "typescript": "^4.3.5"

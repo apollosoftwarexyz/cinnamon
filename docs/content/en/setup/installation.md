@@ -5,6 +5,10 @@ position: 2
 category: Setup
 ---
 
+<div class="page-description">
+This page demonstrates how to install Cinnamon's CLI globally and how to set up a new Cinnamon project.
+</div>
+
 <alert type="warning">
 These are <i>provisional</i> instructions; intended to indicate how the installation procedure might look
 once the library has been packaged and released. They are most likely not relevant at present.

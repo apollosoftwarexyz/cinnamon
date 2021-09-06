@@ -1,3 +1,7 @@
 .token.table {
     display: inline !important;
 }
+
+.page-description {
+    @apply text-gray-600 pb-6 mb-6 border-b-4 border-gray-800;
+}

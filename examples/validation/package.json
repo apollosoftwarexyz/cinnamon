@@ -1,0 +1,17 @@
+{
+  "name": "@apollosoftwarexyz/cinnamon-examples-validation",
+  "license": "MIT",
+  "private": true,
+  "main": "src/main.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",
+    "directory": "examples/validation/"
+  },
+  "scripts": {
+    "start": "ts-node ."
+  },
+  "dependencies": {
+    "ts-node": "^10.1.0"
+  }
+}

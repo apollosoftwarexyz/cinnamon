@@ -1,8 +1,14 @@
 ---
-title: Introduction
+title: Prologue
 description: 'Welcome to the Apollo Software Cinnamon Documentation.'
 position: 1
 ---
+
+<div class="page-description">
+This is a quick overview of Cinnamon; why you should use it, our design goals, and our principles. This is our sales pitch to you. If you're already interested, feel free to skip this page and begin setting up Cinnamon!
+</div>
+
+<p style="text-align:center;font-size:24pt;font-weight:bold;">Cinnamon</p>
 
 > _"The line of code that's the fastest to write, that never breaks, that doesn't need maintenance, is the line you never had to write."_
 

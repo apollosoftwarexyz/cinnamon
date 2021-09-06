@@ -5,6 +5,10 @@ position: 3
 category: Setup
 ---
 
+<div class="page-description">
+This page explains Cinnamon's <code>cinnamon.toml</code> file and serves as a reference for the various configuration options that may be set in the file.
+</div>
+
 Cinnamon uses a TOML-based configuration for each project. [TOML](https://github.com/toml-lang/toml) is a minimal configuration file format designed to be readable yet simple. **TOML files are divided into different sections called _tables_.**
 
 Once you've initialized your project, your project will have a `cinnamon.toml` file in the root directory.
