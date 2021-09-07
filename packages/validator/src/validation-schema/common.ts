@@ -1,16 +1,21 @@
-type ValidationSchemaFieldAggregate<T> = {
+/// Validation Schema Common definitions
+/// ---
+/// This file defines attributes which are common to all field types, as
+/// well as the operators common to all field types.
+
+/**
+ * Defines a type which can either be a common aggregate operator OR a
+ * constant value itself.
+ */
+type ValueOrAggregateOperator<T> = {
     $any?: T[];
     $all?: T[];
 } | T;
 
-type ValidationSchemaFieldOperators = {
-    /**
-     * If set, the value must be equal to the value of the specified property to pass validation.
-     */
-    $eq?: string
-}
-
-type ValidationSchemaFieldCommon<T> = {
+/**
+ * Attributes that are common to all field types in the validation schema.
+ */
+export type ValidationSchemaFieldCommon<T> = {
     /**
      * Tests either the specified value, or each of the specified values in the case
      * of an array being provided, passing validation if the value matches any of the
@@ -23,7 +28,7 @@ type ValidationSchemaFieldCommon<T> = {
      * regular expression has one or more match, if all the regular expressions have a match ($all)
      * or if any of the regular expressions have a match ($any).
      */
-    matches?: ValidationSchemaFieldAggregate<RegExp>;
+    matches?: ValueOrAggregateOperator<RegExp>;
 
     /**
      * Whether or not the value must explicitly be present to pass validation.
@@ -48,45 +53,14 @@ type ValidationSchemaFieldCommon<T> = {
      * on the reason.
      */
     invalidMessage?: string;
-} & ValidationSchemaFieldOperators;
+} & ValidationSchemaFieldCommonOperators;
 
-type ValidationSchemaField =
-    | {
-        type: "any"
-    } & ValidationSchemaFieldCommon<any>
-    | {
-        type: "string",
-        /**
-         * The minimum length of the string. Must be greater than or equal to zero.
-         */
-        minLength?: number,
-        /**
-         * The maximum length of the string. There's not explicit maximum but JavaScript
-         * struggles with large numbers. Must be greater than or equal to zero.
-         */
-        maxLength?: number,
-    } & ValidationSchemaFieldCommon<string>
-    | {
-        type: "boolean",
-    } & ValidationSchemaFieldCommon<boolean>
-    | {
-        type: "number",
-        /**
-         * The minimum value of the number value. The number value must be greater than
-         * or equal to this value.
-         */
-        min?: number,
-        /**
-         * The maximum value of the number value. The number value must be less than or
-         * equal to this value.
-         */
-        max?: number,
-        /**
-         * Whether the number must be a whole integer to pass validation.
-         */
-        integer?: boolean,
-    } & ValidationSchemaFieldCommon<number>;
-
-export interface ValidationSchemaObject {
-    [key: string]: ValidationSchemaField;
+/**
+ * Operators that can be applied to all field types in the schema.
+ */
+export type ValidationSchemaFieldCommonOperators = {
+    /**
+     * If set, the value must be equal to the value of the specified property to pass validation.
+     */
+    $eq?: string;
 }
