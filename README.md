@@ -27,7 +27,7 @@ https://cinnamon.apollosoftware.xyz/
 - [ ] Session Management and Authentication module
 - [ ] CLI tooling and utilities
     - [ ] CLI helpers for production and development tasks
-    - [ ] Shell script generation support
+    - [ ] Support for shell script generation
 
 ## Development
 Apollo Software Cinnamon uses [Yarn Berry (2.x)](https://yarnpkg.com/getting-started/install) for workspace management.
