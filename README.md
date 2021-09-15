@@ -22,7 +22,7 @@ https://cinnamon.apollosoftware.xyz/
     - [ ] Static file hosting support
 - [ ] WebSocket module (integrated with Web Server module)
 - [ ] Database ORM module using [TypeORM](https://typeorm.io/)
-- [ ] Validation module (for data validation on JavaScript/JSON objects)
+- [x] Validation module (for data validation on JavaScript/JSON objects)
     - [ ] Middleware for Web Server module
 - [ ] Session Management and Authentication module
 - [ ] CLI tooling and utilities

@@ -2,6 +2,8 @@ import ValidationResult from "./result";
 import { ValidationSchemaFieldSmartAttribute } from "./validation-schema/attribute";
 import { ValidationSchema, ValidationSchemaField, ValidationSchemaObject } from "./validation-schema/core";
 
+import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
+
 type _ExecutorValidationFailOptions = { field: ValidationSchemaField, fieldName?: string, parentName?: string, defaultMessage?: string };
 type _ValidationSchemaFieldSmartAttributeObject = {
     [key: string]: ValidationSchemaFieldSmartAttribute<any>;
@@ -128,13 +130,16 @@ export class ValidationSchemaExecutor {
             throw new Error("You may only set a field's required property to true, false or 'explicit'.");
         }
 
+        if (field.equals && field.arrayEquals) {
+            throw new Error("You may not specify equals AND arrayEquals; they are mutually exclusive.");
+        }
+
         if (field.equals !== undefined && field.equals !== null) {
             // If it's an array, ensure at least some entry in field.equals is
             // equal to the current value.
             //
             // EDGE CASE: make sure we don't attempt this check if the current
-            // value is an array.
-            // >   TODO: (We should have some arrayEquals operator)
+            // value is an array. (In which case, arrayEquals should be used)
             if (Array.isArray(field.equals) && !Array.isArray(value)) {
                 // If not, short circuit and return false.
                 if (!field.equals.some(entry => value === entry))
@@ -142,7 +147,23 @@ export class ValidationSchemaExecutor {
             // Otherwise, if it's just an object, simply make sure if
             // field.equals in the schema is equal to the current value.
             } else {
-                if (value !== field.equals) return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to: ' + field.equals });
+                if (value !== field.equals)
+                    return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to: ' + field.equals });
+            }
+        }
+
+        if (field.arrayEquals !== undefined && field.arrayEquals !== null) {
+            // If every entry in arrayEquals is an array, then we know we're
+            // dealing with a nested array and thus should check if our array
+            // is included.
+            if ((field.arrayEquals as any[]).every(entry => Array.isArray(entry))) {
+                if (!(field.arrayEquals as any[][]).some(entry => cinnamonInternals.data.arrayEquals(entry, value)))
+                    return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field was not set to a valid value. Possible values are: ' + JSON.stringify(field.arrayEquals)});
+            // Otherwise, simply compare the field.arrayEquals array to the
+            // value, to ensure they're equal.
+            } else {
+                if (!cinnamonInternals.data.arrayEquals(field.arrayEquals, value))
+                    return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to: ' + field.arrayEquals });
             }
         }
 
@@ -166,10 +187,10 @@ export class ValidationSchemaExecutor {
             }
         }
 
-        // TODO: depth recursion on field.$eq attribute.
         if (field.$eq !== undefined) {
             if (_entireObject) {
-                if (_entireObject[field.$eq] !== value) return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to the ' + this._toHumanReadableFieldName(_entireObject[field.$eq].fieldName ?? field.$eq) + ' field.' });
+                if (cinnamonInternals.data.resolveObjectDeep(field.$eq, _entireObject) !== value)
+                    return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to the ' + this._toHumanReadableFieldName(_entireObject[field.$eq].fieldName ?? field.$eq) + ' field.' });
             } else throw new Error("The $eq operator may not be used on a field outside of an object context.");
         }
 
@@ -225,8 +246,7 @@ export class ValidationSchemaExecutor {
                 if (typeof entry['$eval'] === 'function') {
                     attrs[key] = entry['$eval'](entireObjectToValidate);
                 } else if (typeof entry['$eq'] === 'string') {
-                    // TODO: depth recursion on $eq value.
-                    attrs[key] = entireObjectToValidate[entry['$eq']];
+                    attrs[key] = cinnamonInternals.data.resolveObjectDeep(entry['$eq'], entireObjectToValidate);
                 }
             }
 

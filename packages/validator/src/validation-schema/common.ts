@@ -38,14 +38,42 @@ export type ValidationSchemaFieldCommonMessage = {
 /**
  * Attributes that are common to all field types in the validation schema.
  */
-export type ValidationSchemaFieldCommon<T> = {
+export type ValidationSchemaFieldCommon<T> = ({
+
     /**
      * Tests either the specified value, or each of the specified values in the case
      * of an array being provided, passing validation if the value matches any of the
-     * specified values using JavaScript's equality operator.
+     * specified values using JavaScript's type-equal equality operator (===).
+     *
+     * (!!!) If you want to check if the value is equal to one array, or one in
+     * a set of nested arrays, use arrayEquals instead.
      */
     equals?: T | T[];
 
+    arrayEquals?: never;
+
+} | {
+
+    equals?: never;
+
+    /**
+     * Tests either the specified value (which should be an array), or each of
+     * the spewcified values in the case of an array of arrays being provided,
+     * passing validation if the value matches any of the specified values.
+     *
+     * Instead of using JavaScript's type-equal equality operator (===), the
+     * array elements are compared with each other, meaning the array's needn't
+     * be sorted (as JSON has no set representation). If your intention is that
+     * the array should be equal *in order*, string equality should be checked
+     * instead.
+     *
+     * This is essentially a version of equals that enables checking equality
+     * with an array or one in a set of nested arrays. In other words, you'd use
+     * this check if the value you're checking would be an array.
+     */
+    arrayEquals?: T | T[];
+
+}) & {
     /**
      * Tests the value against the regular expression(s). Validation is passed if the
      * regular expression has one or more match, if all the regular expressions have a match ($all)
