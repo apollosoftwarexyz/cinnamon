@@ -12,5 +12,8 @@
     "@nuxt/content-theme-docs": "^0.10.1",
     "@tailwindcss/typography": "^0.2.0",
     "nuxt": "^2.15.4"
+  },
+  "devDependencies": {
+    "typedoc": "^0.22.3"
   }
 }
