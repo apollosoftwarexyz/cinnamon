@@ -143,6 +143,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@apollosoftwarexyz/cinnamon-config@workspace:packages/config":
+  version: 0.0.0-use.local
+  resolution: "@apollosoftwarexyz/cinnamon-config@workspace:packages/config"
+  dependencies:
+    chalk: ^4.1.1
+  languageName: unknown
+  linkType: soft
+
 "@apollosoftwarexyz/cinnamon-core-internals@workspace:packages/core-internals":
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon-core-internals@workspace:packages/core-internals"

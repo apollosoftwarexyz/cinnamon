@@ -14,9 +14,11 @@ function createValidationSchemaExecutor(schema: ValidationSchema) : ValidationSc
 
 // Public exports.
 export {
+    ValidationSchema,
     createValidationSchemaExecutor,
     createValidationSchemaExecutor as $,
-    ValidationSchemaExecutor
+    ValidationSchemaExecutor,
+    ValidationSchemaExecutor as Validator
 };
 
 export { default as ValidationResult } from './result';

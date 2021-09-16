@@ -1,12 +1,14 @@
 export namespace data {
 
+    export const NESTED_OBJECT_DELIMETER = '.';
+
     /**
      * Compares two arrays to check if they are equal in terms of the values
      * they hold, out of order.
      * @param a An array to check.
      * @param b The array to check against the other array.
-     * @return True if the arrays contain the same values and only the same
-     * values, false if not.
+     * @return {boolean} isArrayEqual - true if the arrays contain the same
+     * values and only the same values, false if not.
      */
     export function arrayEquals(a: any[], b: any[]): boolean {
         // Immediately short-circuit if either isn't an array or the lengths are
@@ -26,8 +28,9 @@ export namespace data {
     export function resolveObjectDeep(key: string, obj: {
         [key: string]: any
     }) : any {
-        // Split the key into parts, denoted by a period (.).
-        const keyParts = key.split('.');
+        // Split the key into parts, denoted by the nested object delimeter - by
+        // default a period (.).
+        const keyParts = key.split(NESTED_OBJECT_DELIMETER);
 
         // Check if this is the final part of the key to look up in the object.
         // Yes = there is only one part which would be the imperative key, No =
@@ -50,7 +53,53 @@ export namespace data {
         // (We can simply join keyParts by a period because our shift operation
         // above actually removed the imperative key from the key parts.)
         if (isFinalKey) return obj[imperativeKey];
-        else return resolveObjectDeep(keyParts.join('.'), obj[imperativeKey]);
+        else return resolveObjectDeep(
+            keyParts.join(NESTED_OBJECT_DELIMETER),
+            obj[imperativeKey]
+        );
+    }
+
+    export function setObjectDeep(key: string, value: any, obj: {
+        [key: string]: any
+    }, options?: {
+        createChildrenIfNeeded: boolean
+    }, _entireKey?: string) {
+        if (!options) options = {
+            createChildrenIfNeeded: true
+        };
+
+        // Split the key into parts, denoted by a period (.).
+        const keyParts = key.split(NESTED_OBJECT_DELIMETER);
+
+        // Check if this is the final part of the key to look up in the object.
+        // Yes = there is only one part which would be the imperative key, No =
+        // there are other parts, so we need to keep digging in the object.
+        const isFinalKey = keyParts.length <= 1;
+
+        // Get the first part of the key (= 'imperative' part).
+        // This is the part we're immediately looking up in the object.
+        //
+        // We explicitly cast this to a string, because we know the key cannot
+        // be empty.
+        const imperativeKey = keyParts.shift() as string;
+
+        // Throw an error if the key can't be obtained.
+        if (!Object.keys(obj).includes(imperativeKey)) {
+            if (!options.createChildrenIfNeeded) {
+                throw new Error(`Failed to locate key: ${_entireKey}.`);
+            } else obj[imperativeKey] = {};
+        }
+
+        // Either perform a direct set if this is the imperative key, or perform
+        // a recursive set if neccessary.
+        if (isFinalKey) { obj[imperativeKey] = value; return; }
+        else setObjectDeep(
+            keyParts.join(NESTED_OBJECT_DELIMETER),
+            value,
+            obj[imperativeKey],
+            options,
+            _entireKey
+        );
     }
 
 }
