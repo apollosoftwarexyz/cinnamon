@@ -10,3 +10,5 @@ dist
 sw.*
 .env
 !sw.js
+
+static/api

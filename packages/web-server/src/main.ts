@@ -5,13 +5,22 @@ import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 import * as Koa from 'koa';
 import { Server } from 'http';
 import { Socket } from 'net';
+
 import Loader from "./loader";
 
-type ActiveConnectionMap = {
+/**
+ * @internal
+ * @private
+ */
+export type ActiveConnectionMap = {
     [key: string]: Socket;
 };
 
-enum WebServerModuleState {
+/**
+ * @internal
+ * @private
+ */
+export enum WebServerModuleState {
     INITIAL,
     READY,
     ONLINE,
@@ -24,6 +33,9 @@ export { default as Route } from './api/Route';
 export { default as Middleware } from './api/Middleware';
 
 /**
+ * @category Core Modules
+ * @CoreModule
+ * @internal
  * @private
  */
 export default class WebServer extends CinnamonModule {

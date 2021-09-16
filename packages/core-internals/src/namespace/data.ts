@@ -1,6 +1,24 @@
+/**
+ * @module @apollosoftwarexyz/cinnamon-core-internals
+ * @internal
+ * @private
+ */
+
+/**
+ * Part of {@link cinnamonInternals}.
+ *
+ * @internal
+ * @private
+ */
 export namespace data {
 
-    export const NESTED_OBJECT_DELIMETER = '.';
+    /**
+     * Used to delimit between nested objects in an object key,
+     *
+     * @see {@link resolveObjectDeep}
+     * @see {@link setObjectDeep}
+     */
+    export const NESTED_OBJECT_DELIMITER = '.';
 
     /**
      * Compares two arrays to check if they are equal in terms of the values
@@ -30,7 +48,7 @@ export namespace data {
     }) : any {
         // Split the key into parts, denoted by the nested object delimeter - by
         // default a period (.).
-        const keyParts = key.split(NESTED_OBJECT_DELIMETER);
+        const keyParts = key.split(NESTED_OBJECT_DELIMITER);
 
         // Check if this is the final part of the key to look up in the object.
         // Yes = there is only one part which would be the imperative key, No =
@@ -54,7 +72,7 @@ export namespace data {
         // above actually removed the imperative key from the key parts.)
         if (isFinalKey) return obj[imperativeKey];
         else return resolveObjectDeep(
-            keyParts.join(NESTED_OBJECT_DELIMETER),
+            keyParts.join(NESTED_OBJECT_DELIMITER),
             obj[imperativeKey]
         );
     }
@@ -69,7 +87,7 @@ export namespace data {
         };
 
         // Split the key into parts, denoted by a period (.).
-        const keyParts = key.split(NESTED_OBJECT_DELIMETER);
+        const keyParts = key.split(NESTED_OBJECT_DELIMITER);
 
         // Check if this is the final part of the key to look up in the object.
         // Yes = there is only one part which would be the imperative key, No =
@@ -94,7 +112,7 @@ export namespace data {
         // a recursive set if neccessary.
         if (isFinalKey) { obj[imperativeKey] = value; return; }
         else setObjectDeep(
-            keyParts.join(NESTED_OBJECT_DELIMETER),
+            keyParts.join(NESTED_OBJECT_DELIMITER),
             value,
             obj[imperativeKey],
             options,

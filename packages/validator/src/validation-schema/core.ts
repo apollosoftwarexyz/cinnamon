@@ -14,7 +14,7 @@ import { ValidationSchemaFieldSmartAttribute } from './attribute';
  * Defines the validation schema field type 'any', which matches
  * any type.
  */
-type ValidationSchemaFieldTypeAny = {
+export type ValidationSchemaFieldTypeAny = {
     type: "any"
 } & ValidationSchemaFieldCommon<any>;
 
@@ -22,7 +22,7 @@ type ValidationSchemaFieldTypeAny = {
  * Defines the validation schema field types for primitive types
  * (i.e., types built into TypeScript.)
  */
-type ValidationSchemaFieldTypePrimitive = ValidationSchemaFieldCommon<string> & {
+export type ValidationSchemaFieldTypePrimitive = ValidationSchemaFieldCommon<string> & {
     type: "string",
     /**
      * The minimum length of the string. Must be greater than or equal to zero.
@@ -56,7 +56,7 @@ type ValidationSchemaFieldTypePrimitive = ValidationSchemaFieldCommon<string> & 
 /**
  * Defines the validation schema field types for custom fields.
  */
-type ValidationSchemaFieldTypeCustom = {
+export type ValidationSchemaFieldTypeCustom = {
     type: "OneOf",
     possibleSchemas: ValidationSchemaField[]
 } & ValidationSchemaFieldCommonMessage;

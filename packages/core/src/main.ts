@@ -27,9 +27,12 @@ export type CinnamonInitializationOptions = {
 
 /**
  * The main class of the Cinnamon framework. To initialize the framework, you initialize
- * this class by calling {@link Cinnamon.initialize()}.
+ * this class by calling {@link Cinnamon.initialize}.
  *
  * This will, in turn, initialize all of Cinnamon's default module set.
+ *
+ * @category Core
+ * @Core
  */
 export default class Cinnamon {
 

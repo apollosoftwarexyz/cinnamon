@@ -3,6 +3,10 @@ import { $, ValidationSchema } from "@apollosoftwarexyz/cinnamon-validator";
 
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 
+/**
+ * @category Core Modules
+ * @CoreModule
+ */
 export default class Config extends CinnamonModule {
 
     private appConfig?: any;

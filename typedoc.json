@@ -1,0 +1,17 @@
+{
+  "name": "@apollosoftwarexyz/cinnamon",
+  "includeVersion": true,
+  "tsconfig": "tsconfig.build.json",
+  "entryPointStrategy": "Expand",
+  "out": "docs/static/api",
+  "mergeModulesMergeMode": "project",
+  "sort": [
+    "enum-value-ascending",
+    "visibility",
+    "source-order",
+    "static-first",
+    "instance-first",
+    "required-first",
+    "alphabetical"
+  ]
+}

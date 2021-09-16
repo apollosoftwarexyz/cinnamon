@@ -4,7 +4,10 @@
  *
  * Additionally, when developer mode is active, the loader will enable
  * hot reload and watch for changes.
+ *
+ * @module
  */
+
 import Cinnamon from "@apollosoftwarexyz/cinnamon-core";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
@@ -20,6 +23,10 @@ import * as chalk from 'chalk';
 
 import co from 'co';
 
+/**
+ * @internal
+ * @private
+ */
 interface TrackedController {
     /**
      * The absolute path to the controller.
@@ -45,9 +52,21 @@ interface TrackedController {
     dirty: boolean;
 }
 
+/**
+ * @internal
+ * @private
+ *
+ * The root namespace for loaded routes.
+ *
+ * The hierarchy for namespaced routes is as follows:
+ * ROOT -> Class (Controller) -> Method (Route)
+ */
 export const LOADER_ROOT_ROUTE_NAMESPACE = "29af6f1b-7584-484a-b627-8b25d47021ec";
 
 /**
+ * @internal
+ * @private
+ *
  * A route that has been loaded by the loader's annotation API.
  * This is populated with the route's data and stored in {@link Loader.routes},
  * so it can be registered on the controller's router.
@@ -86,12 +105,17 @@ interface LoaderRoute {
 }
 
 /**
+ * @internal
+ * @private
+ *
  * This variable is a reserved placeholder, temporarily set when the loader is
  * active to allow the annotation API to hook into the loader to register routes.
  */
 export let activeLoader: Loader | undefined;
 
 /**
+ * @internal
+ * @private
  * Represents the mapping on {@link Loader.routers}.
  */
 type ControllerIdToRouterDictionary = {
@@ -99,12 +123,18 @@ type ControllerIdToRouterDictionary = {
 }
 
 /**
+ * @internal
+ * @private
  * Represents the mapping on {@link Loader.routes}.
  */
 type RouteIdToRouteDataDictionary = {
     [key: string]: LoaderRoute;
 }
 
+/**
+ * @internal
+ * @private
+ */
 export default class Loader {
 
     public readonly framework: Cinnamon;

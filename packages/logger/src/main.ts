@@ -1,7 +1,7 @@
 import * as chalk from 'chalk';
 import Cinnamon, { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core";
 
-enum LogLevel {
+export enum LogLevel {
     /**
      * **Used for internal framework-level debugging messages.**
      * This log-level should not be used by any application and definitely not in production.
@@ -63,7 +63,7 @@ enum LogLevel {
  * Represents a log message.
  * This is the object passed to the {@see DelegateLogFunction} or the log method.
  */
-interface LogEntry {
+export interface LogEntry {
     /**
      * The LogLevel of the log. One of DEBUG, INFO, WARN or ERROR.
      */
@@ -82,7 +82,7 @@ interface LogEntry {
     message: string;
 }
 
-interface DelegateLogEntry extends LogEntry {
+export interface DelegateLogEntry extends LogEntry {
     /**
      * A string representation of the log level.
      */
@@ -97,7 +97,7 @@ interface DelegateLogEntry extends LogEntry {
     timestampString: string;
 }
 
-type DelegateLogFunction = (message: DelegateLogEntry) => void;
+export type DelegateLogFunction = (message: DelegateLogEntry) => void;
 
 interface ExtendedLoggerOptions {
     /**
@@ -113,6 +113,10 @@ interface ExtendedLoggerOptions {
     logDelegate?: DelegateLogFunction
 }
 
+/**
+ * @category Core Modules
+ * @CoreModule
+ */
 export default class Logger extends CinnamonModule {
 
     /**

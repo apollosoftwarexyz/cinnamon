@@ -1,7 +1,19 @@
+/**
+ * @module @apollosoftwarexyz/cinnamon-core-internals
+ * @internal
+ * @private
+ */
+
 import * as _fs from 'fs';
 import * as path from 'path';
 import {promisify} from 'util';
 
+/**
+ * Part of {@link cinnamonInternals}.
+ *
+ * @internal
+ * @private
+ */
 export namespace fs {
     /**
      * Checks whether a file exists at the specified path, by 'stat'-ing the filePath to check if a FileSystem node exists

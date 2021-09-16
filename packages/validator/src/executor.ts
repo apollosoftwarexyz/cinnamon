@@ -10,10 +10,10 @@ type _ValidationSchemaFieldSmartAttributeObject = {
 };
 
 /**
- * A Validation Schema Executor handles performing validation on objects according to the specified
- * schema provided to it when it was initialized.
+ * A Validator handles performing validation on objects according to the specified schema provided to it when it was
+ * initialized.
  */
-export class ValidationSchemaExecutor {
+export class Validator {
 
     public readonly schema: ValidationSchema;
 
@@ -22,7 +22,7 @@ export class ValidationSchemaExecutor {
      * validation schema field) (= true) or for an entire object (i.e., a
      * validation schema object) (= false).
      */
-    private isSingleFieldSchema: boolean;
+    private readonly isSingleFieldSchema: boolean;
 
     /**
      * Initializes a ValidationSchemaExecutor with the specified schema. Once initialized, the

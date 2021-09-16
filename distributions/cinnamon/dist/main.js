@@ -36,3 +36,4 @@ __exportStar(require("@apollosoftwarexyz/cinnamon-validator"), exports);
 ////////////////
 const Koa = require("koa");
 exports.Koa = Koa;
+//# sourceMappingURL=main.js.map

@@ -182,7 +182,6 @@ __metadata:
     "@nuxt/content-theme-docs": ^0.10.1
     "@tailwindcss/typography": ^0.2.0
     nuxt: ^2.15.4
-    typedoc: ^0.22.3
   languageName: unknown
   linkType: soft
 
@@ -238,6 +237,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon-workspaces@workspace:."
   dependencies:
+    typedoc: ^0.22.3
+    typedoc-plugin-merge-modules: ^3.0.1
+    typedoc-plugin-not-exported: ^0.1.6
+    typedoc-plugin-rename-defaults: ^0.3.0
     typescript: ^4.3.5
   languageName: unknown
   linkType: soft
@@ -13045,6 +13048,33 @@ fsevents@~2.3.2:
   version: 0.0.6
   resolution: "typedarray@npm:0.0.6"
   checksum: c9ef0176aaf32593514c31e5c6edc1db970847aff6e1f0a0570a6ac0cc996335792f394c2fcec59cc76691d22a01888ea073a2f3c6930cfcf7c519addf4e2ad7
+  languageName: node
+  linkType: hard
+
+"typedoc-plugin-merge-modules@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "typedoc-plugin-merge-modules@npm:3.0.1"
+  peerDependencies:
+    typedoc: ">=0.21.0"
+  checksum: a7921095a4809b5005ff30d706679e3a214b97772e5b5fd59da673e054b73280afc1919e27b5217b2422852578c505732bb6e745bfbcd591dbcfc93de4b067f1
+  languageName: node
+  linkType: hard
+
+"typedoc-plugin-not-exported@npm:^0.1.6":
+  version: 0.1.6
+  resolution: "typedoc-plugin-not-exported@npm:0.1.6"
+  peerDependencies:
+    typedoc: ">=0.20.16"
+  checksum: 001460a9efb1d18a8d8d9cb17432ebb04a6a6c40b85420c0654b50e36f87eb464827c64f547ed548a0fce3dc330327542b754f2f815f77c960fe71555d3373d8
+  languageName: node
+  linkType: hard
+
+"typedoc-plugin-rename-defaults@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "typedoc-plugin-rename-defaults@npm:0.3.0"
+  peerDependencies:
+    typedoc: 0.21.x
+  checksum: 2ac9e602dd09425485a6981e95d177a89806cf75c960bfee577850c9f23f3fac099b4352b83dda7f32abe6541e9a4dadf63f7c453d1f63e88bf9cb9b46938297
   languageName: node
   linkType: hard
 

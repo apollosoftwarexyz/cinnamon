@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1",
+  "version": "0.0.1-prerelease",
   "name": "@apollosoftwarexyz/cinnamon-workspaces",
   "license": "MIT",
   "private": true,
@@ -14,15 +14,21 @@
     "distributions/*"
   ],
   "scripts": {
+    "postinstall": "curl https://gist.githubusercontent.com/SamJakob/6fd2f06cc38242557e5d2d50fbe7a157/raw/62bae510910db76c9ef503b92288b429c62a4206/typedoc_package.json > ./node_modules/typedoc/package.json",
     "prerelease": "yarn workspace @apollosoftwarexyz/cinnamon prerelease",
     "prepublishOnly": "yarn prerelease",
     "build": "yarn workspace @apollosoftwarexyz/cinnamon build",
+    "docs:api": "typedoc distributions/cinnamon packages/*",
     "docs:dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev",
-    "docs:generate": "yarn workspace @apollosoftwarexyz/cinnamon-docs generate",
+    "docs:generate": "yarn docs:api; yarn docs:api; yarn workspace @apollosoftwarexyz/cinnamon-docs generate",
     "example:start": "yarn workspace @apollosoftwarexyz/cinnamon-examples-basic-webserver start",
     "example-validation:start": "yarn workspace @apollosoftwarexyz/cinnamon-examples-validation start"
   },
   "devDependencies": {
+    "typedoc": "^0.22.3",
+    "typedoc-plugin-merge-modules": "^3.0.1",
+    "typedoc-plugin-not-exported": "^0.1.6",
+    "typedoc-plugin-rename-defaults": "^0.3.0",
     "typescript": "^4.3.5"
   }
 }

@@ -11,7 +11,7 @@ This package may not reference all core modules - e.g. internal modules not acce
 If you're developing a core module, please keep the following in mind:
 
 **General Notes:**
-- You should add `@CoreModule` to your package's constructor.
+- You should add `@Category Core Modules` and `@CoreModule` to your module class's constructor documentation block.
 - It should be placed in [/packages](/packages).
 - You are free to use [/packages/core-internals](/packages/core-internals) (`@apollosoftwarexyz/cinnamon-core-internals`) if, **and only if**, the package is a core module and won't be accessed by any package or code outside the framework core package or other core modules.
 

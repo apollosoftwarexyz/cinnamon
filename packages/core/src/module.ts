@@ -1,5 +1,9 @@
 import Cinnamon from "@apollosoftwarexyz/cinnamon-core";
 
+/**
+ * @category Core
+ * @Core
+ */
 export default class CinnamonModule {
 
     protected readonly framework: Cinnamon;

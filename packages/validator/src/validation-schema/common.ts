@@ -7,7 +7,7 @@
  * Defines a type which can either be a common aggregate operator OR a
  * constant value itself.
  */
-type ValueOrAggregateOperator<T> = {
+export type ValueOrAggregateOperator<T> = {
     $any?: T[];
     $all?: never;
 } | {
@@ -58,7 +58,7 @@ export type ValidationSchemaFieldCommon<T> = ({
 
     /**
      * Tests either the specified value (which should be an array), or each of
-     * the spewcified values in the case of an array of arrays being provided,
+     * the specified values in the case of an array of arrays being provided,
      * passing validation if the value matches any of the specified values.
      *
      * Instead of using JavaScript's type-equal equality operator (===), the
