@@ -230,10 +230,10 @@ export default class Logger extends CinnamonModule {
                 printFunction = (...data: any[]) => posixPrintFunction(chalk.bgGray.whiteBright(...data));
                 break;
             case LogLevel.WARN:
-                printFunction = (...data: any[]) => posixPrintFunction(chalk.red(...data));
+                printFunction = (...data: any[]) => posixPrintFunction(chalk.bgRed.whiteBright.bold(...data));
                 break;
             case LogLevel.ERROR:
-                printFunction = (...data: any[]) => posixPrintFunction(chalk.bgRed.whiteBright.bold(...data));
+                printFunction = (...data: any[]) => posixPrintFunction(chalk.red(...data));
                 break;
             default:
                 printFunction = (...data: any[]) => posixPrintFunction(...data);

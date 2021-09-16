@@ -268,6 +268,8 @@ export default class Loader {
      */
     async registerControllers() {
         this.unhookWithKoa();
+        Object.keys(this.routes).forEach(route => delete this.routes[route]);
+        Object.keys(this.routers).forEach(router => delete this.routers[router]);
 
         for (const controller of this.trackedControllers) {
             const requireFn = this.inDevMode ? this.hotRequire : this.BuiltinModuleAPI.require;
