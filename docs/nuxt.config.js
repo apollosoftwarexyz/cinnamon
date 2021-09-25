@@ -96,7 +96,9 @@ export default ({
   generate: {
     fallback: '404.html',
     routes: ['/'],
-    exclude: ['/api']
+    exclude: [
+      /^\/api/ // Paths starting with /api
+    ]
   },
 
   css: [
