@@ -9,12 +9,12 @@
           <AppSearch />
         </li>
         <li
-          v-for="(docs, category, index) in categories"
+          v-for="(docs, category, index) in navCategories"
           :key="category"
           class="mb-4"
           :class="{
             'active': isCategoryActive(docs),
-            'lg:mb-0': index === Object.keys(categories).length - 1
+            'lg:mb-0': index === Object.keys(navCategories).length - 1
           }"
         >
           <p
@@ -38,15 +38,11 @@
                 </client-only>
               </NuxtLink>
               <a v-else
-                 :href="localePath(doc.to)"
+                 :href="doc.to"
                  class="px-2 rounded font-medium py-1 hover:text-primary-500 flex items-center justify-between"
                  exact-active-class="text-primary-500 bg-primary-100 hover:text-primary-500 dark:bg-primary-900">
                   {{ doc.menuTitle || doc.title }} <IconExternalLink class="w-5 h-5" />
                   <client-only>
-                  <span
-                      v-if="isDocumentNew(doc)"
-                      class="animate-pulse rounded-full bg-primary-500 opacity-75 h-2 w-2"
-                  />
                   </client-only>
               </a>
             </li>
@@ -106,6 +102,9 @@ export default {
       }
     },
     categories () {
+      return this.$store.state.categories[this.$i18n.locale]
+    },
+    navCategories () {
       return defu({
         '': [
           {
@@ -118,7 +117,7 @@ export default {
             external: true
           }
         ]
-      }, this.$store.state.categories[this.$i18n.locale])
+      }, { ...(this.categories) })
     }
   },
   methods: {
