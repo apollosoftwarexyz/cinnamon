@@ -11,6 +11,8 @@
         "src/**/*"
     ],
     "compilerOptions": {
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true
     }
 }

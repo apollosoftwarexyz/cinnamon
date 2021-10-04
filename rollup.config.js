@@ -6,13 +6,13 @@ import json from '@rollup/plugin-json';
 import { DEFAULT_EXTENSIONS } from '@babel/core';
 
 export default {
-  input: './distributions/cinnamon/src/main.ts',
+  input: './distributions/cinnamon/src/index.ts',
   output: {
     name: 'Cinnamon',
     exports: 'named',
-    format: 'module',
-    file: './distributions/cinnamon/dist/index.mjs',
-    sourcemap: false
+    format: 'cjs',
+    file: './distributions/cinnamon/dist/index.cjs',
+    sourcemap: true
   },
   plugins: [
     nodeResolve({

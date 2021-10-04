@@ -1,6 +1,10 @@
 import { Method } from "./Method";
-import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
 import Loader, {activeLoader, LOADER_ROOT_ROUTE_NAMESPACE} from "../loader";
+
+// import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
+const uuid = require('uuid');
+const uuidv4 = uuid.v4;
+const uuidv5 = uuid.v5;
 
 /**
  * Registers a class method as an API route.

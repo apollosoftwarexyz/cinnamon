@@ -1,14 +1,13 @@
 {
   "name": "@apollosoftwarexyz/cinnamon",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Apollo Software Limited",
   "description": "Apollo Software's intuitive backend API framework.",
   "license": "MIT",
-  "private": false,
-  "main": "dist/main.mjs",
-  "types": "types/index.d.ts",
+  "main": "dist/index.cjs",
+  "types": "types/index.cjs.d.ts",
   "exports": {
-    "./database": "./dist/database/index.js"
+    ".": "./dist/index.cjs"
   },
   "repository": {
     "type": "git",
@@ -16,9 +15,10 @@
     "directory": "distributions/cinnamon/"
   },
   "scripts": {
+    "clean": "rm -rf types/; rm -rf dist/;",
     "build": "tsc --build",
     "prerelease": "ts-node --project tsconfig.utils.json utils/prerelease.ts",
-    "prepublishOnly": "cp README.md ./distributions/cinnamon/README.md; yarn prerelease",
+    "prepublishOnly": "cp ../../README.md ./README.md; yarn prerelease",
     "doPublish": "npm publish --access public"
   },
   "dependencies": {

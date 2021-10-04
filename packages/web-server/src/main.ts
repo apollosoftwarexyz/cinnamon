@@ -2,7 +2,7 @@ import Cinnamon, { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 
-import * as Koa from 'koa';
+import Koa from 'koa';
 import { Server } from 'http';
 import { Socket } from 'net';
 

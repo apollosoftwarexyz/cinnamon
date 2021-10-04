@@ -5,7 +5,9 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "sourceMap": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
 
   "include": ["src/**/*"]

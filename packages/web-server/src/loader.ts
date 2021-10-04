@@ -15,13 +15,14 @@ import WebServer from "./main";
 import { Method } from "./api/Method";
 import { MiddlewareFn } from "./api/Middleware";
 
-import * as Module from "module";
-import * as Koa from 'koa';
-import * as KoaRouter from 'koa-router';
+import Module from "module";
 import * as Chokidar from 'chokidar';
 import * as chalk from 'chalk';
 
 import co from 'co';
+
+import * as Koa from 'koa';
+import KoaRouter from 'koa-router';
 
 /**
  * @internal
