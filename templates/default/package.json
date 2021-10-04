@@ -1,5 +1,6 @@
 {
     "name": "<<<$name>>>",
+    "packageManager": "yarn@3.0.2",
     "description": "<<<$description>>>",
     "license": "<<<$license>>>",
     "private": true,

@@ -16,6 +16,7 @@ export default {
   },
   plugins: [
     nodeResolve({
+      exportConditions: ['node'],
       preferBuiltins: true,
       extensions: [
         ...DEFAULT_EXTENSIONS,
