@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1-prerelease",
+  "version": "0.0.2-prerelease",
   "name": "@apollosoftwarexyz/cinnamon-workspaces",
   "license": "MIT",
   "private": true,
@@ -17,7 +17,7 @@
     "postinstall": "curl https://gist.githubusercontent.com/SamJakob/6fd2f06cc38242557e5d2d50fbe7a157/raw/62bae510910db76c9ef503b92288b429c62a4206/typedoc_package.json > ./node_modules/typedoc/package.json",
     "prerelease": "yarn workspace @apollosoftwarexyz/cinnamon prerelease",
     "prepublishOnly": "yarn prerelease",
-    "publish": "yarn workspace @apollosoftwarexyz/cinnamon publish",
+    "publish": "yarn workspace @apollosoftwarexyz/cinnamon doPublish",
     "build": "rollup --config",
     "docs:api": "typedoc distributions/cinnamon packages/*",
     "docs:dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev",

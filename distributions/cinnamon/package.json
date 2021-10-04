@@ -1,7 +1,10 @@
 {
   "name": "@apollosoftwarexyz/cinnamon",
   "version": "0.0.2-prerelease",
+  "author": "Apollo Software Limited",
+  "description": "Apollo Software's intuitive backend API framework.",
   "license": "MIT",
+  "private": false,
   "main": "dist/main.mjs",
   "types": "types/index.d.ts",
   "exports": {
@@ -14,9 +17,9 @@
   },
   "scripts": {
     "build": "tsc --build",
-    "prerelease": "ts-node utils/prerelease.ts --resolveJsonModule",
+    "prerelease": "ts-node --project tsconfig.utils.json utils/prerelease.ts",
     "prepublishOnly": "yarn prerelease",
-    "publish": "yarn npm publish"
+    "doPublish": "npm publish --access public"
   },
   "dependencies": {
     "@mikro-orm/core": "^4.5.9",

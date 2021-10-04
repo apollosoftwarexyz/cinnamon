@@ -5,9 +5,7 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "sourceMap": true,
-    "baseUrl": ".",
-    "declaration": true,
-    "declarationDir": "types/"
+    "baseUrl": "."
   },
 
   "include": ["src/**/*"]

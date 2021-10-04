@@ -14,7 +14,7 @@ import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
  * Whether the underlying framework is in debug mode.
  * This needs to be turned off for releases.
  */
-export const CINNAMON_CORE_DEBUG_MODE = true;
+export const CINNAMON_CORE_DEBUG_MODE = false;
 
 export type CinnamonInitializationOptions = {
     /**
