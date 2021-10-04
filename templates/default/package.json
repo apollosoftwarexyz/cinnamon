@@ -1,5 +1,6 @@
 {
     "name": "<<<$name>>>",
+    "description": "<<<$description>>>",
     "license": "<<<$license>>>",
     "private": true,
     "main": "src/main.ts",
