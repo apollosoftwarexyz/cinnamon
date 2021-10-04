@@ -2,7 +2,7 @@
  * Runs pre-release checks to ensure the package is ready for distribution.
  */
 
-import * as chalk from 'chalk';
+import chalk from 'chalk';
 import { CINNAMON_CORE_DEBUG_MODE } from "@apollosoftwarexyz/cinnamon-core";
 
 const workspacePackageConfig = require('../../../package.json');
