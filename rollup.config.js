@@ -12,7 +12,7 @@ export default {
     exports: 'named',
     format: 'cjs',
     file: './distributions/cinnamon/dist/index.cjs',
-    sourcemap: true
+    sourcemap: false
   },
   plugins: [
     nodeResolve({

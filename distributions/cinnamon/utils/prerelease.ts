@@ -2,6 +2,7 @@
  * Runs pre-release checks to ensure the package is ready for distribution.
  */
 
+// @ts-ignore - we're using esModuleInterop until ESM is ready.
 import chalk from 'chalk';
 import { CINNAMON_CORE_DEBUG_MODE } from "@apollosoftwarexyz/cinnamon-core";
 

@@ -32,6 +32,7 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.0.5",
     "rollup": "^2.58.0",
+    "rollup-plugin-ts": "^1.4.7",
     "tslib": "^2.3.1",
     "typedoc": "^0.22.3",
     "typedoc-plugin-merge-modules": "^3.0.1",
@@ -45,6 +46,6 @@
     "@mirko-orm/mariadb": "~4.5.9"
   },
   "dependencies": {
-    "rollup-plugin-ts": "^1.4.7"
+    "@mikro-orm/core": "^4.5.9"
   }
 }
