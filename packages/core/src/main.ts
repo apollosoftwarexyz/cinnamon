@@ -160,7 +160,7 @@ export default class Cinnamon {
                 },
                 app: {}
             }, parseToml(projectConfigFile));
-        } catch(ex) {
+        } catch(ex: any) {
             console.error(`(!) Failed to parse cinnamon.toml:`);
             console.error(`(!) ...parsing failed on line ${ex.line}, at column ${ex.column}: ${ex.message}`);
             return process.exit(2);
@@ -230,7 +230,7 @@ export default class Cinnamon {
             await framework.getModule<WebServer>(WebServer.prototype).start(projectConfig.framework.http);
 
             return framework;
-        } catch(ex) {
+        } catch(ex: any) {
             framework.getModule<Logger>(Logger.prototype).error(
                 "Failed to start Cinnamon. If you believe this is a framework error, please open an issue in the " +
                 "Cinnamon project repository.\n" +
