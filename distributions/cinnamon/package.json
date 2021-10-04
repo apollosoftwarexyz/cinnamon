@@ -18,7 +18,7 @@
   "scripts": {
     "build": "tsc --build",
     "prerelease": "ts-node --project tsconfig.utils.json utils/prerelease.ts",
-    "prepublishOnly": "yarn prerelease",
+    "prepublishOnly": "cp README.md ./distributions/cinnamon/README.md; yarn prerelease",
     "doPublish": "npm publish --access public"
   },
   "dependencies": {
