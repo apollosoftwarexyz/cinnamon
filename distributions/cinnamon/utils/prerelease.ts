@@ -2,8 +2,12 @@
  * Runs pre-release checks to ensure the package is ready for distribution.
  */
 
-import * as chalk from 'chalk';
+// @ts-ignore - ignore warning for JSON file imports as it's overridden for the script.
+import workspacePackageConfig from '../package.json';
+// @ts-ignore - ignore warning for JSON file imports as it's overridden for the script.
+import distributionPackageConfig from '../package.json';
 
+import * as chalk from 'chalk';
 import { CINNAMON_CORE_DEBUG_MODE } from "@apollosoftwarexyz/cinnamon-core";
 
 //// CLI Arguments.
@@ -71,7 +75,13 @@ async function check(assertion: string, check: () => Promise<boolean>, messages?
         ]
     });
 
-    await check("The version number is set correctly.", async () => true);
+    await check("Workspace version matches package version", async () => workspacePackageConfig.version === distributionPackageConfig.version, {
+        failMessage: [,
+            "The workspace version (@apollosoftwarexyz/cinnamon-workspaces) must match the distribution package version.",
+            "Please check that the version property of the workspace's package.json (i.e, the one at the repository root)",
+            "matches the version property of the distribution's package.json (i.e., the one located in /distributions/cinnamon)"
+        ]
+    });
 
     console.log("\n" + [
         "Finished performing pre-release checks.",

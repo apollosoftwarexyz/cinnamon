@@ -2,6 +2,7 @@
   "name": "@apollosoftwarexyz/cinnamon-validator",
   "license": "MIT",
   "main": "src/main.ts",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",

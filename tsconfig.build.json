@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
     "declaration": true,
+    "declarationDir": "./distributions/cinnamon/types",
     "target": "ES2020",
-    "outDir": "./dist",
-    "module": "CommonJS",
+    "outDir": "./distributions/cinnamon/dist",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "strict": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,

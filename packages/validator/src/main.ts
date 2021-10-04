@@ -21,4 +21,5 @@ export {
     Validator
 };
 
-export { default as ValidationResult } from './result';
+import ValidationResult from './result';
+export { ValidationResult };

@@ -1,4 +1,4 @@
-import Cinnamon from "@apollosoftwarexyz/cinnamon";
+import Cinnamon from '@apollosoftwarexyz/cinnamon';
 
 (async () => {
     await Cinnamon.initialize();

@@ -1,9 +1,7 @@
 import * as fs from 'fs';
 import { promisify } from 'util';
 import { parse as parseToml } from 'toml';
-import { initializeCoreModules } from "@apollosoftwarexyz/cinnamon-core-modules";
-
-import CinnamonModule from "./module";
+import { initializeCoreModules, CinnamonModule } from "@apollosoftwarexyz/cinnamon-core-modules";
 export { CinnamonModule };
 
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";

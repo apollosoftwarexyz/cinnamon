@@ -21,7 +21,7 @@ https://cinnamon.apollosoftware.xyz/
     - [x] Middleware and Routing support
     - [ ] Static file hosting support
 - [ ] WebSocket module (integrated with Web Server module)
-- [ ] Database ORM module using [TypeORM](https://typeorm.io/)
+- [ ] Database ORM module using [Mikro-ORM](https://mikro-orm.io)
 - [x] Validation module (for data validation on JavaScript/JSON objects)
     - [ ] Middleware for Web Server module
 - [ ] Session Management and Authentication module
@@ -30,7 +30,20 @@ https://cinnamon.apollosoftware.xyz/
     - [ ] Support for shell script generation
 
 ## Development
-Apollo Software Cinnamon uses [Yarn Berry (2.x)](https://yarnpkg.com/getting-started/install) for workspace management.
+1. Apollo Software Cinnamon uses [Yarn Berry (3.x)](https://yarnpkg.com/getting-started/install) for workspace management. You should install it with `yarn set version latest`:
+  ```bash
+  # To install Yarn 3.x globally:
+  npm i -g yarn
+  cd ~
+  yarn set version latest
+  
+  # To update the local version:
+  cd /path/to/cinnamon/repository
+  yarn set version latest
+  ```
+2. Run `yarn` in the repository root to install the packages and link the workspaces.
+3. Once you're set up, you should run `yarn docs:dev`, to run the documentation site in interactive development mode. The documentation site uses [Nuxt.js](https://nuxtjs.org) with the content plugin which allows you to update the documentation either by editing the markdown files, or by double-clicking on a documentation page and interactively editing the site.
+4. To build the project, use `yarn build`. You can also use `yarn example:start`, to run the example project.
 
 ## License
 [MIT License](LICENSE.md)
