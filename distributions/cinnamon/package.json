@@ -1,6 +1,6 @@
 {
   "name": "@apollosoftwarexyz/cinnamon",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "author": "Apollo Software Limited",
   "description": "Apollo Software's intuitive backend API framework.",
   "license": "MIT",
@@ -19,7 +19,7 @@
     "build": "tsc --build",
     "prerelease": "ts-node --project tsconfig.utils.json utils/prerelease.ts",
     "prepublishOnly": "cp ../../README.md ./README.md; yarn prerelease",
-    "doPublish": "npm publish --access public"
+    "publish": "yarn npm publish --access public"
   },
   "peerDependencies": {
     "@mikro-orm/mongodb": "~4.5.9",
