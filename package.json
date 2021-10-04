@@ -19,6 +19,7 @@
     "prepublishOnly": "yarn prerelease",
     "publish": "yarn workspace @apollosoftwarexyz/cinnamon doPublish",
     "build": "rollup --config",
+    "version:patch": "npm version patch",
     "docs:api": "typedoc distributions/cinnamon packages/*",
     "docs:dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev",
     "docs:generate": "yarn docs:api; yarn docs:api; yarn workspace @apollosoftwarexyz/cinnamon-docs generate",
