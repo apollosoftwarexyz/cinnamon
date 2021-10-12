@@ -39,7 +39,18 @@ https://cinnamon.apollosoftware.xyz/
   
   # To update the local version:
   cd /path/to/cinnamon/repository
+  
+  # ...for compatibility reasons, this step is important for yarn 1.
+  # ...yarn 1, by default, will not install versions newer than 1.x with "yarn set version latest"
+  yarn set version stable
+  
+  # After running "yarn set version stable", run this to ensure you're on the latest release of
+  # yarn berry.
   yarn set version latest
+  
+  # Afterwards, run yarn --version to confirm everything was installed correctly.
+  yarn --version
+  # ...should output "3.x.x"
   ```
 2. Run `yarn` in the repository root to install the packages and link the workspaces.
 3. Once you're set up, you should run `yarn docs:dev`, to run the documentation site in interactive development mode. The documentation site uses [Nuxt.js](https://nuxtjs.org) with the content plugin which allows you to update the documentation either by editing the markdown files, or by double-clicking on a documentation page and interactively editing the site.

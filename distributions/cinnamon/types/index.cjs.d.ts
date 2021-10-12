@@ -638,9 +638,6 @@ declare enum Method {
  * @param group The API 'group' this controller belongs to.
  */
 declare function Controller(...group: string[]): (target: any) => void;
-// import uuid from 'uuid';
-// const uuidv4 = uuid.v4;
-// const uuidv5 = uuid.v5;
 /**
  * Registers a class method as an API route.
  *
