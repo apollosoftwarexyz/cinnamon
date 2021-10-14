@@ -26,8 +26,7 @@ export default [
         ],
         customResolveOptions: {
           moduleDirectories: [
-            "packages/*",
-            "distributions/*"
+            "packages/*"
           ],
         }
       }),
