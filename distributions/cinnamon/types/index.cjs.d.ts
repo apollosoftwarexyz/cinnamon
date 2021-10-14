@@ -1,3 +1,6 @@
+import { MikroORM, EntityManager } from "@apollosoftwarexyz/cinnamon/database";
+import { Configuration } from "@mikro-orm/core/utils/Configuration";
+import { EntityManager as EntityManager$0 } from "@mikro-orm/core";
 import * as Koa from 'koa';
 import { Context, Next } from "koa";
 import * as Chalk from 'chalk';
@@ -323,7 +326,7 @@ declare class Config extends CinnamonModule {
 declare module ConfigWrapper {
     export { Config };
 }
-import ConfigModule = ConfigWrapper.Config;
+import _ConfigModule = ConfigWrapper.Config;
 declare enum LogLevel {
     /**
      * **Used for internal framework-level debugging messages.**
@@ -477,12 +480,92 @@ declare class Logger extends CinnamonModule {
 declare module LoggerWrapper {
     export { Logger };
 }
-import LoggerModule = LoggerWrapper.Logger;
-declare let Config$0: ConfigModule;
-declare let Logger$0: LoggerModule;
+import _LoggerModule = LoggerWrapper.Logger;
+type CinnamonDatabaseConfiguration = {
+    /**
+     * The database type.
+     * https://mikro-orm.io/docs/usage-with-sql
+     *
+     * This must be one of the acceptable configuration platforms per Mikro-ORM:
+     * - MongoDB: 'mongo'
+     * - MySQL or MariaDB: 'mysql'
+     * - MySQL or MariaDB: 'mariadb'
+     * - PostgreSQL: 'postgresql'
+     * - SQLite: 'sqlite'
+     */
+    type: keyof typeof Configuration.PLATFORMS;
+    /**
+     * The hostname for the database server.
+     * This should not include protocol or port. It is **not** a connection URL.
+     */
+    host: string;
+    /**
+     * The port for the database server.
+     * For reference, common defaults are:
+     * - MySQL: 3306
+     * - PostgreSQL: 5432
+     * - MongoDB: 27017
+     */
+    port: number;
+    /**
+     * The database name on the database server.
+     */
+    database: string;
+    /**
+     * The database username.
+     * If both username and password are left empty or not set, it will be assumed that the database does not require
+     * authentication.
+     */
+    username?: string;
+    /**
+     * The database password.
+     * If both username and password are left empty or not set, it will be assumed that the database does not require
+     * authentication.
+     */
+    password?: string;
+    /**
+     * Whether the framework should be terminated if Cinnamon fails to connect to the database server.
+     */
+    terminateOnInitError?: boolean;
+};
+/**
+ * @category Core Modules
+ * @CoreModule
+ */
+declare class Database extends CinnamonModule {
+    underlyingOrm?: MikroORM;
+    private readonly modelsPath;
+    /**
+     * @CoreModule
+     * Initializes Cinnamon's Database & ORM module.
+     *
+     * @param framework The Cinnamon Framework instance.
+     * @param modelsPath The path to the models directory.
+     * @private
+     */
+    constructor(framework: Cinnamon, modelsPath: string);
+    get logger(): Logger;
+    /**
+     * Check if the underlying ORM engine (MikroORM) has been initialized yet.
+     * Will return true if it has, or false if it hasn't.
+     */
+    get isInitialized(): boolean;
+    get entityManager(): EntityManager;
+    get em(): EntityManager;
+    initialize(databaseConfig: CinnamonDatabaseConfiguration): Promise<void>;
+}
+declare module DatabaseWrapper {
+    export { Database };
+}
+import _DatabaseModule = DatabaseWrapper.Database;
+declare let Config$0: _ConfigModule;
+declare let Logger$0: _LoggerModule;
+declare let Database$0: EntityManager$0;
+declare let DatabaseModule: _DatabaseModule;
 declare function initializeCoreModules(modules: {
-    Config: ConfigModule;
-    Logger: LoggerModule;
+    Config: _ConfigModule;
+    Logger: _LoggerModule;
+    Database: _DatabaseModule;
 }): void;
 type CinnamonInitializationOptions = {
     /**
@@ -651,4 +734,4 @@ type MiddlewareFn = Function;
  * @param fn The middleware function that should be executed for the route.
  */
 declare function Middleware(fn: MiddlewareFn): (target: any, propertyKey: string) => void;
-export { Cinnamon as default, CinnamonModule, Config$0 as Config, Logger$0 as Logger, initializeCoreModules, Method, Controller, Route, Middleware, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Koa, Context, Next, Chalk };
+export { Cinnamon as default, CinnamonModule, Config$0 as Config, Logger$0 as Logger, Database$0 as Database, DatabaseModule, initializeCoreModules, Method, Controller, Route, Middleware, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Koa, Context, Next, Chalk };

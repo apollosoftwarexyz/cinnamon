@@ -16,6 +16,7 @@
   "scripts": {
     "prerelease": "yarn workspace @apollosoftwarexyz/cinnamon prerelease",
     "prepublishOnly": "yarn prerelease",
+    "currentBundleSize": "yarn workspace @apollosoftwarexyz/cinnamon currentBundleSize",
     "publish": "yarn workspace @apollosoftwarexyz/cinnamon publish",
     "clean": "yarn workspaces foreach run clean",
     "build": "rollup --config",
