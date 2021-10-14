@@ -1,6 +1,5 @@
-import { MikroORM, EntityManager } from "@apollosoftwarexyz/cinnamon/database";
+import { MikroORM, EntityManager } from "@mikro-orm/core";
 import { Configuration } from "@mikro-orm/core/utils/Configuration";
-import { EntityManager as EntityManager$0 } from "@mikro-orm/core";
 import * as Koa from 'koa';
 import { Context, Next } from "koa";
 import * as Chalk from 'chalk';
@@ -560,7 +559,7 @@ declare module DatabaseWrapper {
 import _DatabaseModule = DatabaseWrapper.Database;
 declare let Config$0: _ConfigModule;
 declare let Logger$0: _LoggerModule;
-declare let Database$0: EntityManager$0;
+declare let Database$0: EntityManager;
 declare let DatabaseModule: _DatabaseModule;
 declare function initializeCoreModules(modules: {
     Config: _ConfigModule;

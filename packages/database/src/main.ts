@@ -1,4 +1,4 @@
-import { MikroORM, EntityManager, DatabaseDriver } from "@apollosoftwarexyz/cinnamon/database";
+import { MikroORM, EntityManager } from "@mikro-orm/core";
 import { Configuration } from "@mikro-orm/core/utils/Configuration";
 
 import Cinnamon, { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core";
