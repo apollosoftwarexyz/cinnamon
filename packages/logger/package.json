@@ -9,6 +9,6 @@
     "directory": "packages/logger/"
   },
   "dependencies": {
-    "chalk": "^4.1.1"
+    "chalk": "^4.1.2"
   }
 }

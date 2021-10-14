@@ -96,7 +96,7 @@ export default class WebServer extends CinnamonModule {
     public async initialize() {
         this.logger.frameworkDebug("WebServer module is loading route controllers now.");
 
-        // Ensure the controllers directory is loaded.
+        // Ensure the controllers directory is present.
         // We do this check in core startup, but this will ensure we're in the correct state
         // even if this module is loaded independently of the default distribution's core class.
         if(!await cinnamonInternals.fs.directoryExists(this.controllersPath)) {

@@ -7,6 +7,7 @@ export { CinnamonModule };
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 import Config from "@apollosoftwarexyz/cinnamon-config";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
+import Database, {CinnamonDatabaseConfiguration} from "@apollosoftwarexyz/cinnamon-database";
 import WebServer from "@apollosoftwarexyz/cinnamon-web-server";
 import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
 
@@ -134,7 +135,33 @@ export default class Cinnamon {
         console.log("Initializing Cinnamon...");
         const projectConfigFile = (await promisify(fs.readFile)('./cinnamon.toml', 'utf-8'));
 
-        let projectConfig;
+        let projectConfig: {
+            framework: {
+                core: {
+                    development_mode: boolean;
+                };
+
+                app: {
+                    name: string;
+                };
+
+                http: {
+                    host: string;
+                    port: number;
+                    enable_logging: boolean;
+                };
+
+                database: CinnamonDatabaseConfiguration;
+
+                structure: {
+                    controllers: string;
+                    models: string;
+                };
+            };
+
+            app: any;
+        };
+
         try {
             // Save the project config into a JS object. Any missing properties will be set as
             // one of the defaults specified in the structure below. We use Object.assign to
@@ -152,6 +179,8 @@ export default class Cinnamon {
                         host: '0.0.0.0',
                         port: 5213,
                         enable_logging: false
+                    },
+                    database: {
                     },
                     structure: {
                         controllers: 'src/controllers/',
@@ -203,7 +232,20 @@ export default class Cinnamon {
             // It's important that ORM is initialized before the web routes, wherever possible, to
             // ensure that full functionality is available and unexpected errors won't occur immediately
             // after startup.
-            // TODO: Initialize ORM.
+
+            // Initialize ORM.
+            framework.getModule<Logger>(Logger.prototype).info("Initializing database and ORM models...");
+
+            const modelsPath = cinnamonInternals.fs.toAbsolutePath(projectConfig.framework.structure.models);
+            if (!await cinnamonInternals.fs.directoryExists(modelsPath)) {
+                framework.getModule<Logger>(Logger.prototype).error(`(!) The specified models path does not exist: ${projectConfig.framework.structure.models}`);
+                framework.getModule<Logger>(Logger.prototype).error(`(!) Full resolved path: ${modelsPath}`);
+                process.exit(3);
+            }
+
+            framework.registerModule(new Database(framework, modelsPath));
+            await framework.getModule<Database>(Database.prototype).initialize(projectConfig.framework.database);
+            framework.getModule<Logger>(Logger.prototype).info("Successfully initialized database ORM and models.");
 
             // Initialize web service controllers.
             framework.getModule<Logger>(Logger.prototype).info("Initializing web service controllers...");
@@ -225,6 +267,7 @@ export default class Cinnamon {
             if (Cinnamon.defaultInstance == framework) initializeCoreModules({
                 Config: framework.getModule<Config>(Config.prototype),
                 Logger: framework.getModule<Logger>(Logger.prototype),
+                Database: framework.getModule<Database>(Database.prototype)
             });
 
             await framework.getModule<WebServer>(WebServer.prototype).start(projectConfig.framework.http);
