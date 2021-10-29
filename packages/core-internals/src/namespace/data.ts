@@ -120,4 +120,21 @@ export namespace data {
         );
     }
 
+    export function mergeObjectDeep(target: any, source: any): any {
+        const isObject = (x: any) => x !== null && typeof x === 'object' && !Array.isArray(x);
+
+        for (const key of Object.keys(source)) {
+            // If the current item in the source object is an object, and
+            // its not set or is an object in the target, then recursively
+            // attempt to merge.
+            if (isObject(source[key]) && isObject(target[key])) {
+                target[key] = mergeObjectDeep(target[key], source[key]);
+            } else if (!isObject(source[key]) && !isObject(target[key])) {
+                target[key] = source[key];
+            }
+        }
+
+        return target;
+    }
+
 }

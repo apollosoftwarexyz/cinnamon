@@ -40,8 +40,10 @@ export namespace fs {
      *
      * @param directoryPath The directory path to check.
      */
-    export async function directoryExists(directoryPath: string): Promise<boolean> {
+    export async function directoryExists(directoryPath: string | undefined): Promise<boolean> {
         try {
+            if (typeof directoryPath !== "string") return false;
+
             const stats = await promisify(_fs.stat)(directoryPath);
             return stats.isDirectory();
         } catch (ex) {
@@ -57,6 +59,7 @@ export namespace fs {
      *                  absolute path.
      */
     export function toAbsolutePath(childPath: string): string {
+        if (childPath === undefined || childPath === null) throw new Error("Missing path.");
         return path.join(process.cwd(), childPath);
     }
 

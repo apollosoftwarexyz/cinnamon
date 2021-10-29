@@ -87,6 +87,10 @@ export default class Database extends CinnamonModule {
     }
 
     public get entityManager(): EntityManager {
+        if (!this.isInitialized) {
+            // @ts-ignore
+            return undefined;
+        }
         return this.underlyingOrm!.em;
     }
 

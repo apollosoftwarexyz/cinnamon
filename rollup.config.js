@@ -30,7 +30,15 @@ export default [
           ],
         }
       }),
-      commonjs(),
+      commonjs({
+        ignore: [
+          '@mikro-orm/mariadb',
+          '@mikro-orm/mongodb',
+          '@mikro-orm/mysql',
+          '@mikro-orm/postgresql',
+          '@mikro-orm/sqlite'
+        ],
+      }),
       json(),
       ts({
         tsconfig: './tsconfig.build.json',

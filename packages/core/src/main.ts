@@ -167,7 +167,7 @@ export default class Cinnamon {
             // one of the defaults specified in the structure below. We use Object.assign to
             // copy anything from the TOML file (source parameter) into the in-memory object
             // (target parameter).
-            projectConfig = Object.assign({
+            projectConfig = cinnamonInternals.data.mergeObjectDeep({
                 framework: {
                     core: {
                         development_mode: false
