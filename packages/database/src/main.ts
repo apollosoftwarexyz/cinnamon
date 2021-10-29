@@ -78,6 +78,16 @@ export type CinnamonDatabaseConfiguration = {
  */
 export default class Database extends CinnamonModule {
 
+    private _underlyingOrmConfig: any;
+
+    /**
+     * Returns the ORM configuration as it would be passed to Mikro-ORM in the
+     * database module.
+     */
+    get ormConfig () {
+        return this._underlyingOrmConfig;
+    }
+
     public underlyingOrm?: MikroORM;
     private readonly modelsPath: string;
 
@@ -180,7 +190,8 @@ export default class Database extends CinnamonModule {
 
         try {
             let hasCredentials: boolean = databaseConfig.type !== 'mongo' && (databaseConfig.username != null && databaseConfig.password != null);
-            this.underlyingOrm = await MikroORM.init({
+
+            this._underlyingOrmConfig = {
                 metadataProvider: TsMorphMetadataProvider,
                 type: databaseConfig.type as keyof typeof Configuration.PLATFORMS,
                 entities: [
@@ -197,7 +208,9 @@ export default class Database extends CinnamonModule {
                 } : {
                     clientUrl: databaseConfig.clientUrl
                 })
-            });
+            };
+
+            this.underlyingOrm = await MikroORM.init(this._underlyingOrmConfig);
         } catch(ex) {
             this.logger.error(`Failed to initialize MikroORM (ORM engine).`);
             console.error(ex);

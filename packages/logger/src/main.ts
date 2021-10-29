@@ -105,12 +105,21 @@ interface ExtendedLoggerOptions {
      * messages.
      */
     showFrameworkDebugMessages: boolean;
+
     /**
      * An optional promise predicate that is passed each log message to facilitate an extended logging pipeline, so that
      * it may be logged with a remote dashboard for example. Put simply, if this function is present, all log messages
      * pass through this function.
      */
-    logDelegate?: DelegateLogFunction
+    logDelegate?: DelegateLogFunction;
+
+    /**
+     * Whether all logging messages should be silenced. This is useful if you're booting Cinnamon as part of a toolchain
+     * and are not expecting it to run with the full web application.
+     * Framework debugging messages do not respect this option to make debugging external tooling easier, however they
+     * can be easily turned off with {@see showFrameworkDebugMessages}.
+     */
+    silenced?: boolean;
 }
 
 /**
@@ -138,6 +147,12 @@ export default class Logger extends CinnamonModule {
     private readonly logDelegate?: DelegateLogFunction;
 
     /**
+     * @see ExtendedLoggerOptions
+     * @private
+     */
+    private readonly silenced?: boolean;
+
+    /**
      * @CoreModule
      * Initializes a Cinnamon Framework logger.
      *
@@ -149,7 +164,8 @@ export default class Logger extends CinnamonModule {
         super(framework);
         this.showDebugMessages = showDebugMessages;
 
-        this.logDelegate = options?.logDelegate;
+        this.silenced = options?.silenced ?? false;
+        this.logDelegate = this.silenced ? undefined : options?.logDelegate;
         this.showFrameworkDebugMessages = options?.showFrameworkDebugMessages ?? false;
     }
 
@@ -209,6 +225,8 @@ export default class Logger extends CinnamonModule {
      * @param entry The log entry to be displayed and passed to the remote log delegate.
      */
     log(entry: LogEntry) {
+        if (this.silenced) return;
+
         // The function that will print the content to the underlying OS POSIX stream.
         // (Essentially STDERR vs STDOUT)
         let posixPrintFunction = entry.level !== LogLevel.ERROR ? console.error : console.log;

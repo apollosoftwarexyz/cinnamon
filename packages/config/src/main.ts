@@ -47,7 +47,7 @@ export default class Config extends CinnamonModule {
      *
      * @param framework The Cinnamon framework instance.
      * @param appConfig The app table of the cinnamon.toml configuration file.
-     * @param appConfigValidator A schema validator for the app configuration,
+     * @param appConfigSchema A schema validator for the app configuration,
      * this would usually be passed into the framework as a Cinnamon
      * initialization option.
      */

@@ -21,7 +21,19 @@ export type CinnamonInitializationOptions = {
     /**
      * An optional validation schema for the app configuration.
      */
-    appConfigSchema?: ValidationSchema
+    appConfigSchema?: ValidationSchema;
+
+    /**
+     * If set to true, Cinnamon will disable all logging output
+     * using the Logger.
+     */
+    silenced?: boolean;
+
+    /**
+     * If set to false, prevents Cinnamon from auto-starting modules, such as the web server.
+     * The default is true.
+     */
+    autostart?: boolean;
 };
 
 /**
@@ -123,6 +135,8 @@ export default class Cinnamon {
      * instance.
      */
     static async initialize(options?: CinnamonInitializationOptions) : Promise<Cinnamon> {
+        let autostart: boolean = options?.autostart ?? true;
+
         // Stat cinnamon.toml to make sure it exists.
         // This doubles as making sure the process is started in the project root.
         if (!await cinnamonInternals.fs.fileExists(('./cinnamon.toml'))) {
@@ -270,8 +284,11 @@ export default class Cinnamon {
                 Database: framework.getModule<Database>(Database.prototype)
             });
 
-            await framework.getModule<WebServer>(WebServer.prototype).start(projectConfig.framework.http);
-            // If the database is initialized,
+            if (autostart)
+                await framework.getModule<WebServer>(WebServer.prototype).start(projectConfig.framework.http);
+
+            // If the database has been initialized, register the middleware with Koa to create a new request context
+            // for each request.
             if (framework.getModule<Database>(Database.prototype).isInitialized) {
                 framework.getModule<WebServer>(WebServer.prototype).server.use((ctx, next) => ORMRequestContext.createAsync(
                     framework.getModule<Database>(Database.prototype).em, next
