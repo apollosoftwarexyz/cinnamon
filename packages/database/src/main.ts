@@ -6,9 +6,6 @@ import Cinnamon, { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 
-import { RequestContext } from "@mikro-orm/core";
-export { RequestContext as ORMRequestContext };
-
 export type CinnamonDatabaseConfiguration = {
     /**
      * The database name on the database server.
@@ -224,7 +221,7 @@ export default class Database extends CinnamonModule {
      * this method does nothing.
      */
     public async connect() {
-        if (!this._underlyingOrmConfig || !this.isInitialized) return;
+        if (!this._underlyingOrmConfig) return;
         this.underlyingOrm = await MikroORM.init(this._underlyingOrmConfig);
     }
 

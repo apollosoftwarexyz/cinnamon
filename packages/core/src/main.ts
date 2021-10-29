@@ -7,9 +7,11 @@ export { CinnamonModule };
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 import Config from "@apollosoftwarexyz/cinnamon-config";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
-import Database, { CinnamonDatabaseConfiguration, ORMRequestContext } from "@apollosoftwarexyz/cinnamon-database";
+import Database, { CinnamonDatabaseConfiguration } from "@apollosoftwarexyz/cinnamon-database";
 import WebServer from "@apollosoftwarexyz/cinnamon-web-server";
 import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
+
+import { RequestContext } from '@mikro-orm/core';
 
 /**
  * Whether the underlying framework is in debug mode.
@@ -260,7 +262,9 @@ export default class Cinnamon {
 
             framework.registerModule(new Database(framework, modelsPath));
             await framework.getModule<Database>(Database.prototype).initialize(projectConfig.framework.database);
-            if (autostart) await framework.getModule<Database>(Database.prototype).connect();
+            if (autostart) {
+                await framework.getModule<Database>(Database.prototype).connect();
+            }
             framework.getModule<Logger>(Logger.prototype).info("Successfully initialized database ORM and models.");
 
             // Initialize web service controllers.
@@ -273,6 +277,7 @@ export default class Cinnamon {
                 process.exit(3);
             }
 
+            // Now, register and initialize the web server, and load the controllers.
             framework.registerModule(new WebServer(framework, controllersPath));
             await framework.getModule<WebServer>(WebServer.prototype).initialize();
             framework.getModule<Logger>(Logger.prototype).info("Successfully initialized web service controllers.");
@@ -288,14 +293,6 @@ export default class Cinnamon {
 
             if (autostart)
                 await framework.getModule<WebServer>(WebServer.prototype).start(projectConfig.framework.http);
-
-            // If the database has been initialized, register the middleware with Koa to create a new request context
-            // for each request.
-            if (framework.getModule<Database>(Database.prototype).isInitialized) {
-                framework.getModule<WebServer>(WebServer.prototype).server.use((ctx, next) => ORMRequestContext.createAsync(
-                    framework.getModule<Database>(Database.prototype).em, next
-                ));
-            }
 
             return framework;
         } catch(ex: any) {

@@ -23,6 +23,8 @@ import co from 'co';
 
 import * as Koa from 'koa';
 import KoaRouter from 'koa-router';
+import Database from "@apollosoftwarexyz/cinnamon-database";
+import {RequestContext} from "@mikro-orm/core";
 
 /**
  * @internal
@@ -269,6 +271,7 @@ export default class Loader {
      */
     async registerControllers() {
         this.unhookWithKoa();
+
         Object.keys(this.routes).forEach(route => delete this.routes[route]);
         Object.keys(this.routers).forEach(router => delete this.routers[router]);
 
@@ -433,6 +436,14 @@ export default class Loader {
 
     private hookWithKoa() {
         const routers = this.routers;
+
+        // If the database has been initialized, register the middleware with Koa to create a new request context
+        // for each request.
+        if (this.framework.getModule<Database>(Database.prototype).isInitialized) {
+            this.server.use((ctx, next) => RequestContext.createAsync(
+                this.framework.getModule<Database>(Database.prototype).em, next
+            ));
+        }
 
         /*
         Register a middleware on the Koa instance that loops through all the loaded
