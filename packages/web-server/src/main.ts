@@ -115,6 +115,11 @@ export default class WebServer extends CinnamonModule {
     }
 
     public async start(options: { host: string, port: number, enable_logging?: boolean }) : Promise<void> {
+        // If we're in development mode, we'll also register file watchers.
+        if (this.framework.inDevMode) {
+            await this.controllersLoader.registerWatchers();
+        }
+
         // If enable_logging is set (i.e., not null) and different to this.enableLogging
         // (the instance variable), then update the instance variable.
         if (this.enableLogging !== (options.enable_logging ?? false)) {
@@ -156,8 +161,10 @@ export default class WebServer extends CinnamonModule {
     }
 
     public async terminate() : Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
+                await this.controllersLoader.unregisterWatchers();
+
                 this.underlyingServer?.close((err) => {
                     if (err) return reject(err);
 

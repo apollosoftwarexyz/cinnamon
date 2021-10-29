@@ -290,22 +290,40 @@ export default class Loader {
         }
 
         this.hookWithKoa();
+    }
 
-        if (this.inDevMode) {
-            if (this.watcher) {
-                await this.watcher.close();
-            }
+    /**
+     * Registers file watchers for the controllers.
+     *
+     * Will not do anything if not in development mode. Additionally, this should not
+     * be called if autostart is not set on the framework as, naturally, it will cause
+     * the framework to persist running.
+     */
+    async registerWatchers() {
+        if (!this.inDevMode) return;
 
-            this.watcher = Chokidar.watch(this.trackedControllers.map(controller => controller.path), {
-                persistent: true,
-                ignoreInitial: true
-            });
+        await this.unregisterWatchers();
 
-            this.watcher.on('all', () => {
-                setTimeout(() => {
-                    this.scanForControllers(true).then(_ => this.registerControllers());
-                }, 100);
-            });
+        this.watcher = Chokidar.watch(this.trackedControllers.map(controller => controller.path), {
+            persistent: true,
+            ignoreInitial: true
+        });
+
+        this.watcher.on('all', () => {
+            setTimeout(() => {
+                this.scanForControllers(true).then(_ => this.registerControllers());
+            }, 100);
+        });
+    }
+
+    /**
+     * Unregisters file watchers for the controllers.
+     *
+     * Does nothing if the file watchers weren't already running.
+     */
+    async unregisterWatchers() {
+        if (this.watcher) {
+            await this.watcher.close();
         }
     }
 

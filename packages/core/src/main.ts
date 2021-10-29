@@ -230,7 +230,8 @@ export default class Cinnamon {
             options?.appConfigSchema
         ));
         framework.registerModule(new Logger(framework, framework.devMode, {
-            showFrameworkDebugMessages: CINNAMON_CORE_DEBUG_MODE
+            showFrameworkDebugMessages: CINNAMON_CORE_DEBUG_MODE,
+            silenced: options?.silenced ?? false
         }));
         framework.getModule<Logger>(Logger.prototype).info("Starting Cinnamon...");
 
