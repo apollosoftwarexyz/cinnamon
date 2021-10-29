@@ -1,4 +1,4 @@
-import { Entity, PrimaryKey, SerializedPrimaryKey } from '@apollosoftwarexyz/cinnamon/database';
+import { Entity, PrimaryKey, SerializedPrimaryKey } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 
 @Entity()
