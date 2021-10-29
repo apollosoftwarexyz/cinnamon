@@ -258,6 +258,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon-examples-basic-webserver@workspace:examples/basic-webserver"
   dependencies:
+    "@mikro-orm/cli": ^4.5.9
     "@typescript-eslint/eslint-plugin": ^5.0.0
     "@typescript-eslint/parser": ^5.0.0
     eslint: ^8.0.1

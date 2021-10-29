@@ -209,8 +209,6 @@ export default class Database extends CinnamonModule {
                     clientUrl: databaseConfig.clientUrl
                 })
             };
-
-            this.underlyingOrm = await MikroORM.init(this._underlyingOrmConfig);
         } catch(ex) {
             this.logger.error(`Failed to initialize MikroORM (ORM engine).`);
             console.error(ex);
@@ -218,6 +216,16 @@ export default class Database extends CinnamonModule {
             if (databaseConfig.terminateOnInitError) await this.framework.terminate(true);
             else this.logger.error(`Database initialization halted. The database module has NOT been initialized.`);
         }
+    }
+
+    /**
+     * Open the connection to the database server.
+     * If the database is not initialized or the configuration could not be resolved,
+     * this method does nothing.
+     */
+    public async connect() {
+        if (!this._underlyingOrmConfig || !this.isInitialized) return;
+        this.underlyingOrm = await MikroORM.init(this._underlyingOrmConfig);
     }
 
 }

@@ -584,6 +584,12 @@ declare class Database extends CinnamonModule {
     get entityManager(): EntityManager;
     get em(): EntityManager;
     initialize(databaseConfig: CinnamonDatabaseConfiguration): Promise<void>;
+    /**
+     * Open the connection to the database server.
+     * If the database is not initialized or the configuration could not be resolved,
+     * this method does nothing.
+     */
+    connect(): Promise<void>;
 }
 declare module DatabaseWrapper {
     export { Database };

@@ -260,6 +260,7 @@ export default class Cinnamon {
 
             framework.registerModule(new Database(framework, modelsPath));
             await framework.getModule<Database>(Database.prototype).initialize(projectConfig.framework.database);
+            if (autostart) await framework.getModule<Database>(Database.prototype).connect();
             framework.getModule<Logger>(Logger.prototype).info("Successfully initialized database ORM and models.");
 
             // Initialize web service controllers.
