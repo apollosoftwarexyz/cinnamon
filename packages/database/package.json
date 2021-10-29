@@ -16,6 +16,7 @@
     "@mikro-orm/mongodb": "^4.5.9",
     "@mikro-orm/mysql": "^4.5.9",
     "@mikro-orm/postgresql": "^4.5.9",
+    "@mikro-orm/reflection": "^4.5.9",
     "@mikro-orm/sqlite": "^4.5.9"
   }
 }

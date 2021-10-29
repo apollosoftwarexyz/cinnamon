@@ -7,7 +7,7 @@ export { CinnamonModule };
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 import Config from "@apollosoftwarexyz/cinnamon-config";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
-import Database, {CinnamonDatabaseConfiguration} from "@apollosoftwarexyz/cinnamon-database";
+import Database, { CinnamonDatabaseConfiguration, ORMRequestContext } from "@apollosoftwarexyz/cinnamon-database";
 import WebServer from "@apollosoftwarexyz/cinnamon-web-server";
 import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
 
@@ -271,6 +271,12 @@ export default class Cinnamon {
             });
 
             await framework.getModule<WebServer>(WebServer.prototype).start(projectConfig.framework.http);
+            // If the database is initialized,
+            if (framework.getModule<Database>(Database.prototype).isInitialized) {
+                framework.getModule<WebServer>(WebServer.prototype).server.use((ctx, next) => ORMRequestContext.createAsync(
+                    framework.getModule<Database>(Database.prototype).em, next
+                ));
+            }
 
             return framework;
         } catch(ex: any) {

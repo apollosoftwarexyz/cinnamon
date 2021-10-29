@@ -46,7 +46,7 @@ export default class WebServer extends CinnamonModule {
     private currentState: WebServerModuleState;
     private enableLogging: boolean;
 
-    private readonly server: Koa;
+    public readonly server: Koa;
     private underlyingServer?: Server;
     private readonly activeConnections: ActiveConnectionMap;
 

@@ -38,6 +38,7 @@ export default [
           '@mikro-orm/postgresql',
           '@mikro-orm/sqlite'
         ],
+        ignoreDynamicRequires: true
       }),
       json(),
       ts({

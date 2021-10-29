@@ -482,6 +482,15 @@ declare module LoggerWrapper {
 import _LoggerModule = LoggerWrapper.Logger;
 type CinnamonDatabaseConfiguration = {
     /**
+     * The database name on the database server.
+     */
+    database: string;
+    /**
+     * Whether the framework should be terminated if Cinnamon fails to connect to the database server.
+     */
+    terminateOnInitError?: boolean;
+} & ({
+    /**
      * The database type.
      * https://mikro-orm.io/docs/usage-with-sql
      *
@@ -492,7 +501,21 @@ type CinnamonDatabaseConfiguration = {
      * - PostgreSQL: 'postgresql'
      * - SQLite: 'sqlite'
      */
-    type: keyof typeof Configuration.PLATFORMS;
+    type: "mongo";
+    clientUrl: string;
+} | {
+    /**
+     * The database type.
+     * https://mikro-orm.io/docs/usage-with-sql
+     *
+     * This must be one of the acceptable configuration platforms per Mikro-ORM:
+     * - MongoDB: 'mongo'
+     * - MySQL or MariaDB: 'mysql'
+     * - MySQL or MariaDB: 'mariadb'
+     * - PostgreSQL: 'postgresql'
+     * - SQLite: 'sqlite'
+     */
+    type: Exclude<keyof typeof Configuration.PLATFORMS, "mongo">;
     /**
      * The hostname for the database server.
      * This should not include protocol or port. It is **not** a connection URL.
@@ -503,13 +526,8 @@ type CinnamonDatabaseConfiguration = {
      * For reference, common defaults are:
      * - MySQL: 3306
      * - PostgreSQL: 5432
-     * - MongoDB: 27017
      */
     port: number;
-    /**
-     * The database name on the database server.
-     */
-    database: string;
     /**
      * The database username.
      * If both username and password are left empty or not set, it will be assumed that the database does not require
@@ -522,11 +540,7 @@ type CinnamonDatabaseConfiguration = {
      * authentication.
      */
     password?: string;
-    /**
-     * Whether the framework should be terminated if Cinnamon fails to connect to the database server.
-     */
-    terminateOnInitError?: boolean;
-};
+});
 /**
  * @category Core Modules
  * @CoreModule

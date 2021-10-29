@@ -1,11 +1,25 @@
 import { MikroORM, EntityManager } from "@mikro-orm/core";
+import { TsMorphMetadataProvider } from "@mikro-orm/reflection";
 import { Configuration } from "@mikro-orm/core/utils/Configuration";
 
 import Cinnamon, { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 
+import { RequestContext } from "@mikro-orm/core";
+export { RequestContext as ORMRequestContext };
+
 export type CinnamonDatabaseConfiguration = {
+    /**
+     * The database name on the database server.
+     */
+    database: string,
+
+    /**
+     * Whether the framework should be terminated if Cinnamon fails to connect to the database server.
+     */
+    terminateOnInitError?: boolean
+} & ({
     /**
      * The database type.
      * https://mikro-orm.io/docs/usage-with-sql
@@ -17,7 +31,21 @@ export type CinnamonDatabaseConfiguration = {
      * - PostgreSQL: 'postgresql'
      * - SQLite: 'sqlite'
      */
-    type: keyof typeof Configuration.PLATFORMS,
+    type: "mongo";
+    clientUrl: string;
+} | {
+    /**
+     * The database type.
+     * https://mikro-orm.io/docs/usage-with-sql
+     *
+     * This must be one of the acceptable configuration platforms per Mikro-ORM:
+     * - MongoDB: 'mongo'
+     * - MySQL or MariaDB: 'mysql'
+     * - MySQL or MariaDB: 'mariadb'
+     * - PostgreSQL: 'postgresql'
+     * - SQLite: 'sqlite'
+     */
+    type: Exclude<keyof typeof Configuration.PLATFORMS, "mongo">,
     /**
      * The hostname for the database server.
      * This should not include protocol or port. It is **not** a connection URL.
@@ -28,13 +56,8 @@ export type CinnamonDatabaseConfiguration = {
      * For reference, common defaults are:
      * - MySQL: 3306
      * - PostgreSQL: 5432
-     * - MongoDB: 27017
      */
     port: number,
-    /**
-     * The database name on the database server.
-     */
-    database: string,
     /**
      * The database username.
      * If both username and password are left empty or not set, it will be assumed that the database does not require
@@ -47,12 +70,7 @@ export type CinnamonDatabaseConfiguration = {
      * authentication.
      */
     password?: string,
-
-    /**
-     * Whether the framework should be terminated if Cinnamon fails to connect to the database server.
-     */
-    terminateOnInitError?: boolean
-};
+});
 
 /**
  * @category Core Modules
@@ -91,6 +109,7 @@ export default class Database extends CinnamonModule {
             // @ts-ignore
             return undefined;
         }
+
         return this.underlyingOrm!.em;
     }
 
@@ -120,13 +139,25 @@ export default class Database extends CinnamonModule {
         // Validate the database configuration.
         if (
             !databaseConfig.type ||
-            !databaseConfig.host ||
-            !databaseConfig.port ||
-            isNaN(databaseConfig.port) ||
-            !databaseConfig.database
+            !databaseConfig.database ||
+            (databaseConfig.type !== 'mongo' && (
+                !databaseConfig.host ||
+                !databaseConfig.port ||
+                isNaN(databaseConfig.port)
+            )) ||
+            (databaseConfig.type === 'mongo' && !databaseConfig.clientUrl)
         ) {
-            this.logger.error(`Invalid database configuration. You must set at least:`);
-            this.logger.error(`type, host, port, database`);
+            this.logger.error(`Invalid database configuration. For a ${databaseConfig.type ? databaseConfig.type + ' ' : ''}database, you must set at least:`);
+            if (databaseConfig.type === "mongo")
+                this.logger.error(`type, clientUrl`);
+            else if (!!databaseConfig.type)
+                this.logger.error(`type, host, port, database`);
+            else {
+                this.logger.error(`type = 'mongo', database and clientUrl, or`)
+                this.logger.error(`type, host, port, database`);
+            }
+            this.logger.error(`For more information, please refer to the Mikro-ORM manual:`);
+            this.logger.error(`https://mikro-orm.io/docs/`);
 
             if (databaseConfig.terminateOnInitError) await this.framework.terminate(true);
             else this.logger.error(`Database initialization halted. The database module has NOT been initialized.`);
@@ -148,15 +179,24 @@ export default class Database extends CinnamonModule {
         }
 
         try {
-            let hasCredentials: boolean = databaseConfig.username != null && databaseConfig.password != null;
+            let hasCredentials: boolean = databaseConfig.type !== 'mongo' && (databaseConfig.username != null && databaseConfig.password != null);
             this.underlyingOrm = await MikroORM.init({
+                metadataProvider: TsMorphMetadataProvider,
                 type: databaseConfig.type as keyof typeof Configuration.PLATFORMS,
+                entities: [
+                    `${this.modelsPath}/**/*.js`,
+                    `${this.modelsPath}/**/*.ts`
+                ],
                 entitiesTs: [`${this.modelsPath}/**/*.ts`],
-                host: databaseConfig.host,
-                port: databaseConfig.port,
                 dbName: databaseConfig.database,
-                user: hasCredentials ? databaseConfig.username : undefined,
-                password: hasCredentials ? databaseConfig.password : undefined
+                ...(databaseConfig.type != "mongo" ? {
+                    host: databaseConfig.host,
+                    port: databaseConfig.port,
+                    user: hasCredentials ? databaseConfig.username : undefined,
+                    password: hasCredentials ? databaseConfig.password : undefined
+                } : {
+                    clientUrl: databaseConfig.clientUrl
+                })
             });
         } catch(ex) {
             this.logger.error(`Failed to initialize MikroORM (ORM engine).`);
