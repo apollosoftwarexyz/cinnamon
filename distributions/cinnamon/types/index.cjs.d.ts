@@ -1,6 +1,6 @@
 import { MikroORM, EntityManager } from "@mikro-orm/core";
 import { Configuration } from "@mikro-orm/core/utils/Configuration";
-import * as Koa from 'koa';
+import * as Koa$0 from 'koa';
 import { Context, Next } from "koa";
 import * as Chalk from 'chalk';
 /**
@@ -287,7 +287,7 @@ declare class Config extends CinnamonModule {
      *
      * @param framework The Cinnamon framework instance.
      * @param appConfig The app table of the cinnamon.toml configuration file.
-     * @param appConfigValidator A schema validator for the app configuration,
+     * @param appConfigSchema A schema validator for the app configuration,
      * this would usually be passed into the framework as a Cinnamon
      * initialization option.
      */
@@ -428,6 +428,13 @@ interface ExtendedLoggerOptions {
      * pass through this function.
      */
     logDelegate?: DelegateLogFunction;
+    /**
+     * Whether all logging messages should be silenced. This is useful if you're booting Cinnamon as part of a toolchain
+     * and are not expecting it to run with the full web application.
+     * Framework debugging messages do not respect this option to make debugging external tooling easier, however they
+     * can be easily turned off with {@see showFrameworkDebugMessages}.
+     */
+    silenced?: boolean;
 }
 /**
  * @category Core Modules
@@ -449,6 +456,11 @@ declare class Logger extends CinnamonModule {
      * @private
      */
     private readonly logDelegate?;
+    /**
+     * @see ExtendedLoggerOptions
+     * @private
+     */
+    private readonly silenced?;
     /**
      * @CoreModule
      * Initializes a Cinnamon Framework logger.
@@ -546,6 +558,12 @@ type CinnamonDatabaseConfiguration = {
  * @CoreModule
  */
 declare class Database extends CinnamonModule {
+    private _underlyingOrmConfig;
+    /**
+     * Returns the ORM configuration as it would be passed to Mikro-ORM in the
+     * database module.
+     */
+    get ormConfig(): any;
     underlyingOrm?: MikroORM;
     private readonly modelsPath;
     /**
@@ -585,6 +603,16 @@ type CinnamonInitializationOptions = {
      * An optional validation schema for the app configuration.
      */
     appConfigSchema?: ValidationSchema;
+    /**
+     * If set to true, Cinnamon will disable all logging output
+     * using the Logger.
+     */
+    silenced?: boolean;
+    /**
+     * If set to false, prevents Cinnamon from auto-starting modules, such as the web server.
+     * The default is true.
+     */
+    autostart?: boolean;
 };
 /**
  * The main class of the Cinnamon framework. To initialize the framework, you initialize
@@ -747,4 +775,4 @@ type MiddlewareFn = Function;
  * @param fn The middleware function that should be executed for the route.
  */
 declare function Middleware(fn: MiddlewareFn): (target: any, propertyKey: string) => void;
-export { Cinnamon as default, CinnamonModule, Config$0 as Config, Logger$0 as Logger, Database$0 as Database, DatabaseModule, initializeCoreModules, Method, Controller, Route, Middleware, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Koa, Context, Next, Chalk };
+export { Cinnamon as default, CinnamonModule, Config$0 as Config, Logger$0 as Logger, Database$0 as Database, DatabaseModule, initializeCoreModules, Method, Controller, Route, Middleware, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Koa$0 as Koa, Context, Next, Chalk };
