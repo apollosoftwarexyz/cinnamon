@@ -1,4 +1,4 @@
-import CinnamonModule from './module';
+import { CinnamonModule } from "./module";
 export { CinnamonModule };
 
 import { default as _ConfigModule } from "@apollosoftwarexyz/cinnamon-config";

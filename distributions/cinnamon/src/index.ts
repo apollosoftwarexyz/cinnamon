@@ -13,15 +13,15 @@
 ////////////////
 // Framework Core.
 ////////////////
-import Cinnamon from "@apollosoftwarexyz/cinnamon-core";
+import Cinnamon  from "@apollosoftwarexyz/cinnamon-core";
 export default Cinnamon;
 
 ////////////////
 // Framework Modules.
 ////////////////
 export * from '@apollosoftwarexyz/cinnamon-core-modules';
-export { Method, Controller, Route, Middleware } from '@apollosoftwarexyz/cinnamon-web-server';
 export * from '@apollosoftwarexyz/cinnamon-validator';
+export { Method, Controller, Route, Middleware, Body } from '@apollosoftwarexyz/cinnamon-web-server';
 
 ////////////////
 // Third Party.

@@ -2,7 +2,8 @@ import { MikroORM, EntityManager } from "@mikro-orm/core";
 import { TsMorphMetadataProvider } from "@mikro-orm/reflection";
 import { Configuration } from "@mikro-orm/core/utils/Configuration";
 
-import Cinnamon, { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core";
+import Cinnamon  from "@apollosoftwarexyz/cinnamon-core";
+import { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core-modules";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 

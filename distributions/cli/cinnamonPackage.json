@@ -1,0 +1,47 @@
+{
+  "version": "0.0.13",
+  "name": "@apollosoftwarexyz/cinnamon-workspaces",
+  "license": "MIT",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git"
+  },
+  "workspaces": [
+    "docs",
+    "packages/*",
+    "examples/*",
+    "distributions/*"
+  ],
+  "scripts": {
+    "prerelease": "yarn workspace @apollosoftwarexyz/cinnamon prerelease",
+    "prepublishOnly": "yarn prerelease",
+    "currentBundleSize": "yarn workspace @apollosoftwarexyz/cinnamon currentBundleSize",
+    "publish": "yarn workspace @apollosoftwarexyz/cinnamon publish",
+    "clean": "yarn workspaces foreach run clean",
+    "build": "yarn workspace @apollosoftwarexyz/cinnamon updateReadme; rollup --config",
+    "version:patch": "npm version patch",
+    "cli:local": "yarn workspace @apollosoftwarexyz/cinnamon-cli local",
+    "cli:manifest": "cp package.json packages/cli/cinnamonPackage.json",
+    "cli:publish": "yarn cli:manifest; yarn workspace @apollosoftwarexyz/cinnamon-cli publish",
+    "docs:api": "typedoc distributions/cinnamon --readme none",
+    "docs:dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev",
+    "docs:generate": "yarn docs:api; yarn docs:api; yarn workspace @apollosoftwarexyz/cinnamon-docs generate",
+    "example:start": "yarn workspace @apollosoftwarexyz/cinnamon-examples-basic-webserver start",
+    "example-validation:start": "yarn workspace @apollosoftwarexyz/cinnamon-examples-validation start"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^21.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^13.0.5",
+    "rollup": "^2.58.0",
+    "rollup-plugin-ts": "^1.4.7",
+    "tslib": "^2.3.1",
+    "typedoc": "^0.22.5",
+    "typedoc-plugin-merge-modules": "^3.0.2",
+    "typedoc-plugin-not-exported": "^0.1.6",
+    "typedoc-plugin-rename-defaults": "^0.4.0",
+    "typescript": "^4.4.4"
+  },
+  "packageManager": "yarn@3.0.2"
+}

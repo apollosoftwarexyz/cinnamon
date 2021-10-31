@@ -1,5 +1,6 @@
 import { MikroORM, EntityManager } from "@mikro-orm/core";
 import { Configuration } from "@mikro-orm/core/utils/Configuration";
+import KoaBody from "koa-body";
 import * as Koa$0 from 'koa';
 import { Context, Next } from "koa";
 import * as Chalk from 'chalk';
@@ -618,7 +619,7 @@ type CinnamonInitializationOptions = {
      * If set to false, prevents Cinnamon from auto-starting modules, such as the web server.
      * The default is true.
      */
-    autostart?: boolean;
+    autostartServices?: boolean;
 };
 /**
  * The main class of the Cinnamon framework. To initialize the framework, you initialize
@@ -781,4 +782,5 @@ type MiddlewareFn = Function;
  * @param fn The middleware function that should be executed for the route.
  */
 declare function Middleware(fn: MiddlewareFn): (target: any, propertyKey: string) => void;
-export { Cinnamon as default, CinnamonModule, Config$0 as Config, Logger$0 as Logger, Database$0 as Database, DatabaseModule, initializeCoreModules, Method, Controller, Route, Middleware, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Koa$0 as Koa, Context, Next, Chalk };
+declare const Body: typeof KoaBody;
+export { Cinnamon as default, CinnamonModule, Config$0 as Config, Logger$0 as Logger, Database$0 as Database, DatabaseModule, initializeCoreModules, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Method, Controller, Route, Middleware, Body, Koa$0 as Koa, Context, Next, Chalk };

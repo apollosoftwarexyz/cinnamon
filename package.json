@@ -24,7 +24,7 @@
     "cli:local": "yarn workspace @apollosoftwarexyz/cinnamon-cli local",
     "cli:manifest": "cp package.json packages/cli/cinnamonPackage.json",
     "cli:publish": "yarn cli:manifest; yarn workspace @apollosoftwarexyz/cinnamon-cli publish",
-    "docs:api": "typedoc distributions/cinnamon --readme none",
+    "docs:api": "typedoc packages/* --readme none",
     "docs:dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev",
     "docs:generate": "yarn docs:api; yarn docs:api; yarn workspace @apollosoftwarexyz/cinnamon-docs generate",
     "example:start": "yarn workspace @apollosoftwarexyz/cinnamon-examples-basic-webserver start",

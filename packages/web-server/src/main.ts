@@ -1,6 +1,10 @@
-import Cinnamon, { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core";
+/// <reference types="@types/koa" />
+/// <reference types="koa-body" />
+
+import Cinnamon  from "@apollosoftwarexyz/cinnamon-core";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
+import { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core-modules";
 
 import Koa from 'koa';
 import { Server } from 'http';
@@ -31,6 +35,8 @@ export { Method } from './api/Method';
 export { default as Controller } from './api/Controller';
 export { default as Route } from './api/Route';
 export { default as Middleware } from './api/Middleware';
+
+export * from './middlewares';
 
 /**
  * @category Core Modules

@@ -1,0 +1,26 @@
+<component name="libraryTable">
+  <library name="ts-external-references" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/node_modules/fast-glob/out/index.d.ts" />
+        <item url="file://$PROJECT_DIR$/node_modules/fast-glob/out/managers/tasks.d.ts" />
+        <item url="file://$PROJECT_DIR$/node_modules/fast-glob/out/settings.d.ts" />
+        <item url="file://$PROJECT_DIR$/node_modules/fast-glob/out/types/index.d.ts" />
+        <item url="file://$PROJECT_DIR$/node_modules/querystring/decode.d.ts" />
+        <item url="file://$PROJECT_DIR$/node_modules/querystring/encode.d.ts" />
+        <item url="file://$PROJECT_DIR$/node_modules/querystring/index.d.ts" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/node_modules/fast-glob/out/index.d.ts" />
+      <root url="file://$PROJECT_DIR$/node_modules/fast-glob/out/managers/tasks.d.ts" />
+      <root url="file://$PROJECT_DIR$/node_modules/fast-glob/out/settings.d.ts" />
+      <root url="file://$PROJECT_DIR$/node_modules/fast-glob/out/types/index.d.ts" />
+      <root url="file://$PROJECT_DIR$/node_modules/querystring/decode.d.ts" />
+      <root url="file://$PROJECT_DIR$/node_modules/querystring/encode.d.ts" />
+      <root url="file://$PROJECT_DIR$/node_modules/querystring/index.d.ts" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

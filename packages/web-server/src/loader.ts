@@ -15,16 +15,16 @@ import WebServer from "./main";
 import { Method } from "./api/Method";
 import { MiddlewareFn } from "./api/Middleware";
 
-import Module from "module";
 import * as Chokidar from 'chokidar';
-import * as chalk from 'chalk';
+import Module from "module";
+import chalk from 'chalk';
 
 import co from 'co';
 
-import * as Koa from 'koa';
+import Koa from 'koa';
 import KoaRouter from 'koa-router';
 import Database from "@apollosoftwarexyz/cinnamon-database";
-import {RequestContext} from "@mikro-orm/core";
+import { RequestContext } from "@mikro-orm/core";
 
 /**
  * @internal
@@ -166,9 +166,9 @@ export default class Loader {
 
     public readonly BuiltinModuleAPI = {
         // @ts-ignore
-        load: Module.prototype.load,
+        load: Module.prototype.load as any,
         // @ts-ignore
-        require: Module.prototype.require,
+        require: Module.prototype.require as any,
     }
 
     constructor(options: {
@@ -434,16 +434,50 @@ export default class Loader {
         return exports;
     }
 
+    /**
+     * Registers all Controllers' and Middlewares' route with Koa.
+     * @private
+     */
     private hookWithKoa() {
         const routers = this.routers;
 
         // If the database has been initialized, register the middleware with Koa to create a new request context
-        // for each request.
+        // for each request and register a middleware to add an entity manager to the context.
         if (this.framework.getModule<Database>(Database.prototype).isInitialized) {
+            // Create request context.
             this.server.use((ctx, next) => RequestContext.createAsync(
                 this.framework.getModule<Database>(Database.prototype).em, next
             ));
+
+            // Add entity manager to context.
+            this.server.use(async (ctx, next) => {
+                ctx.getEntityManager = () => RequestContext.getEntityManager();
+                return await next();
+            });
         }
+
+        // Register a middleware to check if the body attribute on the context is usable (because the body
+        // middleware has to be registered for it to be used.)
+        this.server.use(async (ctx, next) => {
+            (() => {
+                let bodyValue: any;
+                Object.defineProperty(ctx.request, 'body', {
+                    get: () => {
+                        if (!bodyValue)
+                            throw new Error(
+                                "You must use the body middleware to access the request body.\n" +
+                                "Annotate your request handler (route) with:\n\n" +
+                                "@Middleware(Body())"
+                            );
+                        return bodyValue;
+                    },
+                    set: function (value) {
+                        bodyValue = value;
+                    }
+                });
+            })();
+            return await next();
+        });
 
         /*
         Register a middleware on the Koa instance that loops through all the loaded

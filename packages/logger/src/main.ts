@@ -1,5 +1,6 @@
 import * as chalk from 'chalk';
-import Cinnamon, { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core";
+import Cinnamon  from "@apollosoftwarexyz/cinnamon-core";
+import { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core-modules";
 
 export enum LogLevel {
     /**
@@ -173,7 +174,7 @@ export default class Logger extends CinnamonModule {
      * Logs an internal framework messages. Intended for internal framework-use only.
      * @param message The framework message to log.
      * @param module The module that generated the log.
-     * @private
+     * @internal
      */
     frameworkDebug(message: string, module?: string) {
         this.log({
@@ -184,7 +185,7 @@ export default class Logger extends CinnamonModule {
         })
     }
 
-    debug(message: string, module?: string) {
+    public debug(message: string, module?: string) {
         this.log({
             level: LogLevel.DEBUG,
             timestamp: new Date(),
@@ -193,7 +194,7 @@ export default class Logger extends CinnamonModule {
         });
     }
 
-    info(message: string, module?: string) {
+    public info(message: string, module?: string) {
         this.log({
             level: LogLevel.INFO,
             timestamp: new Date(),
@@ -202,7 +203,7 @@ export default class Logger extends CinnamonModule {
         });
     }
 
-    warn(message: string, module?: string) {
+    public warn(message: string, module?: string) {
         this.log({
             level: LogLevel.WARN,
             timestamp: new Date(),
@@ -211,7 +212,7 @@ export default class Logger extends CinnamonModule {
         });
     }
 
-    error(message: string, module?: string) {
+    public error(message: string, module?: string) {
         this.log({
             level: LogLevel.ERROR,
             timestamp: new Date(),
@@ -224,7 +225,7 @@ export default class Logger extends CinnamonModule {
      * Logs the specified LogEntry. This is generally intended for internal use only.
      * @param entry The log entry to be displayed and passed to the remote log delegate.
      */
-    log(entry: LogEntry) {
+    private log(entry: LogEntry) {
         if (this.silenced) return;
 
         // The function that will print the content to the underlying OS POSIX stream.
@@ -276,7 +277,7 @@ export default class Logger extends CinnamonModule {
             });
     }
 
-    static timestampStringFor(date: Date) {
+    private static timestampStringFor(date: Date) {
         let padStart = (_: number) => _.toString().padStart(2, '0');
         let time = `${padStart(date.getHours())}:${padStart(date.getMinutes())}:${padStart(date.getSeconds())}`;
 

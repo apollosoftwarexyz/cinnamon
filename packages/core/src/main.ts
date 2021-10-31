@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import { parse as parseToml } from 'toml';
 import { initializeCoreModules, CinnamonModule } from "@apollosoftwarexyz/cinnamon-core-modules";
-export { CinnamonModule };
 
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 import Config from "@apollosoftwarexyz/cinnamon-config";
@@ -10,8 +9,6 @@ import Logger from "@apollosoftwarexyz/cinnamon-logger";
 import Database, { CinnamonDatabaseConfiguration } from "@apollosoftwarexyz/cinnamon-database";
 import WebServer from "@apollosoftwarexyz/cinnamon-web-server";
 import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
-
-import { RequestContext } from '@mikro-orm/core';
 
 /**
  * Whether the underlying framework is in debug mode.
@@ -35,8 +32,9 @@ export type CinnamonInitializationOptions = {
      * If set to false, prevents Cinnamon from auto-starting modules, such as the web server.
      * The default is true.
      */
-    autostart?: boolean;
+    autostartServices?: boolean;
 };
+
 
 /**
  * The main class of the Cinnamon framework. To initialize the framework, you initialize
@@ -137,7 +135,7 @@ export default class Cinnamon {
      * instance.
      */
     static async initialize(options?: CinnamonInitializationOptions) : Promise<Cinnamon> {
-        let autostart: boolean = options?.autostart ?? true;
+        let autostartServices: boolean = options?.autostartServices ?? true;
 
         // Stat cinnamon.toml to make sure it exists.
         // This doubles as making sure the process is started in the project root.
@@ -262,7 +260,7 @@ export default class Cinnamon {
 
             framework.registerModule(new Database(framework, modelsPath));
             await framework.getModule<Database>(Database.prototype).initialize(projectConfig.framework.database);
-            if (autostart) {
+            if (autostartServices) {
                 await framework.getModule<Database>(Database.prototype).connect();
             }
             framework.getModule<Logger>(Logger.prototype).info("Successfully initialized database ORM and models.");
@@ -291,7 +289,7 @@ export default class Cinnamon {
                 Database: framework.getModule<Database>(Database.prototype)
             });
 
-            if (autostart)
+            if (autostartServices)
                 await framework.getModule<WebServer>(WebServer.prototype).start(projectConfig.framework.http);
 
             return framework;

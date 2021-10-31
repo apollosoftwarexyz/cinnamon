@@ -1,7 +1,8 @@
-import Cinnamon, {CinnamonModule} from "@apollosoftwarexyz/cinnamon-core";
+import Cinnamon  from "@apollosoftwarexyz/cinnamon-core";
 import { $, ValidationSchema } from "@apollosoftwarexyz/cinnamon-validator";
 
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
+import { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core-modules";
 
 /**
  * @category Core Modules

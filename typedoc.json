@@ -2,7 +2,7 @@
   "name": "@apollosoftwarexyz/cinnamon",
   "includeVersion": true,
   "tsconfig": "tsconfig.build.json",
-  "entryPointStrategy": "Expand",
+  "entryPointStrategy": "Packages",
   "out": "docs/static/api",
   "mergeModulesMergeMode": "project",
   "sort": [
@@ -13,5 +13,7 @@
     "instance-first",
     "required-first",
     "alphabetical"
-  ]
+  ],
+  "excludePrivate": true,
+  "excludeInternal": true
 }
