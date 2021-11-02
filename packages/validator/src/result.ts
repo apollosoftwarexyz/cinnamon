@@ -1,17 +1,14 @@
 export default class ValidationResult {
 
     public readonly success: boolean;
-    public readonly message: string;
+    public readonly message?: string;
 
     constructor(options: {
         success: boolean,
         message?: string
     }) {
         this.success = options.success;
-        this.message = options.message ?? (
-            options.success ? "The input was valid."
-                            : "The input was invalid."
-        );
+        this.message = options.message;
     }
 
     static success() {

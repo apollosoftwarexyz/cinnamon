@@ -321,7 +321,7 @@ interface ValidationSchemaObject {
 type ValidationSchema = ValidationSchemaField | ValidationSchemaObject;
 declare class ValidationResult {
     readonly success: boolean;
-    readonly message: string;
+    readonly message?: string;
     constructor(options: {
         success: boolean;
         message?: string;
