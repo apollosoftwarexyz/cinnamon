@@ -40,25 +40,31 @@ export class Validator {
      * If validation passes, this method returns true, otherwise it returns false.
      *
      * @param value The value to check (perform validation) against the schema.
+     * @return result An array, with the first index (0) being the validation result, and the
+     * second (1) being either the inputted value if it was valid, or undefined if it wasn't.
      */
-    public validate(value: any) : ValidationResult {
+    public validate(value: any) : [ ValidationResult, any | undefined ] {
+        let result;
+
         if (this.isSingleFieldSchema) {
-            return this.validateSchemaAgainstField(
+            result = this.validateSchemaAgainstField(
                 this.schema as ValidationSchemaField,
                 value,
                 undefined,
                 '$root',
                 undefined
             );
+        } else {
+            result = this.validateSchemaAgainstObject(
+                this.schema as ValidationSchemaObject,
+                value,
+                value,
+                '$root',
+                undefined
+            );
         }
 
-        return this.validateSchemaAgainstObject(
-            this.schema as ValidationSchemaObject,
-            value,
-            value,
-            '$root',
-            undefined
-        );
+        return [ result, result.success ? value : undefined ];
     }
 
     private validateSchemaAgainstObject(object: ValidationSchemaObject, value: any, _entireObject?: any, _fieldName?: string, _parentName?: string) : ValidationResult {
