@@ -13,7 +13,7 @@
 ////////////////
 // Framework Core.
 ////////////////
-import Cinnamon  from "@apollosoftwarexyz/cinnamon-core";
+import Cinnamon from "@apollosoftwarexyz/cinnamon-core";
 export default Cinnamon;
 
 ////////////////

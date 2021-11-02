@@ -1,14 +1,13 @@
 {
   "name": "@apollosoftwarexyz/cinnamon",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "author": "Apollo Software Limited",
   "description": "Apollo Software's intuitive backend API framework.",
   "license": "MIT",
   "main": "dist/index.cjs",
   "types": "types/shim.d.ts",
   "exports": {
-    ".": "./dist/index.cjs",
-    "./database": "./src/database/index.ts"
+    ".": "./dist/index.cjs"
   },
   "repository": {
     "type": "git",
