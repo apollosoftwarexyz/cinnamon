@@ -476,6 +476,7 @@ export default class Loader {
                     }
                 });
             })();
+
             return await next();
         });
 
@@ -534,6 +535,8 @@ export default class Loader {
     }
 
     private unhookWithKoa() {
+        // Clears all of Koa's middleware, by emptying the middleware list on the underlying
+        // Koa application server.
         this.server.middleware = [];
     }
 

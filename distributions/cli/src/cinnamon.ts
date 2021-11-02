@@ -9,11 +9,11 @@ import { promisify } from 'util';
  * Returns the Cinnamon root directory as an absolute file path if it is, otherwise
  * returns undefined.
  */
-export default async function getCinnamonRoot(): Promise<string | undefined> {
+export default async function getCinnamonRoot() : Promise<string | undefined> {
     const rootPath = (process.platform == "win32") ? process.cwd().split(path.sep)[0] : "/";
     let currentPath = await promisify(fs.realpath)(process.cwd());
 
-    const hasCinnamonToml = async (dir: string): Promise<boolean> => {
+    const hasCinnamonToml = async (dir: string) : Promise<boolean> => {
         try {
             return (await promisify(fs.stat)(path.join(dir, 'cinnamon.toml'))).isFile();
         } catch(ex) {

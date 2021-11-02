@@ -399,7 +399,7 @@ type CinnamonInitializationOptions = {
      * but before it has booted.
      * This is useful for loading plugins and modules, etc., hence the name.
      */
-    load?: (framework: Cinnamon) => void;
+    load?: (framework: Cinnamon) => Promise<void>;
 };
 /**
  * The main class of the Cinnamon framework. To initialize the framework, you initialize
@@ -459,6 +459,14 @@ declare class Cinnamon {
      */
     registerModule<T extends CinnamonModule>(module: T): void;
     /**
+     * Unregisters the specified module.
+     * If the module was not already registered in the framework, this method
+     * is a no-op.
+     *
+     * @param module The module instance to unregister.
+     */
+    unregisterModule<T extends CinnamonModule>(module: T): void;
+    /**
      * Checks if the specified plugin is registered in the framework based on
      * its plugin identifier (organization_name/plugin_name).
      * Naturally, if it is, returns true, otherwise returns false.
@@ -466,6 +474,13 @@ declare class Cinnamon {
      * @param pluginIdentifier The identifier of the plugin to check.
      */
     hasPlugin(pluginIdentifier: string): boolean;
+    /**
+     * A canonical alias for {@link use}. Prefer {@link use} for brevity.
+     *
+     * @param plugin The plugin instance to register.
+     * @see use
+     */
+    registerPlugin(plugin: CinnamonPlugin): void;
     /**
      * Registers the specified plugin.
      * **Unlike with registerModule**, if it has already been registered in the
@@ -475,6 +490,14 @@ declare class Cinnamon {
      * @param plugin The plugin instance to register.
      */
     use(plugin: CinnamonPlugin): void;
+    /**
+     * Unregisters the specified plugin.
+     * If the plugin was not already registered in the framework, this method
+     * is a no-op.
+     *
+     * @param pluginIdentifier The identifier of the plugin instance to unregister.
+     */
+    unregisterPlugin(pluginIdentifier: string): void;
     /**
      * Trigger the named hook on all the plugins currently registered with
      * Cinnamon. e.g., triggerPluginHook('onInitialize') will call the
@@ -691,7 +714,7 @@ interface ExtendedLoggerOptions {
      * Whether all logging messages should be silenced. This is useful if you're booting Cinnamon as part of a toolchain
      * and are not expecting it to run with the full web application.
      * Framework debugging messages do not respect this option to make debugging external tooling easier, however they
-     * can be easily turned off with {@see showFrameworkDebugMessages}.
+     * can be easily turned off with {@link showFrameworkDebugMessages}.
      */
     silenced?: boolean;
 }

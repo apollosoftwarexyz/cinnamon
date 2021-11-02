@@ -23,7 +23,7 @@ export namespace fs {
      *
      * @param filePath The file path to check.
      */
-    export async function fileExists(filePath: string): Promise<boolean> {
+    export async function fileExists(filePath: string) : Promise<boolean> {
         try {
             const stats = await promisify(_fs.stat)(filePath);
             return stats.isFile();
@@ -40,7 +40,7 @@ export namespace fs {
      *
      * @param directoryPath The directory path to check.
      */
-    export async function directoryExists(directoryPath: string | undefined): Promise<boolean> {
+    export async function directoryExists(directoryPath: string | undefined) : Promise<boolean> {
         try {
             if (typeof directoryPath !== "string") return false;
 
@@ -58,7 +58,7 @@ export namespace fs {
      * @param childPath The child of the current working directory to locate prior to determining the
      *                  absolute path.
      */
-    export function toAbsolutePath(childPath: string): string {
+    export function toAbsolutePath(childPath: string) : string {
         if (childPath === undefined || childPath === null) throw new Error("Missing path.");
         return path.join(process.cwd(), childPath);
     }

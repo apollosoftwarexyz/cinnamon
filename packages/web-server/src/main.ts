@@ -60,7 +60,7 @@ export default class WebServer extends CinnamonModule {
     /**
      * Returns the underlying Node HTTP server instance used internally by Koa.
      */
-    get underlyingServer (): Server | undefined { return this._underlyingServer; }
+    get underlyingServer () : Server | undefined { return this._underlyingServer; }
 
     private readonly activeConnections: ActiveConnectionMap;
 

@@ -118,7 +118,7 @@ interface ExtendedLoggerOptions {
      * Whether all logging messages should be silenced. This is useful if you're booting Cinnamon as part of a toolchain
      * and are not expecting it to run with the full web application.
      * Framework debugging messages do not respect this option to make debugging external tooling easier, however they
-     * can be easily turned off with {@see showFrameworkDebugMessages}.
+     * can be easily turned off with {@link showFrameworkDebugMessages}.
      */
     silenced?: boolean;
 }

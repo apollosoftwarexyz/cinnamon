@@ -59,7 +59,7 @@ export abstract class CinnamonPlugin extends CinnamonSdkBase {
      * This concatenates the organization name and plugin name with a period
      * to yield a plugin name that should, theoretically, be globally unique.
      */
-    get identifier(): string {
+    get identifier() : string {
         return `${this.organization}/${this.name}`;
     }
 
@@ -82,13 +82,13 @@ export abstract class CinnamonPlugin extends CinnamonSdkBase {
      * `true` implies that it did, `false` implies that it did not. **A return
      * value of void implies that it *did* initialize successfully.**
      */
-    abstract onInitialize(): Promise<boolean | void>;
+    abstract onInitialize() : Promise<boolean | void>;
 
     /**
      * Executed after Cinnamon's core and all modules have completely initialized,
      * but before the web server module has started and begun accepting requests.
      */
-    async onStart(): Promise<void> {};
+    async onStart() : Promise<void> {};
 
     /**
      * Executed after Cinnamon has completely initialized and the web server
@@ -96,6 +96,6 @@ export abstract class CinnamonPlugin extends CinnamonSdkBase {
      * you would need this method, but this might be helpful for accessing
      * the current underlying HTTP server.
      */
-    async afterStart(): Promise<void> {};
+    async afterStart() : Promise<void> {};
 
 }

@@ -36,7 +36,7 @@ export default class Config extends CinnamonModule {
      * @return Whether the app config is present and loaded in the config
      * module.
      */
-    get hasAppConfig(): boolean {
+    get hasAppConfig() : boolean {
         return this.appConfig !== null && this.appConfig !== undefined;
     }
 

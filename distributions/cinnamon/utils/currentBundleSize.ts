@@ -31,7 +31,7 @@ const TARGET_BUNDLE_FILE = '../dist/index.cjs';
  *
  * @return humanFileSize Formatted string.
  */
-function humanFileSize(bytes: number, useSiUnits = false, decimalPlaces: number = 1): string {
+function humanFileSize(bytes: number, useSiUnits = false, decimalPlaces: number = 1) : string {
     const thresh = useSiUnits ? 1000 : 1024;
 
     if (Math.abs(bytes) < thresh) {

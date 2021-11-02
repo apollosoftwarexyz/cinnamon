@@ -108,11 +108,11 @@ export default class Database extends CinnamonModule {
      * Check if the underlying ORM engine (MikroORM) has been initialized yet.
      * Will return true if it has, or false if it hasn't.
      */
-    public get isInitialized(): boolean {
+    public get isInitialized() : boolean {
         return this.underlyingOrm !== undefined;
     }
 
-    public get entityManager(): EntityManager {
+    public get entityManager() : EntityManager {
         if (!this.isInitialized) {
             // @ts-ignore
             return undefined;
@@ -121,7 +121,7 @@ export default class Database extends CinnamonModule {
         return this.underlyingOrm!.em;
     }
 
-    public get em(): EntityManager {
+    public get em() : EntityManager {
         return this.entityManager;
     }
 

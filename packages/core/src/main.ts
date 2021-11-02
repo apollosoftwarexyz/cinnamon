@@ -40,7 +40,7 @@ export type CinnamonInitializationOptions = {
      * but before it has booted.
      * This is useful for loading plugins and modules, etc., hence the name.
      */
-    load?: (framework: Cinnamon) => void;
+    load?: (framework: Cinnamon) => Promise<void>;
 };
 
 
@@ -130,10 +130,20 @@ export default class Cinnamon {
      * @param module The module instance to register.
      */
     public registerModule<T extends CinnamonModule>(module: T) {
+        this.unregisterModule(module);
+        this.modules.push(module);
+    }
+
+    /**
+     * Unregisters the specified module.
+     * If the module was not already registered in the framework, this method
+     * is a no-op.
+     *
+     * @param module The module instance to unregister.
+     */
+    public unregisterModule<T extends CinnamonModule>(module: T) {
         if (this.hasModule<T>(module))
             this.modules.splice(this.modules.indexOf(module), 1);
-
-        this.modules.push(module);
     }
 
     /**
@@ -145,6 +155,16 @@ export default class Cinnamon {
      */
     public hasPlugin(pluginIdentifier: string) : boolean {
         return Object.keys(this.plugins).includes(pluginIdentifier);
+    }
+
+    /**
+     * A canonical alias for {@link use}. Prefer {@link use} for brevity.
+     *
+     * @param plugin The plugin instance to register.
+     * @see use
+     */
+    public registerPlugin(plugin: CinnamonPlugin) : void {
+        return this.use(plugin);
     }
 
     /**
@@ -160,6 +180,18 @@ export default class Cinnamon {
     }
 
     /**
+     * Unregisters the specified plugin.
+     * If the plugin was not already registered in the framework, this method
+     * is a no-op.
+     *
+     * @param pluginIdentifier The identifier of the plugin instance to unregister.
+     */
+    public unregisterPlugin(pluginIdentifier: string) : void {
+        if (this.hasPlugin(pluginIdentifier))
+            delete this.plugins[pluginIdentifier];
+    }
+
+    /**
      * Trigger the named hook on all the plugins currently registered with
      * Cinnamon. e.g., triggerPluginHook('onInitialize') will call the
      * onInitialize hook on all plugins.
@@ -171,10 +203,12 @@ export default class Cinnamon {
             // Get all plugins
             Object.values(this.plugins)
                 // Filter to those that have the function 'hookName' as a property.
-                .filter((plugin: any) => plugin.hasOwnProperty(hookName) && typeof plugin[hookName] === 'function')
+                .filter((plugin: any) => hookName in plugin && typeof plugin[hookName] === 'function')
                 // Then, map the plugin to the hook's promise by calling the 'hookName' function
                 // on the plugin.
-                .map((plugin: any) => (plugin)[hookName]())
+                .map((plugin: any) => {
+                    (plugin)[hookName]();
+                })
         );
     }
 
@@ -292,13 +326,15 @@ export default class Cinnamon {
         // Call the load function if it was supplied to the initialize options.
         // We do this before calling onInitialize on all the plugins to allow the user to register
         // their Cinnamon plugins in the load method first.
-        if (options?.load) options.load(framework);
+        if (options?.load) await options.load(framework);
 
         // Now await the onInitialize method for all plugins to make sure they've successfully
         // initialized.
-        await Promise.all(Object.entries(framework.plugins).map(([identifier, plugin]) => {
+        await Promise.all(Object.entries(framework.plugins).map(async ([identifier, plugin]) => {
             framework.getModule<Logger>(Logger.prototype).info(`Loaded plugin ${identifier}!`);
-            return plugin.onInitialize();
+            if(!(await plugin.onInitialize())) {
+
+            }
         }));
 
         try {

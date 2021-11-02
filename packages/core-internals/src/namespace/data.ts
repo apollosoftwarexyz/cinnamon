@@ -15,8 +15,8 @@ export namespace data {
     /**
      * Used to delimit between nested objects in an object key,
      *
-     * @see {@link resolveObjectDeep}
-     * @see {@link setObjectDeep}
+     * @see resolveObjectDeep
+     * @see setObjectDeep
      */
     export const NESTED_OBJECT_DELIMITER = '.';
 
@@ -28,7 +28,7 @@ export namespace data {
      * @return {boolean} isArrayEqual - true if the arrays contain the same
      * values and only the same values, false if not.
      */
-    export function arrayEquals(a: any[], b: any[]): boolean {
+    export function arrayEquals(a: any[], b: any[]) : boolean {
         // Immediately short-circuit if either isn't an array or the lengths are
         // different.
         if (!Array.isArray(a) || !Array.isArray(b)) return false;
@@ -120,7 +120,7 @@ export namespace data {
         );
     }
 
-    export function mergeObjectDeep(target: any, source: any): any {
+    export function mergeObjectDeep(target: any, source: any) : any {
         const isObject = (x: any) => x !== null && typeof x === 'object' && !Array.isArray(x);
 
         for (const key of Object.keys(source)) {
