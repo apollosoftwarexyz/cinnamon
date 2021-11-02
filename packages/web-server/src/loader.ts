@@ -164,6 +164,13 @@ export default class Loader {
      */
     private readonly routes: RouteIdToRouteDataDictionary;
 
+    /**
+     * Loaded instances of the controller are added to this list so they can
+     * be manually disposed of when the controllers are reloaded.
+     * @private
+     */
+    private readonly loadedControllerInstances: any[];
+
     public readonly BuiltinModuleAPI = {
         // @ts-ignore
         load: Module.prototype.load as any,
@@ -201,6 +208,7 @@ export default class Loader {
 
         this.routers = {};
         this.routes = {};
+        this.loadedControllerInstances = [];
     }
 
     get inDevMode() {
@@ -274,6 +282,16 @@ export default class Loader {
 
         Object.keys(this.routes).forEach(route => delete this.routes[route]);
         Object.keys(this.routers).forEach(router => delete this.routers[router]);
+        this.loadedControllerInstances.forEach(
+            (instance, index) => {
+                // If the instance has a destructor, call it.
+                if ('destructor' in instance && typeof instance['destructor'] === 'function')
+                    instance.destructor();
+
+                // Then delete the reference to the loaded controller.
+                delete this.loadedControllerInstances[index];
+            }
+        );
 
         for (const controller of this.trackedControllers) {
             const requireFn = this.inDevMode ? this.hotRequire : this.BuiltinModuleAPI.require;
@@ -286,7 +304,15 @@ export default class Loader {
             }
             activeLoader = this;
 
-            requireFn.call(this, controller.path);
+            try {
+                const controllerObject = requireFn.call(this, controller.path);
+                this.loadedControllerInstances.push(new controllerObject.default());
+            } catch (ex) {
+                throw new Error(
+                    `Failed to read controller in ${controller.path}.\n` +
+                    `Make sure you export it with 'export default' and that your project supports ES6+ classes.`
+                );
+            }
 
             activeLoader = undefined;
             controller.dirty = false;
