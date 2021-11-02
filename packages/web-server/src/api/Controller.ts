@@ -25,7 +25,7 @@ export default function Controller(...group: string[]) {
         const classIdentifier = target._loaderId;
         const controller = uuidv5(classIdentifier, LOADER_ROOT_ROUTE_NAMESPACE);
 
-        Loader.loadController(controller, group);
+        Loader.loadController(controller, group, target);
 
     }
 }

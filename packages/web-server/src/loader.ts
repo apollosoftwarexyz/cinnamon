@@ -164,13 +164,6 @@ export default class Loader {
      */
     private readonly routes: RouteIdToRouteDataDictionary;
 
-    /**
-     * Loaded instances of the controller are added to this list so they can
-     * be manually disposed of when the controllers are reloaded.
-     * @private
-     */
-    private readonly loadedControllerInstances: any[];
-
     public readonly BuiltinModuleAPI = {
         // @ts-ignore
         load: Module.prototype.load as any,
@@ -208,7 +201,6 @@ export default class Loader {
 
         this.routers = {};
         this.routes = {};
-        this.loadedControllerInstances = [];
     }
 
     get inDevMode() {
@@ -282,16 +274,6 @@ export default class Loader {
 
         Object.keys(this.routes).forEach(route => delete this.routes[route]);
         Object.keys(this.routers).forEach(router => delete this.routers[router]);
-        this.loadedControllerInstances.forEach(
-            (instance, index) => {
-                // If the instance has a destructor, call it.
-                if ('destructor' in instance && typeof instance['destructor'] === 'function')
-                    instance.destructor();
-
-                // Then delete the reference to the loaded controller.
-                delete this.loadedControllerInstances[index];
-            }
-        );
 
         for (const controller of this.trackedControllers) {
             const requireFn = this.inDevMode ? this.hotRequire : this.BuiltinModuleAPI.require;
@@ -307,7 +289,8 @@ export default class Loader {
             const controllerObject = requireFn.call(this, controller.path);
 
             try {
-                this.loadedControllerInstances.push(new controllerObject.default());
+                const clazz = controllerObject.default;
+                clazz.__cinnamonInstance = new clazz();
             } catch (ex) {
                 throw new Error(
                     `Failed to read controller in ${controller.path}.\n` +
@@ -382,7 +365,7 @@ export default class Loader {
         activeLoader.routes[routeData.identifier] = routeData;
     }
 
-    public static loadController(controllerId: string, group: string[]) {
+    public static loadController(controllerId: string, group: string[], target: any) {
         if (!activeLoader) {
             throw new Error(
                 "Attempted to lock missing activeLoader interface.\n" +
@@ -413,7 +396,9 @@ export default class Loader {
                 route.identifier,
                 routePath,
                 ...route.middleware,
-                route.handler
+                (...args: any[]) => route.handler.call(
+                    target.__cinnamonInstance, ...args
+                )
             );
         }
 
