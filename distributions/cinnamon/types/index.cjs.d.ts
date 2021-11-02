@@ -321,7 +321,7 @@ interface ValidationSchemaObject {
 type ValidationSchema = ValidationSchemaField | ValidationSchemaObject;
 declare class ValidationResult {
     readonly success: boolean;
-    readonly message?: string;
+    readonly message: string;
     constructor(options: {
         success: boolean;
         message?: string;
@@ -353,8 +353,13 @@ declare class Validator {
      * If validation passes, this method returns true, otherwise it returns false.
      *
      * @param value The value to check (perform validation) against the schema.
+     * @return result An array, with the first index (0) being the validation result, and the
+     * second (1) being either the inputted value if it was valid, or undefined if it wasn't.
      */
-    validate(value: any): ValidationResult;
+    validate(value: any): [
+        ValidationResult,
+        any | undefined
+    ];
     private validateSchemaAgainstObject;
     private validateSchemaAgainstField;
     private _evaluateAttributeValues;
