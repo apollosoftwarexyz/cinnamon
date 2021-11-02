@@ -251,6 +251,7 @@ export default class Cinnamon {
                     host: string;
                     port: number;
                     enable_logging: boolean;
+                    trust_proxy: boolean;
                 };
 
                 database: CinnamonDatabaseConfiguration;
@@ -280,7 +281,8 @@ export default class Cinnamon {
                     http: {
                         host: '0.0.0.0',
                         port: 5213,
-                        enable_logging: false
+                        enable_logging: false,
+                        trust_proxy: false,
                     },
                     database: {
                     },
@@ -370,7 +372,7 @@ export default class Cinnamon {
             }
 
             // Now, register and initialize the web server, and load the controllers.
-            framework.registerModule(new WebServer(framework, controllersPath));
+            framework.registerModule(new WebServer(framework, controllersPath, projectConfig.framework.http.trust_proxy));
             await framework.getModule<WebServer>(WebServer.prototype).initialize();
             framework.getModule<Logger>(Logger.prototype).info("Successfully initialized web service controllers.");
 

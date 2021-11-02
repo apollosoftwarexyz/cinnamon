@@ -5,6 +5,8 @@ import json from '@rollup/plugin-json';
 
 import { DEFAULT_EXTENSIONS } from '@babel/core';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 export default [
   {
     input: './distributions/cinnamon/src/index.ts',
@@ -13,7 +15,7 @@ export default [
       exports: 'named',
       format: 'cjs',
       file: './distributions/cinnamon/dist/index.cjs',
-      sourcemap: false
+      sourcemap: isDev
     },
     plugins: [
       nodeResolve({
@@ -45,7 +47,10 @@ export default [
         tsconfig: './tsconfig.build.json',
         moduleResolution: 'node',
         transpiler: 'babel',
-        babelConfig: {
+        babelConfig: isDev ? {
+          minified: false,
+          compact: false
+        } : {
           minified: true,
           compact: true,
           comments: false

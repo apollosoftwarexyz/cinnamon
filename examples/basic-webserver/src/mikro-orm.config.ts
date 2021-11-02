@@ -1,10 +1,10 @@
-import Cinnamon, { DatabaseModule } from '@apollosoftwarexyz/cinnamon';
+import Cinnamon, { Database } from '@apollosoftwarexyz/cinnamon';
 
 export default new Promise(async (resolve) => {
-    await Cinnamon.initialize({
+    let framework = await Cinnamon.initialize({
         silenced: true,
         autostartServices: false
     });
 
-    return resolve(DatabaseModule.ormConfig);
+    return resolve(framework.getModule<Database>(Database.prototype).ormConfig);
 });

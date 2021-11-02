@@ -70,9 +70,11 @@ export default class WebServer extends CinnamonModule {
      *
      * @param framework The Cinnamon Framework instance.
      * @param controllersPath The path to the controllers directory.
+     * @param trustProxies Whether proxy servers should be trusted
+     *                     (as passed from Cinnamon's config file).
      * @private
      */
-    constructor(framework: Cinnamon, controllersPath: string) {
+    constructor(framework: Cinnamon, controllersPath: string, trustProxies: boolean) {
         super(framework);
         this.controllersPath = controllersPath;
         this.server = new Koa();
@@ -87,6 +89,10 @@ export default class WebServer extends CinnamonModule {
             server: this.server,
             controllersPath: this.controllersPath
         });
+
+        if (trustProxies) {
+            this.server.proxy = trustProxies;
+        }
     }
 
     /**

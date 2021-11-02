@@ -4,7 +4,13 @@ import { ValidationSchema, ValidationSchemaField, ValidationSchemaObject } from 
 
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 
-type _ExecutorValidationFailOptions = { field: ValidationSchemaField, fieldName?: string, parentName?: string, defaultMessage?: string };
+type _ExecutorValidationFailOptions = {
+    field: ValidationSchemaField,
+    fieldName?: string,
+    parentName?: string,
+    defaultMessage?: string
+};
+
 type _ValidationSchemaFieldSmartAttributeObject = {
     [key: string]: ValidationSchemaFieldSmartAttribute<any>;
 };
@@ -32,7 +38,7 @@ export class Validator {
      */
     constructor(schema: ValidationSchema) {
         this.schema = schema;
-        this.isSingleFieldSchema = !this._isValidationSchemaObject(this.schema);
+        this.isSingleFieldSchema = !Validator._isValidationSchemaObject(this.schema);
     }
 
     /**
@@ -69,11 +75,18 @@ export class Validator {
 
     private validateSchemaAgainstObject(object: ValidationSchemaObject, value: any, _entireObject?: any, _fieldName?: string, _parentName?: string) : ValidationResult {
 
+        // We're attempting to validate against an object, so if the value in question is not
+        // an object, clearly it does not meet validation.
+        if (typeof value !== 'object') {
+            let objectName = this._toHumanReadableFieldName(`${_parentName}.${_fieldName}`);
+            return ValidationResult.fail(`The '${objectName}' field is missing.`);
+        }
+
         // Loop over every key in the current object.
         for (let key of Object.keys(object)) {
             // If the entry at key in the schema is a validation schema object,
             // then validate against the object (recursively if necessary.)
-            if (this._isValidationSchemaObject(object[key])) {
+            if (Validator._isValidationSchemaObject(object[key])) {
 
                 // Immediately fail validation if a child schema fails
                 // validation.
@@ -212,7 +225,7 @@ export class Validator {
                 this._evaluateAttributeValues(attrs, _entireObject);
 
                 if ((attrs.minLength !== undefined && value.length < attrs.minLength) || (attrs.maxLength !== undefined && value.length > attrs.maxLength))
-                    return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be at least ' + attrs.minLength + ` character${attrs.minLength !== 1 ? '' : 's'}` + ' and at most ' + attrs.maxLength + ` character${attrs.maxLength !== 1 ? '' : 's'}` + '.' });
+                    return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be at least ' + attrs.minLength + ` character${attrs.minLength !== 1 ? 's' : ''}` + ' and at most ' + attrs.maxLength + ` character${attrs.maxLength !== 1 ? 's' : ''}` + '.' });
 
                 return ValidationResult.success();
 
@@ -289,7 +302,7 @@ export class Validator {
      * @return {boolean} isValidationSchemaObject - true the specified value is
      * a validation schema object, false if it's just a validation schema field.
      */
-    private _isValidationSchemaObject(value: any) : boolean {
+    private static _isValidationSchemaObject(value: any) : boolean {
         if (typeof value !== 'object') return false;
 
         // If our object solely consists of entry values that are validation
@@ -298,7 +311,7 @@ export class Validator {
             // If it has a string 'type' entry, we know this entry must be a
             // field. Otherwise, it's something else, meaning the parent
             // cannot be a validation schema object.
-            if (!(entry as any)['type'] || typeof ((entry as any)['type']) !== 'string')
+            if ((!(entry as any)['type'] || typeof ((entry as any)['type']) !== 'string') && !this._isValidationSchemaObject(entry as any))
                 return false;
         }
 

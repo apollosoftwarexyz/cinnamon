@@ -373,7 +373,7 @@ declare class Validator {
      * @return {boolean} isValidationSchemaObject - true the specified value is
      * a validation schema object, false if it's just a validation schema field.
      */
-    private _isValidationSchemaObject;
+    private static _isValidationSchemaObject;
 }
 /**
  * An alias to create a validator from the specified schema.
@@ -917,9 +917,11 @@ declare class WebServer extends CinnamonModule {
      *
      * @param framework The Cinnamon Framework instance.
      * @param controllersPath The path to the controllers directory.
+     * @param trustProxies Whether proxy servers should be trusted
+     *                     (as passed from Cinnamon's config file).
      * @private
      */
-    constructor(framework: Cinnamon, controllersPath: string);
+    constructor(framework: Cinnamon, controllersPath: string, trustProxies: boolean);
     /**
      * The current framework instance's logger.
      */

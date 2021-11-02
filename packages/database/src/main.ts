@@ -223,7 +223,10 @@ export default class Database extends CinnamonModule {
      */
     public async connect() {
         if (!this._underlyingOrmConfig) return;
-        this.underlyingOrm = await MikroORM.init(this._underlyingOrmConfig);
+        this.underlyingOrm = await MikroORM.init({
+            ...this._underlyingOrmConfig,
+            ensureIndexes: true
+        });
     }
 
 }

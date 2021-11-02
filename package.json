@@ -20,6 +20,7 @@
     "publish": "yarn workspace @apollosoftwarexyz/cinnamon publish",
     "clean": "yarn workspaces foreach run clean",
     "build": "yarn workspace @apollosoftwarexyz/cinnamon updateReadme; rollup --config",
+    "build:dev": "yarn workspace @apollosoftwarexyz/cinnamon updateReadme; NODE_ENV=development rollup --config",
     "version:patch": "yarn version patch && yarn workspace @apollosoftwarexyz/cinnamon version patch",
     "cli:local": "yarn cli:manifest; yarn workspace @apollosoftwarexyz/cinnamon-cli local",
     "cli:manifest": "cp package.json distributions/cli/cinnamonPackage.json",
