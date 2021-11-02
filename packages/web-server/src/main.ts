@@ -1,16 +1,15 @@
-/// <reference types="@types/koa" />
-/// <reference types="koa-body" />
-
 import Cinnamon  from "@apollosoftwarexyz/cinnamon-core";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
-import { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core-modules";
+import { CinnamonModule } from "@apollosoftwarexyz/cinnamon-sdk";
 
 import Koa from 'koa';
 import { Server } from 'http';
 import { Socket } from 'net';
 
 import Loader from "./loader";
+
+export * from './plugin';
 
 /**
  * @internal
@@ -52,8 +51,17 @@ export default class WebServer extends CinnamonModule {
     private currentState: WebServerModuleState;
     private enableLogging: boolean;
 
+    /**
+     * Returns the Koa application instance. Useful for registering Middleware, etc.
+     */
     public readonly server: Koa;
-    private underlyingServer?: Server;
+    private _underlyingServer?: Server;
+
+    /**
+     * Returns the underlying Node HTTP server instance used internally by Koa.
+     */
+    get underlyingServer (): Server | undefined { return this._underlyingServer; }
+
     private readonly activeConnections: ActiveConnectionMap;
 
     /**
@@ -68,7 +76,7 @@ export default class WebServer extends CinnamonModule {
         super(framework);
         this.controllersPath = controllersPath;
         this.server = new Koa();
-        this.underlyingServer = undefined;
+        this._underlyingServer = undefined;
         this.activeConnections = {};
         this.currentState = WebServerModuleState.INITIAL;
         this.enableLogging = false;
@@ -145,12 +153,12 @@ export default class WebServer extends CinnamonModule {
             }
 
             try {
-                this.underlyingServer = this.server.listen(options.port, options.host, () => {
-                    if (this.underlyingServer == null) return reject("Failed to start web server!");
+                this._underlyingServer = this.server.listen(options.port, options.host, async () => {
+                    if (this._underlyingServer == null) return reject("Failed to start web server!");
                     this.logger.info(`Listening for web requests on: http://${options.host}:${options.port}/`);
 
                     // Credit: https://github.com/isaacs/server-destroy/blob/master/index.js
-                    this.underlyingServer?.on('connection', (connection: Socket) => {
+                    this._underlyingServer?.on('connection', (connection: Socket) => {
                         const key = `${connection.remoteAddress}:${connection.remotePort}`;
                         this.activeConnections[key] = connection;
 
@@ -158,6 +166,13 @@ export default class WebServer extends CinnamonModule {
                     });
 
                     this.currentState = WebServerModuleState.READY;
+
+                    // Trigger the 'afterStart' plugin hook for all plugins and wait for it to complete.
+                    // This is for any plugins that need to hook into the web server module once it's
+                    // started and waiting for requests (e.g., to hook into the underlying node http
+                    // server).
+                    // Once this is finished, we can consider Cinnamon fully started.
+                    await this.framework.triggerPluginHook('afterStart');
                     return resolve();
                 });
             } catch(ex) {
@@ -171,7 +186,7 @@ export default class WebServer extends CinnamonModule {
             try {
                 await this.controllersLoader.unregisterWatchers();
 
-                this.underlyingServer?.close((err) => {
+                this._underlyingServer?.close((err) => {
                     if (err) return reject(err);
 
                     for (const key in this.activeConnections)

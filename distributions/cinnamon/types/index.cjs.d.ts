@@ -1,20 +1,149 @@
+/// <reference types="node" />
+import Koa from "koa";
+import * as Koa$0 from "koa";
+import { Context, Next } from "koa";
+import { Server } from "http";
+import KoaBody from "koa-body";
 import { MikroORM, EntityManager } from "@mikro-orm/core";
 import { Configuration } from "@mikro-orm/core/utils/Configuration";
-import KoaBody from "koa-body";
-import * as Koa$0 from 'koa';
-import { Context, Next } from "koa";
 import * as Chalk from 'chalk';
 /**
+ * Handles storage and manipulation of objects common to any Cinnamon
+ * SDK extension - be it a module or a plugin.
+ *
  * @category Core
  * @Core
  */
-declare class CinnamonModule {
+declare abstract class CinnamonSdkBase {
     protected readonly framework: Cinnamon;
     /**
-     * Initializes a default CinnamonModule.
-     * @param framework
+     * Used to initialize a Cinnamon extension. This is a starting point for both
+     * Cinnamon modules and Cinnamon plugins despite their key differences.
+     *
+     * The framework instance is saved, to ensure the extension operates on the
+     * Cinnamon instance that registered it. It also ensures the framework is
+     * accessed in a uniform manner.
+     *
+     * @param framework The framework to register the extension with.
      */
-    constructor(framework: Cinnamon);
+    protected constructor(framework: Cinnamon);
+}
+/**
+ * The base class for a Cinnamon module. This class is currently
+ * just a proxy for the {@link CinnamonSdkBase} class, however
+ * the plan is to refactor the module API to include lifecycle
+ * hooks that this base class will define for modules.
+ *
+ * Cinnamon modules can be registered on a Cinnamon framework
+ * instance with the `registerModule` method. They must be
+ * registered with the framework instance to be accessed,
+ * however once they have been, a Cinnamon module can be
+ * accessed as follows:
+ * ```
+ * framework.getModule<MyModule>(MyModule.prototype);
+ * ```
+ * (where `MyModule` is your module class that extends
+ * CinnamonModule).
+ *
+ * Cinnamon modules are intended to be further extensible
+ * with Cinnamon plugins – for more information, see the
+ * {@link CinnamonPlugin} class.
+ *
+ * @category Core
+ * @Core
+ */
+declare abstract class CinnamonModule extends CinnamonSdkBase {
+    /**
+     * Initializes a Cinnamon module on the given framework instance.
+     *
+     * @param framework The framework to register the module with.
+     * @protected
+     */
+    protected constructor(framework: Cinnamon);
+}
+/**
+ * The base class for a Cinnamon plugin. Cinnamon plugins,
+ * unlike modules, are not interacted with directly - rather
+ * they just mutate existing APIs, so they are identified by
+ * an organization and plugin name. As a plugin developer, you
+ * are responsible for ensuring there are no collisions between
+ * names and your organization domain.
+ *
+ * Cinnamon plugins are registered on the framework with
+ * `Cinnamon.use`, they cannot be registered as modules as plugins
+ * are not intended or expected to define a framework-wide module
+ * interface from their base class and should not be accessed
+ * directly.
+ *
+ * The intention behind Cinnamon plugins, is to provide a means of
+ * extending Cinnamon's existing modules or core. Essentially,
+ * they act as a 'mix-in'. Additionally, they may define handlers
+ * for various event hooks (as defined in this class, and in any
+ * extension interfaces), that the core - or even modules may
+ * call.
+ *
+ * @category Core
+ * @Core
+ */
+declare abstract class CinnamonPlugin extends CinnamonSdkBase {
+    /**
+     * The organization that publishes or maintains the package in
+     * reverse domain form. (e.g., xyz.apollosoftware).
+     */
+    readonly organization: string;
+    /**
+     * The name of the package. Can be specified manually, or will
+     * default automatically to the plugin's class name.
+     */
+    readonly name: string;
+    /**
+     * Initializes a Cinnamon plugin on the given framework instance,
+     * with the specified organization and, optionally, plugin name.
+     *
+     * @param framework The framework to register the plugin with.
+     * @param organization The organization name in reverse domain form.
+     * @param name The name of the plugin. If set, replaces the automatically generated name.
+     * @protected
+     */
+    protected constructor(framework: Cinnamon, organization: string, name?: string);
+    /**
+     * The plugin identifier (organization_name/plugin_name).
+     * This concatenates the organization name and plugin name with a period
+     * to yield a plugin name that should, theoretically, be globally unique.
+     */
+    get identifier(): string;
+    /**
+     * Executed as soon as Cinnamon reads its configuration file and performs
+     * basic initialization.
+     *
+     * You should perform any basic plugin initialization, such as reading
+     * configuration values here. If any configuration values are set
+     * incorrectly or not set, you should return false.
+     *
+     * If your plugin requires no initialization at all, simply `return true`
+     * from this method.
+     *
+     * The method should return whether or not the plugin initialized successfully,
+     * if there's a possibility that it won't. If it did not initialize successfully,
+     * Cinnamon will not call other event handlers on the plugin.
+     *
+     * @return didInitialize Whether or not the plugin initialized successfully,
+     * `true` implies that it did, `false` implies that it did not. **A return
+     * value of void implies that it *did* initialize successfully.**
+     */
+    abstract onInitialize(): Promise<boolean | void>;
+    /**
+     * Executed after Cinnamon's core and all modules have completely initialized,
+     * but before the web server module has started and begun accepting requests.
+     */
+    onStart(): Promise<void>;
+    /**
+     * Executed after Cinnamon has completely initialized and the web server
+     * module has started and begun accepting requests. It is unusual that
+     * you would need this method, but this might be helpful for accessing
+     * the current underlying HTTP server.
+     */
+    afterStart(): Promise<void>;
 }
 /// Validation Schema Common definitions
 /// ---
@@ -237,7 +366,7 @@ declare class Validator {
      * a single validation schema field (false).
      * @param  value               The object to check.
      * @return {boolean} isValidationSchemaObject - true the specified value is
-     * a validation schema object, false if it's just a validation shema field.
+     * a validation schema object, false if it's just a validation schema field.
      */
     private _isValidationSchemaObject;
 }
@@ -250,6 +379,135 @@ declare class Validator {
  * @param schema The schema to perform validation of values against.
  */
 declare function createValidator(schema: ValidationSchema): Validator;
+type CinnamonInitializationOptions = {
+    /**
+     * An optional validation schema for the app configuration.
+     */
+    appConfigSchema?: ValidationSchema;
+    /**
+     * If set to true, Cinnamon will disable all logging output
+     * using the Logger.
+     */
+    silenced?: boolean;
+    /**
+     * If set to false, prevents Cinnamon from auto-starting modules, such as the web server.
+     * The default is true.
+     */
+    autostartServices?: boolean;
+    /**
+     * If defined, specifies a function to execute once Cinnamon has initialized,
+     * but before it has booted.
+     * This is useful for loading plugins and modules, etc., hence the name.
+     */
+    load?: (framework: Cinnamon) => void;
+};
+/**
+ * The main class of the Cinnamon framework. To initialize the framework, you initialize
+ * this class by calling {@link Cinnamon.initialize}.
+ *
+ * This will, in turn, initialize all of Cinnamon's default module set.
+ *
+ * @category Core
+ * @Core
+ */
+declare class Cinnamon {
+    /**
+     * Gets the default instance of Cinnamon. This is ordinarily the only instance of Cinnamon
+     * that would be running, however it may be desired that the framework run twice in the
+     * same application, in which case this will be the first instance that was started.
+     *
+     * If no instance of Cinnamon has been initialized, this will be undefined.
+     */
+    static get defaultInstance(): Cinnamon | undefined;
+    private static _defaultInstance?;
+    private readonly devMode;
+    readonly appName: string;
+    private readonly modules;
+    private readonly plugins;
+    constructor(props: {
+        devMode?: boolean;
+        appName?: string;
+    });
+    /**
+     * Whether the framework is in application development mode.
+     * When set to true, features such as hot-reload will be automatically enabled.
+     *
+     * You should set this to false for production applications as there may be a performance
+     * or security penalty present when certain development features are active.
+     */
+    get inDevMode(): boolean;
+    /**
+     * Checks if the specified module is registered in the framework based on its type.
+     * If it is, the module is returned, otherwise false is returned.
+     *
+     * @param moduleType The module type (i.e. typeof MyModule)
+     */
+    hasModule<T extends CinnamonModule>(moduleType: T): T | boolean;
+    /**
+     * Gets the module if it is registered in the framework based on its type.
+     * If it is not registered, an exception is thrown.
+     *
+     * @param moduleType The module type (i.e. typeof MyModule)
+     */
+    getModule<T extends CinnamonModule>(moduleType: T): T;
+    /**
+     * Registers the specified module.
+     * If it has already been registered in the framework, the old module reference
+     * will be overwritten with the new one.
+     *
+     * @param module The module instance to register.
+     */
+    registerModule<T extends CinnamonModule>(module: T): void;
+    /**
+     * Checks if the specified plugin is registered in the framework based on
+     * its plugin identifier (organization_name/plugin_name).
+     * Naturally, if it is, returns true, otherwise returns false.
+     *
+     * @param pluginIdentifier The identifier of the plugin to check.
+     */
+    hasPlugin(pluginIdentifier: string): boolean;
+    /**
+     * Registers the specified plugin.
+     * **Unlike with registerModule**, if it has already been registered in the
+     * framework, this method will throw an error as there is more ambiguity
+     * when comparing plugins.
+     *
+     * @param plugin The plugin instance to register.
+     */
+    use(plugin: CinnamonPlugin): void;
+    /**
+     * Trigger the named hook on all the plugins currently registered with
+     * Cinnamon. e.g., triggerPluginHook('onInitialize') will call the
+     * onInitialize hook on all plugins.
+     *
+     * @param hookName The name of the hook to trigger.
+     */
+    triggerPluginHook(hookName: string): Promise<void>;
+    /**
+     * Starts the initialization process for the framework. If an error happens during
+     * initialization it is considered fatal and, therefore, the framework will terminate
+     * the process with a POSIX error code.
+     *
+     * @param options Options that will be passed to various core internal
+     * framework modules as they're initialized.
+     * @return {Cinnamon} frameworkInstance - The initialized Cinnamon framework
+     * instance.
+     */
+    static initialize(options?: CinnamonInitializationOptions): Promise<Cinnamon>;
+    /**
+     * Attempts to shut down any applicable modules, and then terminates the application.
+     * This should be used if an unrecoverable exception is encountered with inErrorState
+     * set to true.
+     *
+     * If you're just shutting down the web server for normal reasons, e.g. to install
+     * updates, per user request, use terminate with inErrorState set to false.
+     *
+     * @param inErrorState Whether the application had to shut down because of an error
+     * (true) or not (false).
+     * @param message The termination message (likely the reason for the termination.)
+     */
+    terminate(inErrorState?: boolean, message?: string): Promise<void>;
+}
 /**
  * @category Core Modules
  * @CoreModule
@@ -382,7 +640,7 @@ declare enum LogLevel {
 }
 /**
  * Represents a log message.
- * This is the object passed to the {@see DelegateLogFunction} or the log method.
+ * This is the object passed to the {@link DelegateLogFunction} or the log method.
  */
 interface LogEntry {
     /**
@@ -475,7 +733,7 @@ declare class Logger extends CinnamonModule {
      * Logs an internal framework messages. Intended for internal framework-use only.
      * @param message The framework message to log.
      * @param module The module that generated the log.
-     * @private
+     * @internal
      */
     frameworkDebug(message: string, module?: string): void;
     debug(message: string, module?: string): void;
@@ -486,13 +744,178 @@ declare class Logger extends CinnamonModule {
      * Logs the specified LogEntry. This is generally intended for internal use only.
      * @param entry The log entry to be displayed and passed to the remote log delegate.
      */
-    log(entry: LogEntry): void;
-    static timestampStringFor(date: Date): string;
+    private log;
+    private static timestampStringFor;
 }
 declare module LoggerWrapper {
     export { Logger };
 }
 import _LoggerModule = LoggerWrapper.Logger;
+declare let Config$0: _ConfigModule;
+declare let Logger$0: _LoggerModule;
+declare function initializeCoreModules(modules: {
+    Config: _ConfigModule;
+    Logger: _LoggerModule;
+}): void;
+/**
+ * For plugins that extend the functionality of the Cinnamon
+ * WebServer module (e.g., by registering middleware) you
+ * should implement this module.
+ */
+interface CinnamonWebServerModulePlugin {
+    /**
+     * Executed immediately before the controllers are registered on
+     * the underling web server. This is useful for middleware that
+     * prepares the context for routes (e.g., by injecting methods or
+     * variables into them or preparing/rearranging/parsing request data
+     * for the controllers.)
+     */
+    beforeRegisterControllers?: () => Promise<void>;
+    /**
+     * Executed immediately after the controllers are registered on
+     * the underling web server. This is useful for middleware that
+     * modifies the response after the controllers have processed the
+     * requests (e.g., by modifying the response data or logging response
+     * status or data.)
+     */
+    afterRegisterControllers?: () => Promise<void>;
+}
+declare enum Method {
+    /**
+     * The GET method requests a representation of a given resource.
+     * Requests using GET should only retrieve data.
+     *
+     * Recommended for READ of CRUD.
+     */
+    GET = "GET",
+    /**
+     * The HEAD method requests a resource identical to that of a GET
+     * request but without the response body.
+     *
+     * Recommended for implementing things like connectivity checks,
+     * see also: TRACE.
+     */
+    HEAD = "HEAD",
+    /**
+     * The TRACE method performs a loop-back test along the path to the
+     * target resource. This can be used as a debugging mechanism.
+     */
+    TRACE = "TRACE",
+    /**
+     * The POST method is used to submit an entity to a given resource.
+     * This will often cause a change of state of side-effects on the
+     * server.
+     *
+     * Recommended for CREATE of CRUD.
+     */
+    POST = "POST",
+    /**
+     * The PUT method replaces all current representations of the specified
+     * resource with the request payload.
+     *
+     * Recommended for the UPDATE of CRUD.
+     */
+    PUT = "PUT",
+    /**
+     * The DELETE method deletes the specified resource.
+     *
+     * Recommended for the DELETE of CRUD.
+     */
+    DELETE = "DELETE",
+    /**
+     * The OPTIONS method is used to describe the communication options
+     * for the target resource. This is used by browsers to determine
+     * what headers can be sent to 'writable' API methods such as POST
+     * methods, for example.
+     */
+    OPTIONS = "OPTIONS",
+    /**
+     * The PATCH method is used to apply partial modifications to
+     * a resource.
+     *
+     * Recommended for more finely grained control of the UPDATE
+     * of CRUD.
+     */
+    PATCH = "PATCH"
+}
+/**
+ * Registers a class as a Cinnamon API controller.
+ * Each entry in the 'group' array is a 'directory' in the path that each
+ * member of this controller will be prefixed with. For example, if the
+ * group is ['api', 'v1', 'example'], each route in the controller will
+ * be prefixed with /api/v1/example from the base URL of the web server.
+ *
+ * @param group The API 'group' this controller belongs to.
+ */
+declare function Controller(...group: string[]): (target: any) => void;
+/**
+ * Registers a class method as an API route.
+ *
+ * @param method The HTTP method that the client must use to call this method.
+ * @param path The path that the client must use to call this method.
+ */
+declare function Route(method: Method, path: string): (target: any, propertyKey: string, descriptor?: PropertyDescriptor | undefined) => void;
+type MiddlewareFn = Function;
+/**
+ * Registers a middleware function for an API route.
+ * @param fn The middleware function that should be executed for the route.
+ */
+declare function Middleware(fn: MiddlewareFn): (target: any, propertyKey: string) => void;
+declare const Body: typeof KoaBody;
+/**
+ * @category Core Modules
+ * @CoreModule
+ * @internal
+ * @private
+ */
+declare class WebServer extends CinnamonModule {
+    private readonly controllersPath;
+    private readonly controllersLoader;
+    private currentState;
+    private enableLogging;
+    /**
+     * Returns the Koa application instance. Useful for registering Middleware, etc.
+     */
+    readonly server: Koa;
+    private _underlyingServer?;
+    /**
+     * Returns the underlying Node HTTP server instance used internally by Koa.
+     */
+    get underlyingServer(): Server | undefined;
+    private readonly activeConnections;
+    /**
+     * @CoreModule
+     * Initializes a Cinnamon Web Server.
+     *
+     * @param framework The Cinnamon Framework instance.
+     * @param controllersPath The path to the controllers directory.
+     * @private
+     */
+    constructor(framework: Cinnamon, controllersPath: string);
+    /**
+     * The current framework instance's logger.
+     */
+    get logger(): Logger;
+    /**
+     * Whether or not logging is enabled on the web server.
+     */
+    get isLoggingEnabled(): boolean;
+    /**
+     * Initializes the router with the controllers path that was passed to the constructor.
+     * This involves:
+     * - scanning the directory for all the controller files,
+     * - scanning each controller file for the controller methods,
+     * - registering the controller methods (optionally with hot reload if the framework is in dev mode)
+     * @private
+     */
+    initialize(): Promise<void>;
+    start(options: {
+        host: string;
+        port: number;
+        enable_logging?: boolean;
+    }): Promise<void>;
+    terminate(): Promise<void>;
+}
 type CinnamonDatabaseConfiguration = {
     /**
      * The database name on the database server.
@@ -592,195 +1015,4 @@ declare class Database extends CinnamonModule {
      */
     connect(): Promise<void>;
 }
-declare module DatabaseWrapper {
-    export { Database };
-}
-import _DatabaseModule = DatabaseWrapper.Database;
-declare let Config$0: _ConfigModule;
-declare let Logger$0: _LoggerModule;
-declare let Database$0: EntityManager;
-declare let DatabaseModule: _DatabaseModule;
-declare function initializeCoreModules(modules: {
-    Config: _ConfigModule;
-    Logger: _LoggerModule;
-    Database: _DatabaseModule;
-}): void;
-type CinnamonInitializationOptions = {
-    /**
-     * An optional validation schema for the app configuration.
-     */
-    appConfigSchema?: ValidationSchema;
-    /**
-     * If set to true, Cinnamon will disable all logging output
-     * using the Logger.
-     */
-    silenced?: boolean;
-    /**
-     * If set to false, prevents Cinnamon from auto-starting modules, such as the web server.
-     * The default is true.
-     */
-    autostartServices?: boolean;
-};
-/**
- * The main class of the Cinnamon framework. To initialize the framework, you initialize
- * this class by calling {@link Cinnamon.initialize}.
- *
- * This will, in turn, initialize all of Cinnamon's default module set.
- *
- * @category Core
- * @Core
- */
-declare class Cinnamon {
-    /**
-     * Gets the default instance of Cinnamon. This is ordinarily the only instance of Cinnamon
-     * that would be running, however it may be desired that the framework run twice in the
-     * same application, in which case this will be the first instance that was started.
-     *
-     * If no instance of Cinnamon has been initialized, this will be undefined.
-     */
-    static get defaultInstance(): Cinnamon | undefined;
-    private static _defaultInstance?;
-    private readonly devMode;
-    readonly appName: string;
-    private readonly modules;
-    constructor(props: {
-        devMode?: boolean;
-        appName?: string;
-    });
-    /**
-     * Whether the framework is in application development mode.
-     * When set to true, features such as hot-reload will be automatically enabled.
-     *
-     * You should set this to false for production applications as there may be a performance
-     * or security penalty present when certain development features are active.
-     */
-    get inDevMode(): boolean;
-    /**
-     * Checks if the specified module is registered in the framework based on its type.
-     * If it is, the module is returned, otherwise false is returned.
-     *
-     * @param moduleType The module type (i.e. typeof MyModule)
-     */
-    hasModule<T extends CinnamonModule>(moduleType: T): T | boolean;
-    /**
-     * Gets the module if it is registered in the framework based on its type.
-     * If it is not registered, an exception is thrown.
-     *
-     * @param moduleType The module type (i.e. typeof MyModule)
-     */
-    getModule<T extends CinnamonModule>(moduleType: T): T;
-    /**
-     * Registers the specified module.
-     * If it has already been registered in the framework, the old module reference
-     * will be overwritten with the new one.
-     *
-     * @param module The module instance to register.
-     */
-    registerModule<T extends CinnamonModule>(module: T): void;
-    /**
-     * Starts the initialization process for the framework. If an error happens during
-     * initialization it is considered fatal and, therefore, the framework will terminate
-     * the process with a POSIX error code.
-     *
-     * @param options Options that will be passed to various core internal
-     * framework modules as they're initialized.
-     * @return {Cinnamon} frameworkInstance - The initialized Cinnamon framework
-     * instance.
-     */
-    static initialize(options?: CinnamonInitializationOptions): Promise<Cinnamon>;
-    /**
-     * Attempts to shut down any applicable modules, and then terminates the application.
-     * This should be used if an unrecoverable exception is encountered with inErrorState
-     * set to true.
-     *
-     * If you're just shutting down the web server for normal reasons, e.g. to install
-     * updates, per user request, use terminate with inErrorState set to false.
-     *
-     * @param inErrorState Whether the application had to shut down because of an error
-     * (true) or not (false).
-     */
-    terminate(inErrorState?: boolean): Promise<void>;
-}
-declare enum Method {
-    /**
-     * The GET method requests a representation of a given resource.
-     * Requests using GET should only retrieve data.
-     *
-     * Recommended for READ of CRUD.
-     */
-    GET = "GET",
-    /**
-     * The HEAD method requests a resource identical to that of a GET
-     * request but without the response body.
-     *
-     * Recommended for implementing things like connectivity checks,
-     * see also: TRACE.
-     */
-    HEAD = "HEAD",
-    /**
-     * The TRACE method performs a loop-back test along the path to the
-     * target resource. This can be used as a debugging mechanism.
-     */
-    TRACE = "TRACE",
-    /**
-     * The POST method is used to submit an entity to a given resource.
-     * This will often cause a change of state of side-effects on the
-     * server.
-     *
-     * Recommended for CREATE of CRUD.
-     */
-    POST = "POST",
-    /**
-     * The PUT method replaces all current representations of the specified
-     * resource with the request payload.
-     *
-     * Recommended for the UPDATE of CRUD.
-     */
-    PUT = "PUT",
-    /**
-     * The DELETE method deletes the specified resource.
-     *
-     * Recommended for the DELETE of CRUD.
-     */
-    DELETE = "DELETE",
-    /**
-     * The OPTIONS method is used to describe the communication options
-     * for the target resource. This is used by browsers to determine
-     * what headers can be sent to 'writable' API methods such as POST
-     * methods, for example.
-     */
-    OPTIONS = "OPTIONS",
-    /**
-     * The PATCH method is used to apply partial modifications to
-     * a resource.
-     *
-     * Recommended for more finely grained control of the UPDATE
-     * of CRUD.
-     */
-    PATCH = "PATCH"
-}
-/**
- * Registers a class as a Cinnamon API controller.
- * Each entry in the 'group' array is a 'directory' in the path that each
- * member of this controller will be prefixed with. For example, if the
- * group is ['api', 'v1', 'example'], each route in the controller will
- * be prefixed with /api/v1/example from the base URL of the web server.
- *
- * @param group The API 'group' this controller belongs to.
- */
-declare function Controller(...group: string[]): (target: any) => void;
-/**
- * Registers a class method as an API route.
- *
- * @param method The HTTP method that the client must use to call this method.
- * @param path The path that the client must use to call this method.
- */
-declare function Route(method: Method, path: string): (target: any, propertyKey: string, descriptor?: PropertyDescriptor | undefined) => void;
-type MiddlewareFn = Function;
-/**
- * Registers a middleware function for an API route.
- * @param fn The middleware function that should be executed for the route.
- */
-declare function Middleware(fn: MiddlewareFn): (target: any, propertyKey: string) => void;
-declare const Body: typeof KoaBody;
-export { Cinnamon as default, CinnamonModule, Config$0 as Config, Logger$0 as Logger, Database$0 as Database, DatabaseModule, initializeCoreModules, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Method, Controller, Route, Middleware, Body, Koa$0 as Koa, Context, Next, Chalk };
+export { Cinnamon as default, Config$0 as Config, Logger$0 as Logger, initializeCoreModules, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Method, Controller, Route, Middleware, Body, CinnamonModule, CinnamonPlugin, WebServer, CinnamonWebServerModulePlugin, Database, Koa$0 as Koa, Context, Next, Chalk };

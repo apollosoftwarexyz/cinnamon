@@ -292,7 +292,7 @@ export default class Loader {
             controller.dirty = false;
         }
 
-        this.hookWithKoa();
+        await this.hookWithKoa();
     }
 
     /**
@@ -438,7 +438,7 @@ export default class Loader {
      * Registers all Controllers' and Middlewares' route with Koa.
      * @private
      */
-    private hookWithKoa() {
+    private async hookWithKoa() {
         const routers = this.routers;
 
         // If the database has been initialized, register the middleware with Koa to create a new request context
@@ -479,6 +479,8 @@ export default class Loader {
             return await next();
         });
 
+        await this.framework.triggerPluginHook('beforeRegisterControllers');
+
         /*
         Register a middleware on the Koa instance that loops through all the loaded
         middleware in this loader instance and executes them.
@@ -491,6 +493,8 @@ export default class Loader {
 
             yield next();
         }));
+
+        await this.framework.triggerPluginHook('afterRegisterControllers');
 
         const self = this;
         this.server.use(co.wrap(function* (ctx: Koa.BaseContext, next) {

@@ -33,7 +33,7 @@ export namespace fs {
     }
 
     /**
-     * Similar to {@see fileExists} but instead checks if the specified path is a directory, after checking
+     * Similar to {@link fileExists} but instead checks if the specified path is a directory, after checking
      * whether the FileSystem node exists.
      *
      * Returns true if the directory exists, or  false otherwise.

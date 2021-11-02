@@ -283,6 +283,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@apollosoftwarexyz/cinnamon-sdk@workspace:packages/sdk":
+  version: 0.0.0-use.local
+  resolution: "@apollosoftwarexyz/cinnamon-sdk@workspace:packages/sdk"
+  languageName: unknown
+  linkType: soft
+
 "@apollosoftwarexyz/cinnamon-validator@workspace:packages/validator":
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon-validator@workspace:packages/validator"
@@ -329,8 +335,6 @@ __metadata:
 "@apollosoftwarexyz/cinnamon@workspace:distributions/cinnamon":
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon@workspace:distributions/cinnamon"
-  dependencies:
-    "@types/formidable": ^1.2.4
   languageName: unknown
   linkType: soft
 
@@ -2940,7 +2944,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/formidable@npm:^1.0.31, @types/formidable@npm:^1.2.4":
+"@types/formidable@npm:^1.0.31":
   version: 1.2.4
   resolution: "@types/formidable@npm:1.2.4"
   dependencies:

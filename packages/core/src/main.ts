@@ -1,9 +1,10 @@
 import * as fs from 'fs';
 import { promisify } from 'util';
 import { parse as parseToml } from 'toml';
-import { initializeCoreModules, CinnamonModule } from "@apollosoftwarexyz/cinnamon-core-modules";
+import { initializeCoreModules } from "@apollosoftwarexyz/cinnamon-core-modules";
 
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
+import { CinnamonModule, CinnamonPlugin } from "@apollosoftwarexyz/cinnamon-sdk";
 import Config from "@apollosoftwarexyz/cinnamon-config";
 import Logger from "@apollosoftwarexyz/cinnamon-logger";
 import Database, { CinnamonDatabaseConfiguration } from "@apollosoftwarexyz/cinnamon-database";
@@ -33,6 +34,13 @@ export type CinnamonInitializationOptions = {
      * The default is true.
      */
     autostartServices?: boolean;
+
+    /**
+     * If defined, specifies a function to execute once Cinnamon has initialized,
+     * but before it has booted.
+     * This is useful for loading plugins and modules, etc., hence the name.
+     */
+    load?: (framework: Cinnamon) => void;
 };
 
 
@@ -61,6 +69,9 @@ export default class Cinnamon {
     public readonly appName: string;
 
     private readonly modules: CinnamonModule[];
+    private readonly plugins: {
+        [key: string]: CinnamonPlugin
+    };
 
     constructor(props: {
         devMode?: boolean;
@@ -70,6 +81,7 @@ export default class Cinnamon {
         this.appName = props.appName ?? 'cinnamon';
 
         this.modules = [];
+        this.plugins = {};
 
         // Populate the default instance of Cinnamon, if it does not already exist.
         if (!Cinnamon._defaultInstance) Cinnamon._defaultInstance = this;
@@ -122,6 +134,48 @@ export default class Cinnamon {
             this.modules.splice(this.modules.indexOf(module), 1);
 
         this.modules.push(module);
+    }
+
+    /**
+     * Checks if the specified plugin is registered in the framework based on
+     * its plugin identifier (organization_name/plugin_name).
+     * Naturally, if it is, returns true, otherwise returns false.
+     *
+     * @param pluginIdentifier The identifier of the plugin to check.
+     */
+    public hasPlugin(pluginIdentifier: string) : boolean {
+        return Object.keys(this.plugins).includes(pluginIdentifier);
+    }
+
+    /**
+     * Registers the specified plugin.
+     * **Unlike with registerModule**, if it has already been registered in the
+     * framework, this method will throw an error as there is more ambiguity
+     * when comparing plugins.
+     *
+     * @param plugin The plugin instance to register.
+     */
+    public use(plugin: CinnamonPlugin) : void {
+        this.plugins[plugin.identifier] = plugin;
+    }
+
+    /**
+     * Trigger the named hook on all the plugins currently registered with
+     * Cinnamon. e.g., triggerPluginHook('onInitialize') will call the
+     * onInitialize hook on all plugins.
+     *
+     * @param hookName The name of the hook to trigger.
+     */
+    public async triggerPluginHook(hookName: string) : Promise<void> {
+        await Promise.all(
+            // Get all plugins
+            Object.values(this.plugins)
+                // Filter to those that have the function 'hookName' as a property.
+                .filter((plugin: any) => plugin.hasOwnProperty(hookName) && typeof plugin[hookName] === 'function')
+                // Then, map the plugin to the hook's promise by calling the 'hookName' function
+                // on the plugin.
+                .map((plugin: any) => (plugin)[hookName]())
+        );
     }
 
     /**
@@ -235,13 +289,17 @@ export default class Cinnamon {
         }));
         framework.getModule<Logger>(Logger.prototype).info("Starting Cinnamon...");
 
-        // Display a warning if the framework is running in development mode. This is helpful for
-        // various reasons - if development mode was erroneously enabled in production, this may
-        // indicate the cause for potential performance degradation on account of hot-reload tech,
-        // etc., and could even help mitigate security risks due to ensuring development-only code
-        // is not accidentally enabled on a production service.
-        if (framework.devMode)
-            framework.getModule<Logger>(Logger.prototype).warn("Application running in DEVELOPMENT mode.");
+        // Call the load function if it was supplied to the initialize options.
+        // We do this before calling onInitialize on all the plugins to allow the user to register
+        // their Cinnamon plugins in the load method first.
+        if (options?.load) options.load(framework);
+
+        // Now await the onInitialize method for all plugins to make sure they've successfully
+        // initialized.
+        await Promise.all(Object.entries(framework.plugins).map(([identifier, plugin]) => {
+            framework.getModule<Logger>(Logger.prototype).info(`Loaded plugin ${identifier}!`);
+            return plugin.onInitialize();
+        }));
 
         try {
             // It's important that ORM is initialized before the web routes, wherever possible, to
@@ -285,12 +343,24 @@ export default class Cinnamon {
             // modules fields with the modules registered with this instance.
             if (Cinnamon.defaultInstance == framework) initializeCoreModules({
                 Config: framework.getModule<Config>(Config.prototype),
-                Logger: framework.getModule<Logger>(Logger.prototype),
-                Database: framework.getModule<Database>(Database.prototype)
+                Logger: framework.getModule<Logger>(Logger.prototype)
             });
+
+            // Trigger 'onStart' for all plugins and wait for it to complete. This is essentially the
+            // 'post-initialize' hook for the framework.
+            // Once this is finished, we can consider Cinnamon fully initialized.
+            await framework.triggerPluginHook('onStart');
 
             if (autostartServices)
                 await framework.getModule<WebServer>(WebServer.prototype).start(projectConfig.framework.http);
+
+            // Display a warning if the framework is running in development mode. This is helpful for
+            // various reasons - if development mode was erroneously enabled in production, this may
+            // indicate the cause for potential performance degradation on account of hot-reload tech,
+            // etc., and could even help mitigate security risks due to ensuring development-only code
+            // is not accidentally enabled on a production service.
+            if (framework.devMode)
+                framework.getModule<Logger>(Logger.prototype).warn("Application running in DEVELOPMENT mode.");
 
             return framework;
         } catch(ex: any) {
@@ -318,8 +388,20 @@ export default class Cinnamon {
      *
      * @param inErrorState Whether the application had to shut down because of an error
      * (true) or not (false).
+     * @param message The termination message (likely the reason for the termination.)
      */
-    async terminate(inErrorState: boolean = false) : Promise<void> {
+    async terminate(inErrorState: boolean = false, message?: string) : Promise<void> {
+        try {
+            await this.getModule<Logger>(Logger.prototype)[inErrorState ? 'error' : 'warn']
+            (`Shutting down...\n${message}.`);
+        } catch (ex) {
+            console.error(
+                "Cinnamon is shutting down.\n" +
+                "This has not been logged because the logger was inactive or returned an error."
+            );
+            console.error(message);
+        }
+
         // Presently, we just terminate the WebServer module, however once a proper, fully-fledged,
         // module system is in place, we'll terminate all the modules.
         await this.getModule<WebServer>(WebServer.prototype).terminate();

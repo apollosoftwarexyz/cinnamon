@@ -1,6 +1,6 @@
 import * as chalk from 'chalk';
 import Cinnamon  from "@apollosoftwarexyz/cinnamon-core";
-import { CinnamonModule } from "@apollosoftwarexyz/cinnamon-core-modules";
+import { CinnamonModule } from "@apollosoftwarexyz/cinnamon-sdk";
 
 export enum LogLevel {
     /**
@@ -62,7 +62,7 @@ export enum LogLevel {
 
 /**
  * Represents a log message.
- * This is the object passed to the {@see DelegateLogFunction} or the log method.
+ * This is the object passed to the {@link DelegateLogFunction} or the log method.
  */
 export interface LogEntry {
     /**

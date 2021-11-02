@@ -1,0 +1,11 @@
+{
+  "name": "@apollosoftwarexyz/cinnamon-sdk",
+  "license": "MIT",
+  "main": "src/main.ts",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",
+    "directory": "packages/sdk/"
+  }
+}

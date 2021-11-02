@@ -1,17 +1,15 @@
 {
   "compilerOptions": {
+    "strict": true,
     "declaration": true,
     "declarationDir": "./distributions/cinnamon/types",
-    "target": "ES2020",
     "outDir": "./distributions/cinnamon/dist",
+    "target": "ES2020",
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "strict": true,
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "lib": [ "ESNext" ]
+    "lib": [ "ES2020", "ESNext" ]
   }
 }

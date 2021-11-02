@@ -281,7 +281,7 @@ export class Validator {
      * a single validation schema field (false).
      * @param  value               The object to check.
      * @return {boolean} isValidationSchemaObject - true the specified value is
-     * a validation schema object, false if it's just a validation shema field.
+     * a validation schema object, false if it's just a validation schema field.
      */
     private _isValidationSchemaObject(value: any) : boolean {
         if (typeof value !== 'object') return false;
