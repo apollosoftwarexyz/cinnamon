@@ -304,8 +304,9 @@ export default class Loader {
             }
             activeLoader = this;
 
+            const controllerObject = requireFn.call(this, controller.path);
+
             try {
-                const controllerObject = requireFn.call(this, controller.path);
                 this.loadedControllerInstances.push(new controllerObject.default());
             } catch (ex) {
                 throw new Error(
