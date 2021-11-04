@@ -18,6 +18,7 @@ import { MiddlewareFn } from "./api/Middleware";
 import * as Chokidar from 'chokidar';
 import Module from "module";
 import chalk from 'chalk';
+import path from 'path';
 
 import co from 'co';
 
@@ -286,15 +287,25 @@ export default class Loader {
             }
             activeLoader = this;
 
-            const controllerObject = requireFn.call(this, controller.path);
-
             try {
-                const clazz = controllerObject.default;
-                clazz.__cinnamonInstance = new clazz();
+                const controllerObject = requireFn.call(this, controller.path);
+
+                try {
+                    const clazz = controllerObject.default;
+                    clazz.__cinnamonInstance = new clazz();
+                } catch (ex) {
+                    throw new Error(
+                        `Failed to read controller in ${controller.path}.\n` +
+                        `Make sure you export it with 'export default' and that your project supports ES6+ classes.`
+                    );
+                }
             } catch (ex) {
-                throw new Error(
-                    `Failed to read controller in ${controller.path}.\n` +
-                    `Make sure you export it with 'export default' and that your project supports ES6+ classes.`
+                const errorMessage = (ex as any)?.toString();
+
+                this.framework.getModule<Logger>(Logger.prototype).error(
+                    `Error loading controller: ${path.basename(controller.path)} (${controller.path})` + (
+                        errorMessage ? `\n\n\t${errorMessage.replace(/\n/g, '\n\t')}\n` : ''
+                    )
                 );
             }
 
@@ -403,6 +414,7 @@ export default class Loader {
         }
 
         activeLoader.routers[controllerId] = controllerRouter;
+        target._loaderActivatedController = true;
     }
 
     public static loadMiddleware(routeId: string, fn: MiddlewareFn) {

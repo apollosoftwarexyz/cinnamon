@@ -21,6 +21,10 @@ export default function Controller(...group: string[]) {
             return;
         }
 
+        if (target._loaderIgnored) {
+            return;
+        }
+
         // Gather class data.
         const classIdentifier = target._loaderId;
         const controller = uuidv5(classIdentifier, LOADER_ROOT_ROUTE_NAMESPACE);

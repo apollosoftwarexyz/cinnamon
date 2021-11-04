@@ -21,7 +21,7 @@ export default Cinnamon;
 ////////////////
 export * from '@apollosoftwarexyz/cinnamon-core-modules';
 export * from '@apollosoftwarexyz/cinnamon-validator';
-export { Method, Controller, Route, Middleware, Body } from '@apollosoftwarexyz/cinnamon-web-server';
+export { Method, Controller, Route, Middleware, Body, LoadIf, LoadUnless } from '@apollosoftwarexyz/cinnamon-web-server';
 
 ////////////////
 // Framework SDK.

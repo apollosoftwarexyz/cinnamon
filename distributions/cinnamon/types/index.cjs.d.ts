@@ -889,6 +889,27 @@ type MiddlewareFn = Function;
  * @param fn The middleware function that should be executed for the route.
  */
 declare function Middleware(fn: MiddlewareFn): (target: any, propertyKey: string) => void;
+/**
+ * If applied to a controller, the controller will only be loaded if the
+ * specified {@link predicate} resolves to true. This is evaluated at
+ * load time and not evaluated after that, unless the controllers are
+ * reloaded (essentially never re-evaluated in production).
+ *
+ * @param predicate A(n) (async) function that must resolve to true, for
+ * the controller to be loaded.
+ *
+ * @see LoadUnless
+ */
+declare function LoadIf(predicate: () => boolean): (target: any) => void;
+/**
+ * A syntactic sugar for the inverse of the {@link LoadIf} annotation.
+ *
+ * @param predicate A(n) (async) function where, if it resolves to true, the
+ * controller will not be loaded.
+ *
+ * @see LoadIf
+ */
+declare function LoadUnless(predicate: () => boolean): (target: any) => void;
 declare const Body: typeof KoaBody;
 /**
  * @category Core Modules
@@ -1045,4 +1066,4 @@ declare class Database extends CinnamonModule {
      */
     connect(): Promise<void>;
 }
-export { Cinnamon as default, Config$0 as Config, Logger$0 as Logger, initializeCoreModules, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Method, Controller, Route, Middleware, Body, CinnamonModule, CinnamonPlugin, WebServer, CinnamonWebServerModulePlugin, Database, Koa$0 as Koa, Context, Next, Chalk };
+export { Cinnamon as default, Config$0 as Config, Logger$0 as Logger, initializeCoreModules, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Method, Controller, Route, Middleware, Body, LoadIf, LoadUnless, CinnamonModule, CinnamonPlugin, WebServer, CinnamonWebServerModulePlugin, Database, Koa$0 as Koa, Context, Next, Chalk };

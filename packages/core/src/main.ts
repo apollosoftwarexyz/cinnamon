@@ -361,6 +361,14 @@ export default class Cinnamon {
             }
             framework.getModule<Logger>(Logger.prototype).info("Successfully initialized database ORM and models.");
 
+            // If we're the default instance (i.e., if the instantiated framework variable is equal to
+            // the value of Cinnamon.defaultInstance), we can go ahead and initialize the global core
+            // modules fields with the modules registered with this instance.
+            if (Cinnamon.defaultInstance == framework) initializeCoreModules({
+                Config: framework.getModule<Config>(Config.prototype),
+                Logger: framework.getModule<Logger>(Logger.prototype)
+            });
+
             // Initialize web service controllers.
             framework.getModule<Logger>(Logger.prototype).info("Initializing web service controllers...");
 
@@ -375,14 +383,6 @@ export default class Cinnamon {
             framework.registerModule(new WebServer(framework, controllersPath, projectConfig.framework.http.trust_proxy));
             await framework.getModule<WebServer>(WebServer.prototype).initialize();
             framework.getModule<Logger>(Logger.prototype).info("Successfully initialized web service controllers.");
-
-            // If we're the default instance (i.e., if the instantiated framework variable is equal to
-            // the value of Cinnamon.defaultInstance), we can go ahead and initialize the global core
-            // modules fields with the modules registered with this instance.
-            if (Cinnamon.defaultInstance == framework) initializeCoreModules({
-                Config: framework.getModule<Config>(Config.prototype),
-                Logger: framework.getModule<Logger>(Logger.prototype)
-            });
 
             // Trigger 'onStart' for all plugins and wait for it to complete. This is essentially the
             // 'post-initialize' hook for the framework.

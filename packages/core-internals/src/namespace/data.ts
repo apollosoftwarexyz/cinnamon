@@ -46,7 +46,7 @@ export namespace data {
     export function resolveObjectDeep(key: string, obj: {
         [key: string]: any
     }) : any {
-        // Split the key into parts, denoted by the nested object delimeter - by
+        // Split the key into parts, denoted by the nested object delimiter - by
         // default a period (.).
         const keyParts = key.split(NESTED_OBJECT_DELIMITER);
 
@@ -129,7 +129,7 @@ export namespace data {
             // attempt to merge.
             if (isObject(source[key]) && isObject(target[key])) {
                 target[key] = mergeObjectDeep(target[key], source[key]);
-            } else if (!isObject(source[key]) && !isObject(target[key])) {
+            } else if (!isObject(target[key])) {
                 target[key] = source[key];
             }
         }
