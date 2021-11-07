@@ -57,7 +57,7 @@ export default class Config extends CinnamonModule {
 
         // If the validation schema is present and validation fails, set our
         // config to null to indicate there is no valid configuration present.
-        if (appConfigSchema && !$(appConfigSchema).validate(appConfig)) {
+        if (appConfigSchema && !$(appConfigSchema).validate(appConfig)[0].success) {
             this.didFailValidation = true;
             this.appConfig = null;
         // Otherwise, set the app config to the value provided.

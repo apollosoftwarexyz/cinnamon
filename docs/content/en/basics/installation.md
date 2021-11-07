@@ -18,7 +18,7 @@ up a new Cinnamon project.
   [Visual Studio Code](https://code.visualstudio.com/) or
   [WebStorm](https://www.jetbrains.com/webstorm/).
 
-## Install Cinnamon CLI
+## Install Cinnamon's Command Line Interface (CLI)
 
 You can globally install Cinnamon's CLI with the following command:
 
@@ -48,7 +48,7 @@ https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packa
 <badge>Coming Soon</badge>
 
 ```bash
-# Initialize an empty project, you can optionally specify the
-# project name as an argument to the init command.
+# Initialize an empty project. You can optionally specify the
+# project name after 'init'.
 cinnamon init
 ```

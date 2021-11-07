@@ -292,6 +292,7 @@ export default class Cinnamon {
                         trust_proxy: false,
                     },
                     database: {
+                        enabled: false,
                     },
                     structure: {
                         controllers: 'src/controllers/',
@@ -353,21 +354,23 @@ export default class Cinnamon {
             // after startup.
 
             // Initialize ORM.
-            framework.getModule<Logger>(Logger.prototype).info("Initializing database and ORM models...");
+            if (projectConfig.framework.database.enabled) {
+                framework.getModule<Logger>(Logger.prototype).info("Initializing database and ORM models...");
 
-            const modelsPath = cinnamonInternals.fs.toAbsolutePath(projectConfig.framework.structure.models);
-            if (!await cinnamonInternals.fs.directoryExists(modelsPath)) {
-                framework.getModule<Logger>(Logger.prototype).error(`(!) The specified models path does not exist: ${projectConfig.framework.structure.models}`);
-                framework.getModule<Logger>(Logger.prototype).error(`(!) Full resolved path: ${modelsPath}`);
-                process.exit(3);
-            }
+                const modelsPath = cinnamonInternals.fs.toAbsolutePath(projectConfig.framework.structure.models);
+                if (!await cinnamonInternals.fs.directoryExists(modelsPath)) {
+                    framework.getModule<Logger>(Logger.prototype).error(`(!) The specified models path does not exist: ${projectConfig.framework.structure.models}`);
+                    framework.getModule<Logger>(Logger.prototype).error(`(!) Full resolved path: ${modelsPath}`);
+                    process.exit(3);
+                }
 
-            framework.registerModule(new Database(framework, modelsPath));
-            await framework.getModule<Database>(Database.prototype).initialize(projectConfig.framework.database);
-            if (autostartServices) {
-                await framework.getModule<Database>(Database.prototype).connect();
+                framework.registerModule(new Database(framework, modelsPath));
+                await framework.getModule<Database>(Database.prototype).initialize(projectConfig.framework.database);
+                if (autostartServices) {
+                    await framework.getModule<Database>(Database.prototype).connect();
+                }
+                framework.getModule<Logger>(Logger.prototype).info("Successfully initialized database ORM and models.");
             }
-            framework.getModule<Logger>(Logger.prototype).info("Successfully initialized database ORM and models.");
 
             // If we're the default instance (i.e., if the instantiated framework variable is equal to
             // the value of Cinnamon.defaultInstance), we can go ahead and initialize the global core

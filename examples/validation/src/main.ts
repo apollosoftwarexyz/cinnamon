@@ -51,13 +51,13 @@ function debugPrintValidationResult(result: ValidationResult, testDetails: {
         password: "Helloworld1@",
         confirmPassword: "Helloworld1@",
         birthYear: 1906
-    }));
+    })[0]);
 
     debugPrintValidationResult(userRequest.validate({
         username: "JohnSmith",
         password: "Helloworld1@",
         confirmPassword: "helloworld1@",
         birthYear: 1906
-    }), { shouldPass: false });
+    })[0], { shouldPass: false });
 
 })();

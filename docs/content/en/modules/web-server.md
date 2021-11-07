@@ -1,7 +1,7 @@
 ---
 title: Web Server
 description: "Cinnamon Web Server module."
-position: 11
+position: 14
 category: Modules
 ---
 
@@ -224,8 +224,8 @@ https://github.com/apollosoftwarexyz/cinnamon/tree/master/examples/basic-webserv
 
 ## Troubleshooting
 - **If your controller or middleware files aren't being loaded correctly, at
-  all, or are throwing an error on load**, be sure to import `.ts` (TypeScript)
-  files.
+  all, or are throwing an error on load**, be sure you're importing `.ts`
+  (TypeScript) files.
   Using JavaScript files with Cinnamon is undefined behavior, is unsupported
   and is unlikely to work at all. You should write TypeScript and execute
   TypeScript in runtime during development and in production with `ts-node`.

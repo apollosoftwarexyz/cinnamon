@@ -6,7 +6,7 @@ import { Server } from "http";
 import KoaBody from "koa-body";
 import { MikroORM, EntityManager } from "@mikro-orm/core";
 import { Configuration } from "@mikro-orm/core/utils/Configuration";
-import * as Chalk from 'chalk';
+import Chalk from 'chalk';
 /**
  * Handles storage and manipulation of objects common to any Cinnamon
  * SDK extension - be it a module or a plugin.
@@ -1048,6 +1048,10 @@ declare class WebServer extends CinnamonModule {
     terminate(): Promise<void>;
 }
 type CinnamonDatabaseConfiguration = {
+    /**
+     * Whether the database module should be enabled.
+     */
+    enabled: boolean;
     /**
      * The database name on the database server.
      */

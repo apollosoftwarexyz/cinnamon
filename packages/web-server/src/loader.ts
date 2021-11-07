@@ -467,7 +467,8 @@ export default class Loader {
 
         // If the database has been initialized, register the middleware with Koa to create a new request context
         // for each request and register a middleware to add an entity manager to the context.
-        if (this.framework.getModule<Database>(Database.prototype).isInitialized) {
+        if (this.framework.hasModule<Database>(Database.prototype) &&
+            this.framework.getModule<Database>(Database.prototype).isInitialized) {
             // Create request context.
             this.server.use((ctx, next) => RequestContext.createAsync(
                 this.framework.getModule<Database>(Database.prototype).em, next
