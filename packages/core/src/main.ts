@@ -6,7 +6,7 @@ import { initializeCoreModules } from "@apollosoftwarexyz/cinnamon-core-modules"
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 import { CinnamonModule, CinnamonPlugin } from "@apollosoftwarexyz/cinnamon-sdk";
 import Config from "@apollosoftwarexyz/cinnamon-config";
-import Logger from "@apollosoftwarexyz/cinnamon-logger";
+import Logger, {DelegateLogFunction} from "@apollosoftwarexyz/cinnamon-logger";
 import Database, { CinnamonDatabaseConfiguration } from "@apollosoftwarexyz/cinnamon-database";
 import WebServer from "@apollosoftwarexyz/cinnamon-web-server";
 import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
@@ -24,12 +24,6 @@ export type CinnamonInitializationOptions = {
     appConfigSchema?: ValidationSchema;
 
     /**
-     * If set to true, Cinnamon will disable all logging output
-     * using the Logger.
-     */
-    silenced?: boolean;
-
-    /**
      * If set to false, prevents Cinnamon from auto-starting modules, such as the web server.
      * The default is true.
      */
@@ -41,6 +35,19 @@ export type CinnamonInitializationOptions = {
      * This is useful for loading plugins and modules, etc., hence the name.
      */
     load?: (framework: Cinnamon) => Promise<void>;
+
+    /**
+     * If specified, this {@link DelegateLogFunction} is passed to the logger,
+     * so that custom actions may be performed based on all, or even specific
+     * kinds of, logged messages.
+     */
+    loggerDelegate?: DelegateLogFunction;
+
+    /**
+     * If set to true, Cinnamon will disable all logging output
+     * using the Logger.
+     */
+    silenced?: boolean;
 };
 
 
@@ -321,7 +328,8 @@ export default class Cinnamon {
         ));
         framework.registerModule(new Logger(framework, framework.devMode, {
             showFrameworkDebugMessages: CINNAMON_CORE_DEBUG_MODE,
-            silenced: options?.silenced ?? false
+            logDelegate: options?.loggerDelegate,
+            silenced: options?.silenced ?? false,
         }));
         framework.getModule<Logger>(Logger.prototype).info("Starting Cinnamon...");
 
