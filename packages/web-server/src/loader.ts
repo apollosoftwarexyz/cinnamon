@@ -277,7 +277,7 @@ export default class Loader {
         Object.keys(this.routers).forEach(router => delete this.routers[router]);
 
         for (const controller of this.trackedControllers) {
-            const requireFn = this.inDevMode ? this.hotRequire : this.BuiltinModuleAPI.require;
+            const requireFn = this.inDevMode ? this.hotRequire : this.doRequire;
 
             if (activeLoader != null) {
                 throw new Error(
@@ -433,6 +433,11 @@ export default class Loader {
     }
 
     /**********************************************************************/
+
+    private doRequire(request: string, caller?: NodeModule) {
+        if (!caller) caller = require.main;
+        return this.BuiltinModuleAPI.require.call(caller, request);
+    }
 
     private hotRequire(request: string, caller?: NodeModule) {
         if (!caller) caller = require.main;
