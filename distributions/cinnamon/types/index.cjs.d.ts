@@ -6,7 +6,7 @@ import { Server } from "http";
 import KoaBody from "koa-body";
 import { MikroORM, EntityManager } from "@mikro-orm/core";
 import { Configuration } from "@mikro-orm/core/utils/Configuration";
-import * as Chalk from 'chalk';
+import Chalk from 'chalk';
 /**
  * Handles storage and manipulation of objects common to any Cinnamon
  * SDK extension - be it a module or a plugin.
@@ -144,6 +144,242 @@ declare abstract class CinnamonPlugin extends CinnamonSdkBase {
      * the current underlying HTTP server.
      */
     afterStart(): Promise<void>;
+}
+declare enum LogLevel {
+    /**
+     * **Used for internal framework-level debugging messages.**
+     * This log-level should not be used by any application and definitely not in production.
+     */
+    FRAMEWORK = -1,
+    /**
+     * **Used for app-level debugging messages.**
+     * These will not be printed if {@link showDebugMessages} is `false`. _They will still be passed to the logging
+     * delegate if it is present regardless of {@link showDebugMessages}._
+     */
+    DEBUG = 0,
+    /**
+     * **General application information.**
+     * A typical example of how this would be used is printing status messages. You should not use this logging level
+     * for printing:
+     * - **warnings or errors:** use the appropriate level, so they are more apparent in terms of drawing attention and
+     *   so the delegate can handle the warnings and errors appropriately (e.g. for dispatching notifications).
+     * - **debugging information:** use the DEBUG level, so the delegate has more control over logging messages. (e.g.
+     *   you may have information useful when debugging locally but your delegate might log messages with an external
+     *   server or application and including debugging messages as INFO level would pollute your logs leaving you with
+     *   no way to filter them out.)
+     *
+     * This logging level is also used by the framework during startup to indicate module initialization status and to
+     * help indicate whether the system is functioning normally.
+     */
+    INFO = 1,
+    /**
+     * **Application warnings.**
+     * These are messages that may be important and thus should be highlighted, but are not crucial or detrimental to
+     * the operation of the application. For example, deprecation messages, inability to locate or activate a soft
+     * dependency, etc.
+     *
+     * A good example of when this is used is by the framework, upon startup, to display a warning if the application is
+     * in debug mode as certain performance optimizations and security features may be turned off.
+     */
+    WARN = 2,
+    /**
+     * **Application errors.**
+     * These messages are critical. Whilst not necessarily indicating a crash will/has occurred, an error indicates that
+     * something on the server has not functioned as expected because of a problem with the application which would need
+     * to be rectified by the systems administrator in production and/or the application developer because of a
+     * programming oversight.
+     *
+     * This logging level is used by the framework if it failed to initialize or a key operation failed and the
+     * application must be halted.
+     *
+     * It may be beneficial to use a {@link ExtendedLoggerOptions.logDelegate} to dispatch a notification when an error
+     * occurs so they can be observed from an external dashboard or immediate action may be taken to rectify or better
+     * understand the error.
+     */
+    ERROR = 3
+}
+/**
+ * Represents a log message.
+ * This is the object passed to the {@link DelegateLogFunction} or the log method.
+ */
+interface LogEntry {
+    /**
+     * The LogLevel of the log. One of DEBUG, INFO, WARN or ERROR.
+     */
+    level: LogLevel;
+    /**
+     * The timestamp of the log entry, in JavaScript Date form.
+     */
+    timestamp: Date;
+    /**
+     * The module that generated the log entry. Leave as none for default (application).
+     */
+    module?: string;
+    /**
+     * The textual message that was logged.
+     */
+    message: string;
+}
+interface DelegateLogEntry extends LogEntry {
+    /**
+     * A string representation of the log level.
+     */
+    levelString: string;
+    /**
+     * The prefix of the logger that generated the log entry.
+     */
+    prefix: string;
+    /**
+     * A string representation of the timestamp of the log entry.
+     */
+    timestampString: string;
+}
+/**
+ * A delegate function passed to the logger which is called every time
+ * a general logging function, such as {@link Logger.debug},
+ * {@link Logger.info}, etc., is called.
+ *
+ * A log delegate function receives any information that is logged, in the
+ * form of a {@link DelegateLogEntry} interface, to allow performing different
+ * actions based on different kinds of log entries – e.g., only log or don't log
+ * for a given module.
+ *
+ * @see DelegateLogEntry
+ * @see https://cinnamon.apollosoftware.xyz/modules/logger#logger-delegate
+ */
+type DelegateLogFunction = (message: DelegateLogEntry) => void;
+interface ExtendedLoggerOptions {
+    /**
+     * Whether internal framework debugging messages should be displayed/logged as well as application debugging
+     * messages.
+     */
+    showFrameworkDebugMessages: boolean;
+    /**
+     * An optional promise predicate that is passed each log message to facilitate an extended logging pipeline, so that
+     * it may be logged with a remote dashboard for example. Put simply, if this function is present, all log messages
+     * pass through this function.
+     */
+    logDelegate?: DelegateLogFunction;
+    /**
+     * Whether all logging messages should be silenced. This is useful if you're booting Cinnamon as part of a toolchain
+     * and are not expecting it to run with the full web application.
+     * Framework debugging messages do not respect this option to make debugging external tooling easier, however they
+     * can be easily turned off with {@link showFrameworkDebugMessages}.
+     */
+    silenced?: boolean;
+}
+/**
+ * @category Core Modules
+ * @CoreModule
+ */
+declare class Logger extends CinnamonModule {
+    /**
+     * Whether application debug messages should be displayed.
+     * @private
+     */
+    private readonly showDebugMessages;
+    /**
+     * @see ExtendedLoggerOptions
+     * @private
+     */
+    private readonly showFrameworkDebugMessages;
+    /**
+     * @see ExtendedLoggerOptions
+     * @private
+     */
+    private readonly logDelegate?;
+    /**
+     * @see ExtendedLoggerOptions
+     * @private
+     */
+    private readonly silenced?;
+    /**
+     * @CoreModule
+     * Initializes a Cinnamon Framework logger.
+     *
+     * @param framework The Cinnamon Framework instance
+     * @param showDebugMessages If true, messages with the debug log level will be shown.
+     * @param options Extended options for the logger module.
+     */
+    constructor(framework: Cinnamon, showDebugMessages?: boolean, options?: ExtendedLoggerOptions);
+    /**
+     * Logs an internal framework messages. Intended for internal framework-use only.
+     * @param message The framework message to log.
+     * @param module The module that generated the log.
+     * @internal
+     */
+    frameworkDebug(message: string, module?: string): void;
+    /**
+     * Log a debug message with the logger.
+     * This message will also be passed to the {@link DelegateLogFunction}.
+     *
+     * **Used for app-level debugging messages.**
+     * These will not be printed if {@link showDebugMessages} is `false`. _They will still be passed to the logging
+     * delegate if it is present regardless of {@link showDebugMessages}._
+     *
+     * @param message The message to log.
+     * @param module Optionally, a module name to prefix to the log message.
+     */
+    debug(message: string, module?: string): void;
+    /**
+     * Log a general information message with the logger.
+     * This message will also be passed to the {@link DelegateLogFunction}.
+     *
+     * **General application information.**
+     * A typical example of how this would be used is printing status messages. You should not use this logging level
+     * for printing:
+     * - **warnings or errors:** use the appropriate level (either {@link warn} or {@link error}), so they are more
+     *   apparent in terms of drawing attention and so the delegate can handle the warnings and errors appropriately
+     *   (e.g. for dispatching notifications).
+     * - **debugging information:** use {@link debug}, so the delegate has more control over logging messages. (e.g.
+     *   you may have information useful when debugging locally but your delegate might log messages with an external
+     *   server or application and including debugging messages as INFO level would pollute your logs leaving you with
+     *   no way to filter them out.)
+     *
+     * @param message The message to log.
+     * @param module Optionally, a module name to prefix to the log message.
+     */
+    info(message: string, module?: string): void;
+    /**
+     * Log a warning message with the logger.
+     * This message will also be passed to the {@link DelegateLogFunction}.
+     *
+     * **Application warnings.**
+     * These are messages that may be important and thus should be highlighted, but are not crucial or detrimental to
+     * the operation of the application. For example, deprecation messages, inability to locate or activate a soft
+     * dependency, etc.
+     *
+     * A good example of when this is used is by the framework, upon startup, to display a warning if the application is
+     * in debug mode as certain performance optimizations and security features may be turned off.
+     *
+     * @param message The message to log.
+     * @param module Optionally, a module name to prefix to the log message.
+     */
+    warn(message: string, module?: string): void;
+    /**
+     * Log an error message with the logger.
+     * This message will also be passed to the {@link DelegateLogFunction}.
+     *
+     * **Application errors.**
+     * These messages are critical. Whilst not necessarily indicating a crash will/has occurred, an error indicates that
+     * something on the server has not functioned as expected because of a problem with the application which would need
+     * to be rectified by the systems administrator in production and/or the application developer because of a
+     * programming oversight.
+     *
+     * It may be beneficial to use a {@link ExtendedLoggerOptions.logDelegate} to dispatch a notification when an error
+     * occurs so they can be observed from an external dashboard or immediate action may be taken to rectify or better
+     * understand the error.
+     *
+     * @param message The message to log.
+     * @param module Optionally, a module name to prefix to the log message.
+     */
+    error(message: string, module?: string): void;
+    /**
+     * Logs the specified LogEntry. This is generally intended for internal use only.
+     * @param entry The log entry to be displayed and passed to the remote log delegate.
+     */
+    private log;
+    private static timestampStringFor;
 }
 /// Validation Schema Common definitions
 /// ---
@@ -390,11 +626,6 @@ type CinnamonInitializationOptions = {
      */
     appConfigSchema?: ValidationSchema;
     /**
-     * If set to true, Cinnamon will disable all logging output
-     * using the Logger.
-     */
-    silenced?: boolean;
-    /**
      * If set to false, prevents Cinnamon from auto-starting modules, such as the web server.
      * The default is true.
      */
@@ -405,6 +636,17 @@ type CinnamonInitializationOptions = {
      * This is useful for loading plugins and modules, etc., hence the name.
      */
     load?: (framework: Cinnamon) => Promise<void>;
+    /**
+     * If specified, this {@link DelegateLogFunction} is passed to the logger,
+     * so that custom actions may be performed based on all, or even specific
+     * kinds of, logged messages.
+     */
+    loggerDelegate?: DelegateLogFunction;
+    /**
+     * If set to true, Cinnamon will disable all logging output
+     * using the Logger.
+     */
+    silenced?: boolean;
 };
 /**
  * The main class of the Cinnamon framework. To initialize the framework, you initialize
@@ -613,168 +855,6 @@ declare module ConfigWrapper {
     export { Config };
 }
 import _ConfigModule = ConfigWrapper.Config;
-declare enum LogLevel {
-    /**
-     * **Used for internal framework-level debugging messages.**
-     * This log-level should not be used by any application and definitely not in production.
-     */
-    FRAMEWORK = -1,
-    /**
-     * **Used for app-level debugging messages.**
-     * These will not be printed if {@link showDebugMessages} is `false`. _They will still be passed to the logging
-     * delegate if it is present regardless of {@link showDebugMessages}._
-     */
-    DEBUG = 0,
-    /**
-     * **General application information.**
-     * A typical example of how this would be used is printing status messages. You should not use this logging level
-     * for printing:
-     * - **warnings or errors:** use the appropriate level, so they are more apparent in terms of drawing attention and
-     *   so the delegate can handle the warnings and errors appropriately (e.g. for dispatching notifications).
-     * - **debugging information:** use the DEBUG level, so the delegate has more control over logging messages. (e.g.
-     *   you may have information useful when debugging locally but your delegate might log messages with an external
-     *   server or application and including debugging messages as INFO level would pollute your logs leaving you with
-     *   no way to filter them out.)
-     *
-     * This logging level is also used by the framework during startup to indicate module initialization status and to
-     * help indicate whether the system is functioning normally.
-     */
-    INFO = 1,
-    /**
-     * **Application warnings.**
-     * These are messages that may be important and thus should be highlighted, but are not crucial or detrimental to
-     * the operation of the application. For example, deprecation messages, inability to locate or activate a soft
-     * dependency, etc.
-     *
-     * A good example of when this is used is by the framework, upon startup, to display a warning if the application is
-     * in debug mode as certain performance optimizations and security features may be turned off.
-     */
-    WARN = 2,
-    /**
-     * **Application errors.**
-     * These messages are critical. Whilst not necessarily indicating a crash will/has occurred, an error indicates that
-     * something on the server has not functioned as expected because of a problem with the application which would need
-     * to be rectified by the systems administrator in production and/or the application developer because of a
-     * programming oversight.
-     *
-     * This logging level is used by the framework if it failed to initialize or a key operation failed and the
-     * application must be halted.
-     *
-     * It may be beneficial to use a {@link ExtendedLoggerOptions.logDelegate} to dispatch a notification when an error
-     * occurs so they can be observed from an external dashboard or immediate action may be taken to rectify or better
-     * understand the error.
-     */
-    ERROR = 3
-}
-/**
- * Represents a log message.
- * This is the object passed to the {@link DelegateLogFunction} or the log method.
- */
-interface LogEntry {
-    /**
-     * The LogLevel of the log. One of DEBUG, INFO, WARN or ERROR.
-     */
-    level: LogLevel;
-    /**
-     * The timestamp of the log entry, in JavaScript Date form.
-     */
-    timestamp: Date;
-    /**
-     * The module that generated the log entry. Leave as none for default (application).
-     */
-    module?: string;
-    /**
-     * The textual message that was logged.
-     */
-    message: string;
-}
-interface DelegateLogEntry extends LogEntry {
-    /**
-     * A string representation of the log level.
-     */
-    levelString: string;
-    /**
-     * The prefix of the logger that generated the log entry.
-     */
-    prefix: string;
-    /**
-     * A string representation of the timestamp of the log entry.
-     */
-    timestampString: string;
-}
-type DelegateLogFunction = (message: DelegateLogEntry) => void;
-interface ExtendedLoggerOptions {
-    /**
-     * Whether internal framework debugging messages should be displayed/logged as well as application debugging
-     * messages.
-     */
-    showFrameworkDebugMessages: boolean;
-    /**
-     * An optional promise predicate that is passed each log message to facilitate an extended logging pipeline, so that
-     * it may be logged with a remote dashboard for example. Put simply, if this function is present, all log messages
-     * pass through this function.
-     */
-    logDelegate?: DelegateLogFunction;
-    /**
-     * Whether all logging messages should be silenced. This is useful if you're booting Cinnamon as part of a toolchain
-     * and are not expecting it to run with the full web application.
-     * Framework debugging messages do not respect this option to make debugging external tooling easier, however they
-     * can be easily turned off with {@link showFrameworkDebugMessages}.
-     */
-    silenced?: boolean;
-}
-/**
- * @category Core Modules
- * @CoreModule
- */
-declare class Logger extends CinnamonModule {
-    /**
-     * Whether application debug messages should be displayed.
-     * @private
-     */
-    private readonly showDebugMessages;
-    /**
-     * @see ExtendedLoggerOptions
-     * @private
-     */
-    private readonly showFrameworkDebugMessages;
-    /**
-     * @see ExtendedLoggerOptions
-     * @private
-     */
-    private readonly logDelegate?;
-    /**
-     * @see ExtendedLoggerOptions
-     * @private
-     */
-    private readonly silenced?;
-    /**
-     * @CoreModule
-     * Initializes a Cinnamon Framework logger.
-     *
-     * @param framework The Cinnamon Framework instance
-     * @param showDebugMessages If true, messages with the debug log level will be shown.
-     * @param options Extended options for the logger module.
-     */
-    constructor(framework: Cinnamon, showDebugMessages?: boolean, options?: ExtendedLoggerOptions);
-    /**
-     * Logs an internal framework messages. Intended for internal framework-use only.
-     * @param message The framework message to log.
-     * @param module The module that generated the log.
-     * @internal
-     */
-    frameworkDebug(message: string, module?: string): void;
-    debug(message: string, module?: string): void;
-    info(message: string, module?: string): void;
-    warn(message: string, module?: string): void;
-    error(message: string, module?: string): void;
-    /**
-     * Logs the specified LogEntry. This is generally intended for internal use only.
-     * @param entry The log entry to be displayed and passed to the remote log delegate.
-     */
-    private log;
-    private static timestampStringFor;
-}
 declare module LoggerWrapper {
     export { Logger };
 }
@@ -969,6 +1049,10 @@ declare class WebServer extends CinnamonModule {
 }
 type CinnamonDatabaseConfiguration = {
     /**
+     * Whether the database module should be enabled.
+     */
+    enabled: boolean;
+    /**
      * The database name on the database server.
      */
     database: string;
@@ -1066,4 +1150,4 @@ declare class Database extends CinnamonModule {
      */
     connect(): Promise<void>;
 }
-export { Cinnamon as default, Config$0 as Config, Logger$0 as Logger, initializeCoreModules, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Method, Controller, Route, Middleware, Body, LoadIf, LoadUnless, CinnamonModule, CinnamonPlugin, WebServer, CinnamonWebServerModulePlugin, Database, Koa$0 as Koa, Context, Next, Chalk };
+export { Cinnamon as default, LogEntry, DelegateLogEntry, DelegateLogFunction, Config$0 as Config, Logger$0 as Logger, initializeCoreModules, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Method, Controller, Route, Middleware, Body, LoadIf, LoadUnless, CinnamonModule, CinnamonPlugin, WebServer, CinnamonWebServerModulePlugin, Database, Koa$0 as Koa, Context, Next, Chalk };

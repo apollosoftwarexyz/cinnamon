@@ -35,20 +35,22 @@ export default class IndexController {
 ## Features
 - [x] Configurable with `cinnamon.toml`
 - [x] Logger module (extensive logging for your application)
-    - [ ] Logger delegate support (handle log events - e.g., for logging remotely)
+    - [x] Logger delegate support (handle log events - e.g., for logging remotely)
 - [x] Web Server module (for backend API service controllers) using [Koa](https://github.com/koajs)
     - [x] Hot reload for API service controllers
     - [x] Middleware and Routing support
     - [ ] Static file hosting support
 - [ ] WebSocket module (integrated with Web Server module)
 - [x] Database ORM module using [Mikro-ORM](https://mikro-orm.io)
-  - [ ] Hot reload for ORM module
 - [x] Validation module (for data validation on JavaScript/JSON objects)
-    - [ ] Middleware for Web Server module
+    - [x] Middleware for Web Server module
 - [ ] Session Management and Authentication module
 - [ ] CLI tooling and utilities
     - [ ] CLI helpers for production and development tasks
     - [ ] Support for shell script generation
+- [ ] Additional hot reload
+  - [ ] Allow specifying directories with reload 'type' (`restart`, `only-config`, `only-controllers`) on change.
+  - [ ] Hot-reload `cinnamon.toml` by default.
 
 ## Development
 1. Apollo Software Cinnamon uses [Yarn Berry (3.x)](https://yarnpkg.com/getting-started/install) for workspace management. You should install it with `yarn set version latest`:

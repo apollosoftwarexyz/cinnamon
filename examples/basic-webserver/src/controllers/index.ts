@@ -7,6 +7,7 @@ export default class IndexController {
     @Middleware(PureVibesOnly)
     @Route(Method.GET, '/')
     public async index(ctx: Context) : Promise<void> {
+        Logger.debug("Hello world, but it's debug mode!");
         Logger.info(Chalk.greenBright('You have pure vibes.'));
         ctx.body = 'Hello, world!';
     }

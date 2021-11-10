@@ -9,14 +9,19 @@ import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 
 export type CinnamonDatabaseConfiguration = {
     /**
+     * Whether the database module should be enabled.
+     */
+    enabled: boolean;
+
+    /**
      * The database name on the database server.
      */
-    database: string,
+    database: string;
 
     /**
      * Whether the framework should be terminated if Cinnamon fails to connect to the database server.
      */
-    terminateOnInitError?: boolean
+    terminateOnInitError?: boolean;
 } & ({
     /**
      * The database type.
@@ -43,31 +48,31 @@ export type CinnamonDatabaseConfiguration = {
      * - PostgreSQL: 'postgresql'
      * - SQLite: 'sqlite'
      */
-    type: Exclude<keyof typeof Configuration.PLATFORMS, "mongo">,
+    type: Exclude<keyof typeof Configuration.PLATFORMS, "mongo">;
     /**
      * The hostname for the database server.
      * This should not include protocol or port. It is **not** a connection URL.
      */
-    host: string,
+    host: string;
     /**
      * The port for the database server.
      * For reference, common defaults are:
      * - MySQL: 3306
      * - PostgreSQL: 5432
      */
-    port: number,
+    port: number;
     /**
      * The database username.
      * If both username and password are left empty or not set, it will be assumed that the database does not require
      * authentication.
      */
-    username?: string,
+    username?: string;
     /**
      * The database password.
      * If both username and password are left empty or not set, it will be assumed that the database does not require
      * authentication.
      */
-    password?: string,
+    password?: string;
 });
 
 /**

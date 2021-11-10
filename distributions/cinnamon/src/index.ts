@@ -37,5 +37,5 @@ import * as Koa from 'koa';
 import { Context, Next } from 'koa';
 export { Koa, Context, Next };
 
-import * as Chalk from 'chalk';
+import Chalk from 'chalk';
 export { Chalk };

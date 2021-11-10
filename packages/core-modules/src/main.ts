@@ -1,6 +1,8 @@
 import { default as _ConfigModule } from "@apollosoftwarexyz/cinnamon-config";
 import { default as _LoggerModule } from "@apollosoftwarexyz/cinnamon-logger";
 
+export { LogEntry, DelegateLogEntry, DelegateLogFunction } from '@apollosoftwarexyz/cinnamon-logger';
+
 export let Config: _ConfigModule;
 export let Logger: _LoggerModule;
 

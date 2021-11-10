@@ -1,7 +1,7 @@
 ---
 title: Getting Started
 description: "Getting Started with Apollo Software Cinnamon."
-position: 10
+position: 2
 category: Basics
 ---
 
