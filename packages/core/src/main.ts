@@ -307,18 +307,15 @@ export default class Cinnamon {
             return process.exit(2);
         }
 
-        // Check NODE_ENV environment variable.
-        let forceDevMode = false;
-        if (process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === "development") {
-            forceDevMode = true;
-            // Patch to force development mode in the framework core config if
-            // it was set by the environment variable.
-            projectConfig.framework.core.development_mode = forceDevMode;
+        // If the NODE_ENV environment variable is set, override the value from
+        // cinnamon.toml.
+        if (process.env.NODE_ENV) {
+            projectConfig.framework.core.development_mode = process.env.NODE_ENV.toLowerCase() === "development";
         }
 
         // Initialize the framework using the project configuration.
         const framework = new Cinnamon({
-            devMode: forceDevMode ? forceDevMode : projectConfig.framework.core.development_mode,
+            devMode: projectConfig.framework.core.development_mode,
             appName: projectConfig.framework.app.name
         });
 

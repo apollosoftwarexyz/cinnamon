@@ -305,7 +305,7 @@ export default class Logger extends CinnamonModule {
 
         // The function that will print the content to the underlying OS POSIX stream.
         // (Essentially STDERR vs STDOUT)
-        let posixPrintFunction = entry.level !== LogLevel.ERROR ? console.error : console.log;
+        let posixPrintFunction = entry.level === LogLevel.ERROR ? console.error : console.log;
 
         let printFunction;
         switch (entry.level) {
