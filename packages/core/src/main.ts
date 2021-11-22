@@ -304,7 +304,7 @@ export default class Cinnamon {
         } catch(ex: any) {
             console.error(`(!) Failed to parse cinnamon.toml:`);
             console.error(`(!) ...parsing failed on line ${ex.line}, at column ${ex.column}: ${ex.message}`);
-            return process.exit(2);
+            return process.exit(1);
         }
 
         // If the NODE_ENV environment variable is set, override the value from
@@ -358,7 +358,7 @@ export default class Cinnamon {
                 if (!await cinnamonInternals.fs.directoryExists(modelsPath)) {
                     framework.getModule<Logger>(Logger.prototype).error(`(!) The specified models path does not exist: ${projectConfig.framework.structure.models}`);
                     framework.getModule<Logger>(Logger.prototype).error(`(!) Full resolved path: ${modelsPath}`);
-                    process.exit(3);
+                    process.exit(2);
                 }
 
                 framework.registerModule(new Database(framework, modelsPath));
@@ -384,7 +384,7 @@ export default class Cinnamon {
             if (!await cinnamonInternals.fs.directoryExists(controllersPath)) {
                 framework.getModule<Logger>(Logger.prototype).error(`(!) The specified controllers path does not exist: ${projectConfig.framework.structure.controllers}`);
                 framework.getModule<Logger>(Logger.prototype).error(`(!) Full resolved path: ${controllersPath}`);
-                process.exit(3);
+                process.exit(2);
             }
 
             // Now, register and initialize the web server, and load the controllers.
@@ -435,26 +435,35 @@ export default class Cinnamon {
      * @param inErrorState Whether the application had to shut down because of an error
      * (true) or not (false).
      * @param message The termination message (likely the reason for the termination.)
+     * @param exitCode The POSIX exit code to terminate with.
      */
-    async terminate(inErrorState: boolean = false, message?: string) : Promise<void> {
+    async terminate(inErrorState: boolean = false, message?: string, exitCode?: number) : Promise<never> {
         try {
+            if (message) await this.getModule<Logger>(Logger.prototype)[inErrorState ? 'error' : 'warn']
+            (message);
             await this.getModule<Logger>(Logger.prototype)[inErrorState ? 'error' : 'warn']
-            (`Shutting down...\n${message}.`);
+            (`Shutting down...`);
         } catch (ex) {
+            console.error(message);
             console.error(
                 "Cinnamon is shutting down.\n" +
                 "This has not been logged because the logger was inactive or returned an error."
             );
-            console.error(message);
         }
 
-        // Presently, we just terminate the WebServer module, however once a proper, fully-fledged,
-        // module system is in place, we'll terminate all the modules.
-        await this.getModule<WebServer>(WebServer.prototype).terminate();
+        // Presently, we just terminate the pertinent modules, however once the module system
+        // has been refactored, we'll terminate all the modules.
+        // TODO: terminate modules based on lifecycle.
+        try {
+            await this.getModule<Database>(Database.prototype).terminate(inErrorState);
+            await this.getModule<WebServer>(WebServer.prototype).terminate();
+        } catch(ex) {
+            process.exit(3);
+        }
 
         // Exit with a POSIX exit code of non-zero if error, or zero if no error (implied by
         // inErrorState = false).
-        process.exit(inErrorState ? 1 : 0);
+        process.exit(exitCode ?? (inErrorState ? 1 : 0));
     }
 
 }

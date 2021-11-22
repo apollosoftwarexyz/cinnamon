@@ -234,4 +234,9 @@ export default class Database extends CinnamonModule {
         });
     }
 
+    public async terminate(force: boolean = false) {
+        await this.underlyingOrm?.close(force);
+        this.underlyingOrm = undefined;
+    }
+
 }

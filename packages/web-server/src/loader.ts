@@ -276,16 +276,25 @@ export default class Loader {
         Object.keys(this.routes).forEach(route => delete this.routes[route]);
         Object.keys(this.routers).forEach(router => delete this.routers[router]);
 
+        if (activeLoader != null) {
+            throw new FatalLoaderError(
+                true,
+                "Attempted to lock already locked activeLoader interface.\n\n" +
+                "This might happen if:\n" +
+                "\t- you run two web servers in development mode simultaneously (don't)\n" +
+                "\t- a controller is stuck whilst loading (restart or investigate if\n" +
+                "\t\tthe problem persists)\n" +
+                "\t- a controller caused a fatal error, but for some reason, the framework" +
+                "\t\tdidn't shut down. (try restarting the framework, if the problem persists\n" +
+                "\t\tpost an issue ticket on the Cinnamon project repository with any errors\n" +
+                "\t\tyou receive before this one.)\n\n" +
+                "\t(Apollo Software only): please consider opening an issue with the Internal Projects team."
+            );
+        }
+        activeLoader = this;
+
         for (const controller of this.trackedControllers) {
             const requireFn = this.inDevMode ? this.hotRequire : this.doRequire;
-
-            if (activeLoader != null) {
-                throw new Error(
-                    "Attempted to lock already locked activeLoader interface.\n" +
-                    "This might happen if you run two web servers in development mode simultaneously."
-                );
-            }
-            activeLoader = this;
 
             try {
                 const controllerObject = requireFn.call(this, controller.path);
@@ -303,16 +312,27 @@ export default class Loader {
                 const errorMessage = (ex as any)?.toString();
 
                 this.framework.getModule<Logger>(Logger.prototype).error(
-                    `Error loading controller: ${path.basename(controller.path)} (${controller.path})` + (
+                    ((ex instanceof FatalLoaderError && ex.isControllerAgnostic)
+                        ? "Error processing controllers..."
+                        : `Error loading controller: ${path.basename(controller.path)} (${controller.path})`
+                    ) + (
                         errorMessage ? `\n\n\t${errorMessage.replace(/\n/g, '\n\t')}\n` : ''
                     )
                 );
+
+                if (ex instanceof FatalLoaderError) {
+                    await this.framework.terminate(
+                        true,
+                        "A fatal error with the web server module has prevented Cinnamon from loading."
+                    );
+                    return;
+                }
             }
 
-            activeLoader = undefined;
             controller.dirty = false;
         }
 
+        activeLoader = undefined;
         await this.hookWithKoa();
     }
 
@@ -360,16 +380,18 @@ export default class Loader {
      */
     public static loadRoute(routeData: LoaderRoute) {
         if (!activeLoader) {
-            throw new Error(
+            throw new FatalLoaderError(
+                false,
                 "Attempted to lock missing activeLoader interface.\n" +
                 "This would imply that a route attempted to register with a loader when that loader wasn't expecting it."
             );
         }
 
         if (Object.keys(activeLoader.routes).includes(routeData.identifier)) {
-            throw new Error(
-                "Duplicate route ID registered; this should be impossible.\n" +
-                "Please ensure all route IDs are unique."
+            throw new FatalLoaderError(
+                true,
+                "UUID collision detected. This shouldn't happen. Please restart the server.\n" +
+                "If you see this message more than once, something has gone VERY wrong, please contact us immediately.\n"
             );
         }
 
@@ -378,16 +400,18 @@ export default class Loader {
 
     public static loadController(controllerId: string, group: string[], target: any) {
         if (!activeLoader) {
-            throw new Error(
+            throw new FatalLoaderError(
+                false,
                 "Attempted to lock missing activeLoader interface.\n" +
                 "This would imply that a controller attempted to register with a loader when that loader wasn't expecting it."
             );
         }
 
         if (Object.keys(activeLoader.routers).includes(controllerId)) {
-            throw new Error(
-                "Duplicate router for controller ID registered; this should be impossible.\n" +
-                "Please ensure each controller has one and only one router."
+            throw new FatalLoaderError(
+                true,
+                "UUID collision detected. This shouldn't happen. Please restart the server.\n" +
+                "If you see this message more than once, something has gone VERY wrong, please contact us immediately.\n"
             );
         }
 
@@ -415,11 +439,43 @@ export default class Loader {
 
         activeLoader.routers[controllerId] = controllerRouter;
         target._loaderActivatedController = true;
+
+        //////////////////////// (sanitization checks)
+
+        // If there is a mismatch between the number of Cinnamon's controller routers and the number of
+        // tracked controllers, we must be attempting to load the same controller twice, which (for now)
+        // we're going to consider illegal because the only way this can really happen is because one
+        // controller imported another that was already loaded by Cinnamon.
+        //
+        // (Basically, this creates a 'regression bug' with development mode whereby on the first
+        // iteration – before the controllers have been reloaded again which eliminates duplicates,
+        // this will cause the same controller to load twice and cause issues with koa's routing -
+        // and just generally be a nuisance because we clear the cache when we 'hot require' the
+        // controller files.)
+        //
+        // We could probably fiddle with the caching of each class to make this work consistently
+        // all-round but to be honest, except for unforeseen circumstances, importing a Cinnamon
+        // controller in another controller would just imply poor code structuring or design.
+        if (Object.keys(activeLoader.routers).length > activeLoader.trackedControllers.length) {
+            throw new FatalLoaderError(
+                true,
+                "Cinnamon has detected a mismatch between the number of per-controller routers and the number of\n" +
+                "controllers.\n\n" +
+                "This would typically indicate that you have imported a Cinnamon controller in another Cinnamon\n" +
+                "controller, which is currently prevented.\n\n" +
+                "EXCEPT FOR unforeseen circumstances, doing this would indicate bad code structuring or design,\n" +
+                "however IF you are receiving this error for unrelated reasons – OR you believe you have a good\n" +
+                "reason for allowing this, please open an issue ticket on the Cinnamon project repository.\n\n" +
+                "(Apollo Software only): please consider opening an issue with the Internal Projects team.\n" +
+                "https://github.com/apollosoftwarexyz/cinnamon/issues/new\n"
+            );
+        }
     }
 
     public static loadMiddleware(routeId: string, fn: MiddlewareFn) {
         if (!activeLoader) {
-            throw new Error(
+            throw new FatalLoaderError(
+                false,
                 "Attempted to lock missing activeLoader interface.\n" +
                 "This would imply that a controller attempted to register with a loader when that loader wasn't expecting it."
             );
@@ -568,6 +624,22 @@ export default class Loader {
         // Clears all of Koa's middleware, by emptying the middleware list on the underlying
         // Koa application server.
         this.server.middleware = [];
+    }
+
+}
+
+class FatalLoaderError extends Error {
+
+    /**
+     * Set this to true if the error was not triggered by a specific controller,
+     * to ensure that the loader does not inject the currently processing
+     * controller into the error message.
+     */
+    isControllerAgnostic: boolean;
+
+    constructor(controllerAgnostic?: boolean, message?: string) {
+        super(message);
+        this.isControllerAgnostic = controllerAgnostic ?? false;
     }
 
 }

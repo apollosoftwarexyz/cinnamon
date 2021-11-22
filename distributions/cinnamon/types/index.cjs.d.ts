@@ -775,8 +775,9 @@ declare class Cinnamon {
      * @param inErrorState Whether the application had to shut down because of an error
      * (true) or not (false).
      * @param message The termination message (likely the reason for the termination.)
+     * @param exitCode The POSIX exit code to terminate with.
      */
-    terminate(inErrorState?: boolean, message?: string): Promise<void>;
+    terminate(inErrorState?: boolean, message?: string, exitCode?: number): Promise<never>;
 }
 /**
  * @category Core Modules
@@ -1149,5 +1150,6 @@ declare class Database extends CinnamonModule {
      * this method does nothing.
      */
     connect(): Promise<void>;
+    terminate(force?: boolean): Promise<void>;
 }
 export { Cinnamon as default, LogEntry, DelegateLogEntry, DelegateLogFunction, Config$0 as Config, Logger$0 as Logger, initializeCoreModules, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Method, Controller, Route, Middleware, Body, LoadIf, LoadUnless, CinnamonModule, CinnamonPlugin, WebServer, CinnamonWebServerModulePlugin, Database, Koa$0 as Koa, Context, Next, Chalk };

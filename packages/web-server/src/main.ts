@@ -193,15 +193,17 @@ export default class WebServer extends CinnamonModule {
             try {
                 await this.controllersLoader.unregisterWatchers();
 
-                this._underlyingServer?.close((err) => {
-                    if (err) return reject(err);
+                if (this._underlyingServer?.listening) {
+                    this._underlyingServer?.close((err) => {
+                        if (err) return reject(err);
 
-                    for (const key in this.activeConnections)
-                        this.activeConnections[key].destroy();
+                        for (const key in this.activeConnections)
+                            this.activeConnections[key].destroy();
 
-                    this.currentState = WebServerModuleState.INITIAL;
-                    return resolve();
-                });
+                        this.currentState = WebServerModuleState.INITIAL;
+                        return resolve();
+                    });
+                } else return resolve();
             } catch(ex) { reject(ex); }
         });
     }
