@@ -6,6 +6,7 @@ import json from '@rollup/plugin-json';
 import { DEFAULT_EXTENSIONS } from '@babel/core';
 
 const isDev = process.env.NODE_ENV === 'development';
+if (isDev) console.log('[NOTE] NODE_ENV=development. Running development build!');
 
 export default [
   {
