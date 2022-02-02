@@ -1,5 +1,3 @@
-import Cinnamon from "@apollosoftwarexyz/cinnamon-core";
-
 /**
  * For plugins that extend the functionality of the Cinnamon
  * WebServer module (e.g., by registering middleware) you

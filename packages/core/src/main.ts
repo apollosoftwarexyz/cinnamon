@@ -80,6 +80,14 @@ export default class Cinnamon {
         [key: string]: CinnamonPlugin
     };
 
+    public get logger() {
+        return this.getModule<Logger>(Logger.prototype);
+    }
+
+    public get config() {
+        return this.getModule<Config>(Config.prototype);
+    }
+
     constructor(props: {
         devMode?: boolean;
         appName?: string;
@@ -329,6 +337,15 @@ export default class Cinnamon {
             logDelegate: options?.loggerDelegate,
             silenced: options?.silenced ?? false,
         }));
+
+        // If we're the default instance (i.e., if the instantiated framework variable is equal to
+        // the value of Cinnamon.defaultInstance), we can go ahead and initialize the global core
+        // modules fields with the modules registered with this instance.
+        if (Cinnamon.defaultInstance == framework) initializeCoreModules({
+            Config: framework.getModule<Config>(Config.prototype),
+            Logger: framework.getModule<Logger>(Logger.prototype)
+        });
+
         framework.getModule<Logger>(Logger.prototype).info("Starting Cinnamon...");
 
         // Call the load function if it was supplied to the initialize options.
@@ -368,14 +385,6 @@ export default class Cinnamon {
                 }
                 framework.getModule<Logger>(Logger.prototype).info("Successfully initialized database ORM and models.");
             }
-
-            // If we're the default instance (i.e., if the instantiated framework variable is equal to
-            // the value of Cinnamon.defaultInstance), we can go ahead and initialize the global core
-            // modules fields with the modules registered with this instance.
-            if (Cinnamon.defaultInstance == framework) initializeCoreModules({
-                Config: framework.getModule<Config>(Config.prototype),
-                Logger: framework.getModule<Logger>(Logger.prototype)
-            });
 
             // Initialize web service controllers.
             framework.getModule<Logger>(Logger.prototype).info("Initializing web service controllers...");
@@ -439,9 +448,9 @@ export default class Cinnamon {
      */
     async terminate(inErrorState: boolean = false, message?: string, exitCode?: number) : Promise<never> {
         try {
-            if (message) await this.getModule<Logger>(Logger.prototype)[inErrorState ? 'error' : 'warn']
+            if (message) this.getModule<Logger>(Logger.prototype)[inErrorState ? 'error' : 'warn']
             (message);
-            await this.getModule<Logger>(Logger.prototype)[inErrorState ? 'error' : 'warn']
+            this.getModule<Logger>(Logger.prototype)[inErrorState ? 'error' : 'warn']
             (`Shutting down...`);
         } catch (ex) {
             console.error(message);
