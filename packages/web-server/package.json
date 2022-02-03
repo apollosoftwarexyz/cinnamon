@@ -15,9 +15,9 @@
     "@types/koa-router": "^7.4.4",
     "@types/uuid": "^8.3.1",
     "chalk": "^4.1.2",
-    "chokidar": "^3.5.2",
+    "chokidar": "^3.5.3",
     "co": "^4.6.0",
-    "koa": "^2.13.3",
+    "koa": "^2.13.4",
     "koa-body": "^4.2.0",
     "koa-router": "^10.1.1",
     "uuid": "^8.3.2"

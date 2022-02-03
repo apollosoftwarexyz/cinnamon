@@ -25,7 +25,6 @@ import co from 'co';
 import Koa from 'koa';
 import KoaRouter from 'koa-router';
 import Database from "@apollosoftwarexyz/cinnamon-database";
-import { RequestContext } from "@mikro-orm/core";
 
 /**
  * @internal
@@ -525,22 +524,6 @@ export default class Loader {
      */
     private async hookWithKoa() {
         const routers = this.routers;
-
-        // If the database has been initialized, register the middleware with Koa to create a new request context
-        // for each request and register a middleware to add an entity manager to the context.
-        if (this.framework.hasModule<Database>(Database.prototype) &&
-            this.framework.getModule<Database>(Database.prototype).isInitialized) {
-            // Create request context.
-            this.server.use((ctx, next) => RequestContext.createAsync(
-                this.framework.getModule<Database>(Database.prototype).em, next
-            ));
-
-            // Add entity manager to context.
-            this.server.use(async (ctx, next) => {
-                ctx.getEntityManager = () => RequestContext.getEntityManager();
-                return await next();
-            });
-        }
 
         // Register a middleware to check if the body attribute on the context is usable (because the body
         // middleware has to be registered for it to be used.)

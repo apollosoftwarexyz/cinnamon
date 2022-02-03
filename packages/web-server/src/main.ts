@@ -9,7 +9,7 @@ import { Socket } from 'net';
 
 import Loader from "./loader";
 
-export * from './plugin';
+export { CinnamonWebServerModulePlugin } from './plugin';
 
 /**
  * @internal

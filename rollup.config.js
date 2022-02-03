@@ -35,12 +35,6 @@ export default [
       }),
       commonjs({
         ignore: [
-          '@mikro-orm/core',
-          '@mikro-orm/mariadb',
-          '@mikro-orm/mongodb',
-          '@mikro-orm/mysql',
-          '@mikro-orm/postgresql',
-          '@mikro-orm/sqlite'
         ],
         ignoreDynamicRequires: true
       }),
