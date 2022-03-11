@@ -1,9 +1,11 @@
-/// <reference types="koa" />
+/// <reference types="node" />
 import Koa from "koa";
 import * as Koa$0 from "koa";
 import { Context, Next } from "koa";
 import { Server } from "http";
 import KoaBody from "koa-body";
+import { MikroORM, EntityManager } from "@mikro-orm/core";
+import { Configuration } from "@mikro-orm/core/utils/Configuration";
 import Chalk from 'chalk';
 /**
  * Handles storage and manipulation of objects common to any Cinnamon
@@ -1054,26 +1056,102 @@ type CinnamonDatabaseConfiguration = {
      */
     enabled: boolean;
     /**
+     * The database name on the database server.
+     */
+    database: string;
+    /**
      * Whether the framework should be terminated if Cinnamon fails to connect to the database server.
      */
     terminateOnInitError?: boolean;
-};
+} & ({
+    /**
+     * The database type.
+     * https://mikro-orm.io/docs/usage-with-sql
+     *
+     * This must be one of the acceptable configuration platforms per Mikro-ORM:
+     * - MongoDB: 'mongo'
+     * - MySQL or MariaDB: 'mysql'
+     * - MySQL or MariaDB: 'mariadb'
+     * - PostgreSQL: 'postgresql'
+     * - SQLite: 'sqlite'
+     */
+    type: "mongo";
+    clientUrl: string;
+} | {
+    /**
+     * The database type.
+     * https://mikro-orm.io/docs/usage-with-sql
+     *
+     * This must be one of the acceptable configuration platforms per Mikro-ORM:
+     * - MongoDB: 'mongo'
+     * - MySQL or MariaDB: 'mysql'
+     * - MySQL or MariaDB: 'mariadb'
+     * - PostgreSQL: 'postgresql'
+     * - SQLite: 'sqlite'
+     */
+    type: Exclude<keyof typeof Configuration.PLATFORMS, "mongo">;
+    /**
+     * The hostname for the database server.
+     * This should not include protocol or port. It is **not** a connection URL.
+     */
+    host: string;
+    /**
+     * The port for the database server.
+     * For reference, common defaults are:
+     * - MySQL: 3306
+     * - PostgreSQL: 5432
+     */
+    port: number;
+    /**
+     * The database username.
+     * If both username and password are left empty or not set, it will be assumed that the database does not require
+     * authentication.
+     */
+    username?: string;
+    /**
+     * The database password.
+     * If both username and password are left empty or not set, it will be assumed that the database does not require
+     * authentication.
+     */
+    password?: string;
+});
+/**
+ * @category Core Modules
+ * @CoreModule
+ */
 declare class Database extends CinnamonModule {
+    private _underlyingOrmConfig;
+    /**
+     * Returns the ORM configuration as it would be passed to Mikro-ORM in the
+     * database module.
+     */
+    get ormConfig(): any;
+    underlyingOrm?: MikroORM;
     private readonly modelsPath;
+    /**
+     * @CoreModule
+     * Initializes Cinnamon's Database & ORM module.
+     *
+     * @param framework The Cinnamon Framework instance.
+     * @param modelsPath The path to the models directory.
+     * @private
+     */
     constructor(framework: Cinnamon, modelsPath: string);
+    get logger(): Logger;
+    /**
+     * Check if the underlying ORM engine (MikroORM) has been initialized yet.
+     * Will return true if it has, or false if it hasn't.
+     */
+    get isInitialized(): boolean;
+    get entityManager(): EntityManager;
+    get em(): EntityManager;
     initialize(databaseConfig: CinnamonDatabaseConfiguration): Promise<void>;
     /**
-     * Opens the connection to the database server.
-     * If the database is not initialized, not enabled, or the configuration could not be resolved,
+     * Open the connection to the database server.
+     * If the database is not initialized or the configuration could not be resolved,
      * this method does nothing.
      */
     connect(): Promise<void>;
-    /**
-     * Closes the connection to the database server.
-     * If force is set to true, no attempt is made to process pending requests or clean up
-     * before disconnecting. This is useful if the server is closing because of an error.
-     * @param force Whether to attempt to 'clean up' before terminating the connection.
-     */
     terminate(force?: boolean): Promise<void>;
 }
 export { Cinnamon as default, LogEntry, DelegateLogEntry, DelegateLogFunction, Config$0 as Config, Logger$0 as Logger, initializeCoreModules, ValidationSchema, createValidator, createValidator as $, Validator, ValidationResult, Method, Controller, Route, Middleware, Body, LoadIf, LoadUnless, CinnamonModule, CinnamonPlugin, WebServer, CinnamonWebServerModulePlugin, Database, Koa$0 as Koa, Context, Next, Chalk };

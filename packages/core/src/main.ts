@@ -7,9 +7,9 @@ import cinnamonInternals from "@apollosoftwarexyz/cinnamon-core-internals";
 import { CinnamonModule, CinnamonPlugin } from "@apollosoftwarexyz/cinnamon-sdk";
 import Config from "@apollosoftwarexyz/cinnamon-config";
 import Logger, {DelegateLogFunction} from "@apollosoftwarexyz/cinnamon-logger";
+import Database, { CinnamonDatabaseConfiguration } from "@apollosoftwarexyz/cinnamon-database";
 import WebServer from "@apollosoftwarexyz/cinnamon-web-server";
 import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
-import Database, { CinnamonDatabaseConfiguration } from "@apollosoftwarexyz/cinnamon-database";
 
 /**
  * Whether the underlying framework is in debug mode.

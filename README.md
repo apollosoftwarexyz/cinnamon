@@ -41,7 +41,7 @@ export default class IndexController {
     - [x] Middleware and Routing support
     - [ ] Static file hosting support
 - [ ] WebSocket module (integrated with Web Server module)
-- [x] Database module using [HarperDB](https://harperdb.io)
+- [x] Database ORM module using [Mikro-ORM](https://mikro-orm.io)
 - [x] Validation module (for data validation on JavaScript/JSON objects)
     - [x] Middleware for Web Server module
 - [ ] Session Management and Authentication module

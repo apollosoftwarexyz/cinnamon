@@ -1,6 +1,6 @@
-export class User {}
+import { Entity, PrimaryKey, SerializedPrimaryKey } from '@mikro-orm/core';
+import { ObjectId } from '@mikro-orm/mongodb';
 
-/*
 @Entity()
 export class User {
 
@@ -11,4 +11,3 @@ export class User {
     id!: string;
 
 }
-*/

@@ -10,11 +10,6 @@ The Database module allows you to quickly and easily connect to, query and
 update external databases.
 </div>
 
-<alert type="danger">
-<b>Deprecated!</b> This approach to the database is deprecated and scheduled to be
-removed from future releases of Cinnamon in favor of HarperDB.
-</alert>
-
 The Database module in Cinnamon is very trivial. We found
 [Mikro-ORM](https://mikro-orm.io) delivered pretty much all the functionality
 we were looking for in Cinnamon, included some neat features – and did so
