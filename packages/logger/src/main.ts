@@ -301,7 +301,7 @@ export default class Logger extends CinnamonModule {
      * @param entry The log entry to be displayed and passed to the remote log delegate.
      */
     private log(entry: LogEntry) {
-        if (this.silenced) return;
+        if (this.silenced && entry.level < LogLevel.ERROR) return;
 
         // The function that will print the content to the underlying OS POSIX stream.
         // (Essentially STDERR vs STDOUT)
