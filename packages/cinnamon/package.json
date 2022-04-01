@@ -1,0 +1,26 @@
+{
+  "name": "@apollosoftwarexyz/cinnamon",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "types/cinnamon.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",
+    "directory": "packages/core/"
+  },
+  "dependencies": {
+    "@apollosoftwarexyz/cinnamon-validator": "^0.0.37",
+    "chokidar": "^3.5.3",
+    "co": "^4.6.0",
+    "koa": "^2.13.4",
+    "koa-router": "^10.1.1",
+    "toml": "^3.0.0",
+    "uuid": "^8.3.2"
+  },
+  "scripts": {
+    "updateReadme": "cp ../../README.md ./README.md",
+    "clean": "rimraf dist/",
+    "build": "tsc --build",
+    "publish": "yarn npm publish --access public"
+  }
+}

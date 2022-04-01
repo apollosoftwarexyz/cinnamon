@@ -1,11 +1,9 @@
 {
+  "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "strict": true,
-    "target": "ES2020",
-    "module": "CommonJS",
-    "baseUrl": "./packages",
-    "experimentalDecorators": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
-  }
+    "baseUrl": ".",
+    "paths": {
+      "@apollosoftwarexyz/*": ["packages/*"]
+    }
+  },
 }

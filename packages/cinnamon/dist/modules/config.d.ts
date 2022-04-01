@@ -1,0 +1,76 @@
+import { ValidationSchema } from "@apollosoftwarexyz/cinnamon-validator";
+import type Cinnamon from "../core";
+import { CinnamonModule } from "../sdk/cinnamon-module";
+/**
+ * @category Core Modules
+ * @CoreModule
+ */
+export default class ConfigModule extends CinnamonModule {
+    private appConfig?;
+    /**
+     * Whether validation failed when the config was loaded.
+     *
+     * If no validator is set, this will naturally always return false (as no
+     * validation occurred).
+     *
+     * If the framework is set to halt when the app configuration validation
+     * fails this value will, of course, be useless as the app won't be running
+     * to read it in the case where it's true.
+     */
+    readonly didFailValidation: boolean;
+    /**
+     * Returns true if the app configuration section is present (it may still
+     * be empty, this just guarantees that it's not null or undefined.) False
+     * if it isn't - in other words if it *is* null or undefined.
+     *
+     * This will also return false if validation failed (as the module will
+     * refuse to load an invalid config, instead setting the app configuration
+     * to null.)
+     *
+     * @return Whether the app config is present and loaded in the config
+     * module.
+     */
+    get hasAppConfig(): boolean;
+    /**
+     * @CoreModule
+     * Initializes a Cinnamon Framework configuration module.
+     * This module is responsible for holding application configuration for the
+     * current framework instance.
+     *
+     * @param framework The Cinnamon framework instance.
+     * @param appConfig The app table of the cinnamon.toml configuration file.
+     * @param appConfigSchema A schema validator for the app configuration,
+     * this would usually be passed into the framework as a Cinnamon
+     * initialization option.
+     */
+    constructor(framework: Cinnamon, appConfig?: any, appConfigSchema?: ValidationSchema);
+    /**
+     * Retrieves a value from the Cinnamon app configuration table. This can
+     * retrieve nested values using a period (.) to delimit a nested object in
+     * the key.
+     *
+     * @param key The key of the value to look up in the app configuration.
+     * @return {T} value - The retrieved value from the configuration file.
+     */
+    get<T = any>(key: string): T;
+    /**
+     * Sets a value in the Cinnamon app configuration table. As with get, this
+     * can set nested values with the key using a period (.) to delimit a nested
+     * object.
+     *
+     * Before writing the key, the value will be checked to ensure it can be
+     * properly serialized and de-serialized. If it cannot, (e.g., because it is
+     * a runtime object), the operation will immediately fail and the app
+     * configuration object will not be touched.
+     *
+     * If the configuration wasn't initialized, this will initialize an empty
+     * configuration before attempting to set the key.
+     *
+     * If the key denotes nested objects that aren't initialized, they will
+     * first be initialized before the value is set.
+     *
+     * @param key The key of the value to update in the app configuration.
+     * @param value The value to update the property at `key` to.
+     */
+    set<T>(key: string, value: T): void;
+}

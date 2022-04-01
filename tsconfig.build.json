@@ -2,14 +2,16 @@
   "compilerOptions": {
     "strict": true,
     "declaration": true,
-    "declarationDir": "./distributions/cinnamon/types",
-    "outDir": "./distributions/cinnamon/dist",
-    "target": "ES2020",
+    "target":  "ES2018",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "lib": [ "ES2020", "ESNext" ]
-  }
+  },
+  "exclude": [
+    "packages/**/node_modules/**",
+    "packages/**/dist/**"
+  ]
 }

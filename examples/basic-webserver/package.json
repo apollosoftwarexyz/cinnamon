@@ -13,13 +13,13 @@
         "lint": "eslint ."
     },
     "dependencies": {
-        "@mikro-orm/cli": "^4.5.9",
-        "ts-node": "^10.3.0"
+        "@mikro-orm/cli": "^5.1.1",
+        "ts-node": "^10.7.0"
     },
     "devDependencies": {
-        "@typescript-eslint/eslint-plugin": "^5.0.0",
-        "@typescript-eslint/parser": "^5.0.0",
-        "eslint": "^8.0.1",
+        "@typescript-eslint/eslint-plugin": "^5.17.0",
+        "@typescript-eslint/parser": "^5.17.0",
+        "eslint": "^8.12.0",
         "eslint-plugin-import-quotes": "^0.0.1"
     },
     "mikro-orm": {
