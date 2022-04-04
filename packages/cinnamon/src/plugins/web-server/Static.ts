@@ -75,7 +75,9 @@ implements CinnamonWebServerModulePlugin {
     }
 
     async beforeRegisterControllers() {
-        this.framework.getModule<WebServer>(WebServer.prototype).server.use((ctx, next) => this.handleStaticRequest(ctx, next));
+        this.framework.getModule<WebServer>(WebServer.prototype).server.use(
+            (ctx: Context, next: Next) => this.handleStaticRequest(ctx, next)
+        );
     }
 
     async handleStaticRequest(ctx: Context, next: Next) {

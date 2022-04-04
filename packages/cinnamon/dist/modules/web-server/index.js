@@ -70,7 +70,7 @@ class WebServerModule extends cinnamon_module_1.CinnamonModule {
      * Initializes a Cinnamon Web Server.
      *
      * @param framework The Cinnamon Framework instance.
-     * @param controllersPath The path to the controllers directory.
+     * @param controllersPath The path to the controllers' directory.
      * @param trustProxies Whether proxy servers should be trusted
      *                     (as passed from Cinnamon's config file).
      * @private
@@ -102,7 +102,7 @@ class WebServerModule extends cinnamon_module_1.CinnamonModule {
      */
     get isLoggingEnabled() { return this.enableLogging; }
     /**
-     * Initializes the router with the controllers path that was passed to the constructor.
+     * Initializes the router with the controllers' path that was passed to the constructor.
      * This involves:
      * - scanning the directory for all the controller files,
      * - scanning each controller file for the controller methods,
@@ -111,7 +111,7 @@ class WebServerModule extends cinnamon_module_1.CinnamonModule {
      */
     async initialize() {
         this.logger.frameworkDebug("WebServer module is loading route controllers now.");
-        // Ensure the controllers directory is present.
+        // Ensure the controllers' directory is present.
         // We do this check in core startup, but this will ensure we're in the correct state
         // even if this module is loaded independently of the default distribution's core class.
         if (!await cinnamon_internals_1.default.fs.directoryExists(this.controllersPath)) {

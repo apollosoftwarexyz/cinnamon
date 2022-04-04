@@ -19,7 +19,9 @@ export { default as WebServer, CinnamonWebServerModulePlugin } from './modules/w
 import * as Koa from 'koa';
 import { Context as KoaContext, Next } from 'koa';
 export { Koa, Next };
+import { SendFileOptions } from "./modules/web-server/lib/files";
 export interface Context extends KoaContext {
+    sendFile(path: string, options: SendFileOptions): Promise<void>;
 }
 import * as Chalk from 'chalk';
 export { Chalk };

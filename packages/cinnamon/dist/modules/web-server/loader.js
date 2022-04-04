@@ -20,6 +20,7 @@ const co_1 = require("co");
 const KoaRouter = require("koa-router");
 const database_1 = require("../_stubs/database");
 const base_1 = require("../../sdk/base");
+const files_1 = require("./lib/files");
 /**
  * @internal
  * @private
@@ -333,6 +334,11 @@ class Loader {
                 console.error(chalk.red(err.stack));
                 console.error("");
             }
+        });
+        // Register lib/ functions on the request context.
+        this.server.use(async (ctx, next) => {
+            ctx.sendFile = (path, options) => (0, files_1.default)(ctx, path, options);
+            return await next();
         });
         // If the database has been initialized, register the middleware with Koa to create a new request context
         // for each request and register a middleware to add an entity manager to the context.

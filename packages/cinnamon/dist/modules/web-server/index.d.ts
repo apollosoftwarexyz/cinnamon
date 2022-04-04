@@ -55,7 +55,7 @@ export default class WebServerModule extends CinnamonModule {
      * Initializes a Cinnamon Web Server.
      *
      * @param framework The Cinnamon Framework instance.
-     * @param controllersPath The path to the controllers directory.
+     * @param controllersPath The path to the controllers' directory.
      * @param trustProxies Whether proxy servers should be trusted
      *                     (as passed from Cinnamon's config file).
      * @private
@@ -70,7 +70,7 @@ export default class WebServerModule extends CinnamonModule {
      */
     get isLoggingEnabled(): boolean;
     /**
-     * Initializes the router with the controllers path that was passed to the constructor.
+     * Initializes the router with the controllers' path that was passed to the constructor.
      * This involves:
      * - scanning the directory for all the controller files,
      * - scanning each controller file for the controller methods,

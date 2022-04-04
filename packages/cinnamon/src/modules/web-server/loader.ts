@@ -27,6 +27,10 @@ import * as Koa from 'koa';
 import * as KoaRouter from 'koa-router';
 import { DatabaseModuleStub } from "../_stubs/database";
 import { MissingModuleError } from "../../sdk/base";
+import sendFile, {SendFileOptions} from "./lib/files";
+
+import { Context } from "../../index";
+import { Next } from "koa";
 
 /**
  * @internal
@@ -549,6 +553,12 @@ export default class Loader {
                 console.error(chalk.red(err.stack));
                 console.error("");
             }
+        });
+
+        // Register lib/ functions on the request context.
+        this.server.use(async (ctx: Context, next: Next) => {
+            ctx.sendFile = (path: string, options: SendFileOptions) => sendFile(ctx, path, options);
+            return await next();
         });
 
         // If the database has been initialized, register the middleware with Koa to create a new request context
