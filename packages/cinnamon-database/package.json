@@ -1,20 +1,26 @@
 {
   "name": "@apollosoftwarexyz/cinnamon-database",
-  "version": "0.0.37",
+  "version": "0.0.38",
   "license": "MIT",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "types/cinnamon-database.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",
-    "directory": "packages/database/"
+    "directory": "packages/cinnamon-database/"
   },
   "dependencies": {
+    "@apollosoftwarexyz/cinnamon": "^0.0.38",
+    "@apollosoftwarexyz/cinnamon-internals": "^0.0.38",
     "@mikro-orm/core": "^5.1.1",
     "@mikro-orm/reflection": "^5.1.1"
   },
   "scripts": {
     "build": "tsc --build",
     "publish": "yarn npm publish --access public"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.23",
+    "rimraf": "^3.0.2"
   }
 }

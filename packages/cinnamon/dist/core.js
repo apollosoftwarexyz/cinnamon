@@ -1,45 +1,19 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CINNAMON_CORE_DEBUG_MODE = exports.Logger = exports.Config = void 0;
-const fs = __importStar(require("fs"));
+const fs = require("fs");
 const util_1 = require("util");
 const toml_1 = require("toml");
-const internals_1 = __importDefault(require("./internals"));
-const web_server_1 = __importDefault(require("./modules/web-server"));
-const config_1 = __importDefault(require("./modules/config"));
-const logger_1 = __importDefault(require("./modules/logger"));
+const cinnamon_internals_1 = require("@apollosoftwarexyz/cinnamon-internals");
+const web_server_1 = require("./modules/web-server");
+const config_1 = require("./modules/config");
+const logger_1 = require("./modules/logger");
 const cinnamon_module_1 = require("./sdk/cinnamon-module");
 /**
  * Whether the underlying framework is in debug mode.
  * This needs to be turned off for releases.
  */
-exports.CINNAMON_CORE_DEBUG_MODE = true;
+exports.CINNAMON_CORE_DEBUG_MODE = false;
 /**
  * The main class of the Cinnamon framework. To initialize the framework, you initialize
  * this class by calling {@link Cinnamon.initialize}.
@@ -50,16 +24,6 @@ exports.CINNAMON_CORE_DEBUG_MODE = true;
  * @Core
  */
 class Cinnamon {
-    constructor(props) {
-        var _a, _b;
-        this.devMode = (_a = props.devMode) !== null && _a !== void 0 ? _a : false;
-        this.appName = (_b = props.appName) !== null && _b !== void 0 ? _b : 'cinnamon';
-        this.modules = [];
-        this.plugins = {};
-        // Populate the default instance of Cinnamon, if it does not already exist.
-        if (!Cinnamon._defaultInstance)
-            Cinnamon._defaultInstance = this;
-    }
     /**
      * Gets the default instance of Cinnamon. This is ordinarily the only instance of Cinnamon
      * that would be running, however it may be desired that the framework run twice in the
@@ -69,11 +33,25 @@ class Cinnamon {
      */
     static get defaultInstance() { return Cinnamon._defaultInstance; }
     ;
+    static _defaultInstance;
+    devMode;
+    appName;
+    modules;
+    plugins;
     get logger() {
         return this.getModule(logger_1.default.prototype);
     }
     get config() {
         return this.getModule(config_1.default.prototype);
+    }
+    constructor(props) {
+        this.devMode = props.devMode ?? false;
+        this.appName = props.appName ?? 'cinnamon';
+        this.modules = [];
+        this.plugins = {};
+        // Populate the default instance of Cinnamon, if it does not already exist.
+        if (!Cinnamon._defaultInstance)
+            Cinnamon._defaultInstance = this;
     }
     /**
      * Whether the framework is in application development mode.
@@ -206,11 +184,10 @@ class Cinnamon {
      * instance.
      */
     static async initialize(options) {
-        var _a, _b;
-        let autostartServices = (_a = options === null || options === void 0 ? void 0 : options.autostartServices) !== null && _a !== void 0 ? _a : true;
+        let autostartServices = options?.autostartServices ?? true;
         // Stat cinnamon.toml to make sure it exists.
         // This doubles as making sure the process is started in the project root.
-        if (!await internals_1.default.fs.fileExists(('./cinnamon.toml'))) {
+        if (!await cinnamon_internals_1.default.fs.fileExists(('./cinnamon.toml'))) {
             console.error(`(!) cinnamon.toml not found in ${process.cwd()}`);
             console.error(`(!) Please make sure your current working directory is the project's root directory and that your project's cinnamon.toml exists.`);
             return process.exit(1);
@@ -224,7 +201,7 @@ class Cinnamon {
             // one of the defaults specified in the structure below. We use Object.assign to
             // copy anything from the TOML file (source parameter) into the in-memory object
             // (target parameter).
-            projectConfig = internals_1.default.data.mergeObjectDeep({
+            projectConfig = cinnamon_internals_1.default.data.mergeObjectDeep({
                 framework: {
                     core: {
                         development_mode: false
@@ -264,11 +241,11 @@ class Cinnamon {
             devMode: projectConfig.framework.core.development_mode,
             appName: projectConfig.framework.app.name
         });
-        framework.registerModule(new config_1.default(framework, projectConfig.app, options === null || options === void 0 ? void 0 : options.appConfigSchema));
+        framework.registerModule(new config_1.default(framework, projectConfig.app, options?.appConfigSchema));
         framework.registerModule(new logger_1.default(framework, framework.devMode, {
             showFrameworkDebugMessages: exports.CINNAMON_CORE_DEBUG_MODE,
-            logDelegate: options === null || options === void 0 ? void 0 : options.loggerDelegate,
-            silenced: (_b = options === null || options === void 0 ? void 0 : options.silenced) !== null && _b !== void 0 ? _b : false,
+            logDelegate: options?.loggerDelegate,
+            silenced: options?.silenced ?? false,
         }));
         // If we're the default instance (i.e., if the instantiated framework variable is equal to
         // the value of Cinnamon.defaultInstance), we can go ahead and initialize the global core
@@ -281,7 +258,7 @@ class Cinnamon {
         // Call the load function if it was supplied to the initialize options.
         // We do this before calling onInitialize on all the plugins to allow the user to register
         // their Cinnamon plugins in the load method first.
-        if (options === null || options === void 0 ? void 0 : options.load)
+        if (options?.load)
             await options.load(framework);
         // Now await the onInitialize method for all plugins to make sure they've successfully
         // initialized.
@@ -297,26 +274,24 @@ class Cinnamon {
             // Initialize ORM.
             if (projectConfig.framework.database.enabled) {
                 framework.getModule(logger_1.default.prototype).info("Initializing database and ORM models...");
-                const modelsPath = internals_1.default.fs.toAbsolutePath(projectConfig.framework.structure.models);
-                if (!await internals_1.default.fs.directoryExists(modelsPath)) {
+                const modelsPath = cinnamon_internals_1.default.fs.toAbsolutePath(projectConfig.framework.structure.models);
+                if (!await cinnamon_internals_1.default.fs.directoryExists(modelsPath)) {
                     framework.getModule(logger_1.default.prototype).error(`(!) The specified models path does not exist: ${projectConfig.framework.structure.models}`);
                     framework.getModule(logger_1.default.prototype).error(`(!) Full resolved path: ${modelsPath}`);
                     process.exit(2);
                 }
                 const Database = (require('@apollosoftwarexyz/cinnamon-database').default);
                 framework.registerModule(new Database(framework, modelsPath));
-                console.log(framework.getModule(Database.prototype));
                 await framework.getModule(Database.prototype).initialize(projectConfig.framework.database);
                 if (autostartServices) {
                     await framework.getModule(Database.prototype).connect();
                 }
-                console.log(framework.getModule(Database.prototype).isInitialized);
                 framework.getModule(logger_1.default.prototype).info("Successfully initialized database ORM and models.");
             }
             // Initialize web service controllers.
             framework.getModule(logger_1.default.prototype).info("Initializing web service controllers...");
-            const controllersPath = internals_1.default.fs.toAbsolutePath(projectConfig.framework.structure.controllers);
-            if (!await internals_1.default.fs.directoryExists(controllersPath)) {
+            const controllersPath = cinnamon_internals_1.default.fs.toAbsolutePath(projectConfig.framework.structure.controllers);
+            if (!await cinnamon_internals_1.default.fs.directoryExists(controllersPath)) {
                 framework.getModule(logger_1.default.prototype).error(`(!) The specified controllers path does not exist: ${projectConfig.framework.structure.controllers}`);
                 framework.getModule(logger_1.default.prototype).error(`(!) Full resolved path: ${controllersPath}`);
                 process.exit(2);
@@ -387,7 +362,7 @@ class Cinnamon {
         }
         // Exit with a POSIX exit code of non-zero if error, or zero if no error (implied by
         // inErrorState = false).
-        process.exit(exitCode !== null && exitCode !== void 0 ? exitCode : (inErrorState ? 1 : 0));
+        process.exit(exitCode ?? (inErrorState ? 1 : 0));
     }
 }
 exports.default = Cinnamon;

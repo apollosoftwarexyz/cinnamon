@@ -1,16 +1,20 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Validator = void 0;
-const result_1 = __importDefault(require("./result"));
-const internals_1 = __importDefault(require("@apollosoftwarexyz/cinnamon/src/internals"));
+const result_1 = require("./result");
+const cinnamon_internals_1 = require("@apollosoftwarexyz/cinnamon-internals");
 /**
  * A Validator handles performing validation on objects according to the specified schema provided to it when it was
  * initialized.
  */
 class Validator {
+    schema;
+    /**
+     * Whether or not the schema on this executor is for a single field (i.e.. a
+     * validation schema field) (= true) or for an entire object (i.e., a
+     * validation schema object) (= false).
+     */
+    isSingleFieldSchema;
     /**
      * Initializes a ValidationSchemaExecutor with the specified schema. Once initialized, the
      * schema may not be changed (you should use a new ValidationSchemaExecutor for a new schema).
@@ -71,8 +75,7 @@ class Validator {
         return result_1.default.success();
     }
     validateSchemaAgainstField(field, value, _entireObject, fieldName, parentName) {
-        var _a, _b;
-        fieldName = (_a = field.fieldName) !== null && _a !== void 0 ? _a : fieldName;
+        fieldName = field.fieldName ?? fieldName;
         // If the field type is 'OneOf', check each of the possible schemas by
         // re-running the _validateAgainstSchemaField method.
         if (field.type === 'OneOf') {
@@ -127,13 +130,13 @@ class Validator {
             // dealing with a nested array and thus should check if our array
             // is included.
             if (field.arrayEquals.every(entry => Array.isArray(entry))) {
-                if (!field.arrayEquals.some(entry => internals_1.default.data.arrayEquals(entry, value)))
+                if (!field.arrayEquals.some(entry => cinnamon_internals_1.default.data.arrayEquals(entry, value)))
                     return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field was not set to a valid value. Possible values are: ' + JSON.stringify(field.arrayEquals) });
                 // Otherwise, simply compare the field.arrayEquals array to the
                 // value, to ensure they're equal.
             }
             else {
-                if (!internals_1.default.data.arrayEquals(field.arrayEquals, value))
+                if (!cinnamon_internals_1.default.data.arrayEquals(field.arrayEquals, value))
                     return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to: ' + field.arrayEquals });
             }
         }
@@ -166,8 +169,8 @@ class Validator {
         }
         if (field.$eq !== undefined) {
             if (_entireObject) {
-                if (internals_1.default.data.resolveObjectDeep(field.$eq, _entireObject) !== value)
-                    return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to the ' + this._toHumanReadableFieldName((_b = _entireObject[field.$eq].fieldName) !== null && _b !== void 0 ? _b : field.$eq) + ' field.' });
+                if (cinnamon_internals_1.default.data.resolveObjectDeep(field.$eq, _entireObject) !== value)
+                    return this._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to the ' + this._toHumanReadableFieldName(_entireObject[field.$eq].fieldName ?? field.$eq) + ' field.' });
             }
             else
                 throw new Error("The $eq operator may not be used on a field outside of an object context.");
@@ -212,7 +215,7 @@ class Validator {
                     attrs[key] = entry['$eval'](entireObjectToValidate);
                 }
                 else if (typeof entry['$eq'] === 'string') {
-                    attrs[key] = internals_1.default.data.resolveObjectDeep(entry['$eq'], entireObjectToValidate);
+                    attrs[key] = cinnamon_internals_1.default.data.resolveObjectDeep(entry['$eq'], entireObjectToValidate);
                 }
             }
         }
@@ -221,8 +224,7 @@ class Validator {
         return result_1.default.fail(this._badFieldMessage(options));
     }
     _badFieldMessage(options) {
-        var _a, _b;
-        const message = (_b = (_a = options.field.invalidMessage) !== null && _a !== void 0 ? _a : options.defaultMessage) !== null && _b !== void 0 ? _b : "The ${fieldName} field was invalid.";
+        const message = options.field.invalidMessage ?? options.defaultMessage ?? "The ${fieldName} field was invalid.";
         return message.replace(/\$\{fieldName\}/g, this._toHumanReadableFieldName(`${options.parentName}.${options.fieldName}`));
     }
     _toHumanReadableFieldName(fieldName) {

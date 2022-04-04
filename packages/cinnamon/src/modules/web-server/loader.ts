@@ -9,7 +9,7 @@
  */
 
 import Cinnamon from "../../core";
-import cinnamonInternals from "../../internals";
+import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
 import LoggerModule from "../../modules/logger";
 
 import WebServerModule from "./index";
@@ -17,17 +17,16 @@ import { Method } from "./api/Method";
 import { MiddlewareFn } from "./api/Middleware";
 
 import * as Chokidar from 'chokidar';
-import Module from "module";
-import chalk from 'chalk';
-import path from 'path';
+import * as Module from "module";
+import * as chalk from 'chalk';
+import * as path from 'path';
 
 import co from 'co';
 
-import Koa from 'koa';
-import KoaRouter from 'koa-router';
-import { RequestContext } from "@mikro-orm/core";
+import * as Koa from 'koa';
+import * as KoaRouter from 'koa-router';
 import { DatabaseModuleStub } from "../_stubs/database";
-import {MissingModuleError} from "../../sdk/base";
+import { MissingModuleError } from "../../sdk/base";
 
 /**
  * @internal
@@ -424,6 +423,7 @@ export default class Loader {
         for (const route of Object.values(activeLoader.routes).filter(route => route.controller === controllerId)) {
             let routePath = route.path.replace(/\/$/g, '');
             if (!routePath.startsWith('/')) routePath = `/${routePath}`;
+            if (prefix === '/' && routePath.startsWith('/')) routePath = routePath.substring(1);
 
             // @ts-ignore
             const registerKoaRoute = controllerRouter[route.method.toLowerCase()];
@@ -556,13 +556,19 @@ export default class Loader {
         if (this.framework.hasModule<DatabaseModuleStub>(DatabaseModuleStub.prototype) &&
             this.framework.getModule<DatabaseModuleStub>(DatabaseModuleStub.prototype).isInitialized) {
             // Create request context.
-            this.server.use((ctx, next) => RequestContext.createAsync(
-                this.framework.getModule<DatabaseModuleStub>(DatabaseModuleStub.prototype).em, next
-            ));
+            this.server.use((ctx, next) => this.framework
+                .getModule<DatabaseModuleStub>(DatabaseModuleStub.prototype)
+                .requestContext
+                .createAsync(
+                    this.framework.getModule<DatabaseModuleStub>(DatabaseModuleStub.prototype).em, next
+                )
+            );
 
             // Add entity manager to context.
             this.server.use(async (ctx, next) => {
-                ctx.getEntityManager = () => RequestContext.getEntityManager();
+                ctx.getEntityManager = () => this.framework
+                    .getModule<DatabaseModuleStub>(DatabaseModuleStub.prototype)
+                    .requestContext.getEntityManager();
                 return await next();
             });
         } else {

@@ -1,5 +1,4 @@
-import { v5 as uuidv5 } from 'uuid';
-import Loader, {activeLoader, LOADER_ROOT_ROUTE_NAMESPACE} from "../loader";
+import { activeLoader } from "../loader";
 
 /**
  * If applied to a controller, the controller will only be loaded if the

@@ -1,9 +1,9 @@
 import type Cinnamon from "../../core";
-import cinnamonInternals from "../../internals";
+import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
 import { CinnamonModule } from "../../sdk/cinnamon-module";
 import LoggerModule from "../logger";
 
-import Koa from 'koa';
+import * as Koa from 'koa';
 import { Server } from 'http';
 import { Socket } from 'net';
 
@@ -70,7 +70,7 @@ export default class WebServerModule extends CinnamonModule {
      * Initializes a Cinnamon Web Server.
      *
      * @param framework The Cinnamon Framework instance.
-     * @param controllersPath The path to the controllers directory.
+     * @param controllersPath The path to the controllers' directory.
      * @param trustProxies Whether proxy servers should be trusted
      *                     (as passed from Cinnamon's config file).
      * @private
@@ -102,12 +102,12 @@ export default class WebServerModule extends CinnamonModule {
     public get logger() { return this.framework.getModule<LoggerModule>(LoggerModule.prototype); }
 
     /**
-     * Whether or not logging is enabled on the web server.
+     * Whether logging is enabled on the web server.
      */
     public get isLoggingEnabled() { return this.enableLogging; }
 
     /**
-     * Initializes the router with the controllers path that was passed to the constructor.
+     * Initializes the router with the controllers' path that was passed to the constructor.
      * This involves:
      * - scanning the directory for all the controller files,
      * - scanning each controller file for the controller methods,
@@ -117,7 +117,7 @@ export default class WebServerModule extends CinnamonModule {
     public async initialize() {
         this.logger.frameworkDebug("WebServer module is loading route controllers now.");
 
-        // Ensure the controllers directory is present.
+        // Ensure the controllers' directory is present.
         // We do this check in core startup, but this will ensure we're in the correct state
         // even if this module is loaded independently of the default distribution's core class.
         if(!await cinnamonInternals.fs.directoryExists(this.controllersPath)) {

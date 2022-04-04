@@ -1,16 +1,40 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const cinnamon_validator_1 = require("@apollosoftwarexyz/cinnamon-validator");
-const internals_1 = __importDefault(require("../internals"));
+const cinnamon_internals_1 = require("@apollosoftwarexyz/cinnamon-internals");
 const cinnamon_module_1 = require("../sdk/cinnamon-module");
 /**
  * @category Core Modules
  * @CoreModule
  */
 class ConfigModule extends cinnamon_module_1.CinnamonModule {
+    appConfig;
+    /**
+     * Whether validation failed when the config was loaded.
+     *
+     * If no validator is set, this will naturally always return false (as no
+     * validation occurred).
+     *
+     * If the framework is set to halt when the app configuration validation
+     * fails this value will, of course, be useless as the app won't be running
+     * to read it in the case where it's true.
+     */
+    didFailValidation;
+    /**
+     * Returns true if the app configuration section is present (it may still
+     * be empty, this just guarantees that it's not null or undefined.) False
+     * if it isn't - in other words if it *is* null or undefined.
+     *
+     * This will also return false if validation failed (as the module will
+     * refuse to load an invalid config, instead setting the app configuration
+     * to null.)
+     *
+     * @return Whether the app config is present and loaded in the config
+     * module.
+     */
+    get hasAppConfig() {
+        return this.appConfig !== null && this.appConfig !== undefined;
+    }
     /**
      * @CoreModule
      * Initializes a Cinnamon Framework configuration module.
@@ -38,21 +62,6 @@ class ConfigModule extends cinnamon_module_1.CinnamonModule {
         }
     }
     /**
-     * Returns true if the app configuration section is present (it may still
-     * be empty, this just guarantees that it's not null or undefined.) False
-     * if it isn't - in other words if it *is* null or undefined.
-     *
-     * This will also return false if validation failed (as the module will
-     * refuse to load an invalid config, instead setting the app configuration
-     * to null.)
-     *
-     * @return Whether the app config is present and loaded in the config
-     * module.
-     */
-    get hasAppConfig() {
-        return this.appConfig !== null && this.appConfig !== undefined;
-    }
-    /**
      * Retrieves a value from the Cinnamon app configuration table. This can
      * retrieve nested values using a period (.) to delimit a nested object in
      * the key.
@@ -65,7 +74,7 @@ class ConfigModule extends cinnamon_module_1.CinnamonModule {
             throw new Error("There is no app configuration loaded.\n" +
                 "You can initialize a runtime app configuration by calling set to add a key to a new, empty, configuration.\n" +
                 "Alternatively, ensure that no validation errors occurred whilst loading the configuration *and* that you have a loadable app configuration in your cinnamon.toml.");
-        const result = internals_1.default.data.resolveObjectDeep(key, this.appConfig);
+        const result = cinnamon_internals_1.default.data.resolveObjectDeep(key, this.appConfig);
         if (result === undefined)
             throw new Error('No object located at the specified key.');
         return result;
@@ -96,7 +105,7 @@ class ConfigModule extends cinnamon_module_1.CinnamonModule {
         }
         if (!this.appConfig)
             this.appConfig = {};
-        internals_1.default.data.setObjectDeep(key, value, this.appConfig);
+        cinnamon_internals_1.default.data.setObjectDeep(key, value, this.appConfig);
     }
 }
 exports.default = ConfigModule;

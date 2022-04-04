@@ -2,7 +2,7 @@
 import type Cinnamon from "../../core";
 import { CinnamonModule } from "../../sdk/cinnamon-module";
 import LoggerModule from "../logger";
-import Koa from 'koa';
+import * as Koa from 'koa';
 import { Server } from 'http';
 import { Socket } from 'net';
 export * from './plugin';
@@ -66,7 +66,7 @@ export default class WebServerModule extends CinnamonModule {
      */
     get logger(): LoggerModule;
     /**
-     * Whether or not logging is enabled on the web server.
+     * Whether logging is enabled on the web server.
      */
     get isLoggingEnabled(): boolean;
     /**

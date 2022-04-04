@@ -1,5 +1,5 @@
 import { $, ValidationSchema } from "@apollosoftwarexyz/cinnamon-validator";
-import cinnamonInternals from "../internals";
+import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
 
 import type Cinnamon from "../core";
 import { CinnamonModule } from "../sdk/cinnamon-module";

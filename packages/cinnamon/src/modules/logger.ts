@@ -1,6 +1,6 @@
 import type Cinnamon from "../core";
 import { CinnamonModule } from "../sdk/cinnamon-module";
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 
 export enum LogLevel {
     /**

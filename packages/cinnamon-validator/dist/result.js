@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class ValidationResult {
+    success;
+    message;
     constructor(options) {
         this.success = options.success;
         this.message = options.message;

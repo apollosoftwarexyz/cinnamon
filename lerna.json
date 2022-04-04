@@ -4,7 +4,9 @@
   ],
   "command": {
     "version": {
-      "ignoreChanges": ["*.md"],
+      "ignoreChanges": [
+        "*.md"
+      ],
       "npmClient": "yarn",
       "message": "Publish new release version"
     },
@@ -12,7 +14,7 @@
       "npmClient": "yarn"
     }
   },
-  "version": "0.0.37",
+  "version": "0.0.38",
   "npmClient": "yarn",
   "useWorkspaces": true
 }

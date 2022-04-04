@@ -1,4 +1,4 @@
-import { MikroORM, EntityManager, Configuration } from "@mikro-orm/core";
+import { MikroORM, EntityManager, Configuration, RequestContext } from "@mikro-orm/core";
 import type Cinnamon from "@apollosoftwarexyz/cinnamon";
 import { LoggerModule, CinnamonModule } from "@apollosoftwarexyz/cinnamon";
 export declare type CinnamonDatabaseConfiguration = {
@@ -96,6 +96,7 @@ export default class DatabaseModule extends CinnamonModule {
     get isInitialized(): boolean;
     get entityManager(): EntityManager;
     get em(): EntityManager;
+    get requestContext(): typeof RequestContext;
     initialize(databaseConfig: CinnamonDatabaseConfiguration): Promise<void>;
     /**
      * Open the connection to the database server.

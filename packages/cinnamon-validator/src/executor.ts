@@ -2,7 +2,7 @@ import ValidationResult from "./result";
 import { ValidationSchemaFieldSmartAttribute } from "./validation-schema/attribute";
 import { ValidationSchema, ValidationSchemaField, ValidationSchemaObject } from "./validation-schema/core";
 
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon/src/internals";
+import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
 
 type _ExecutorValidationFailOptions = {
     field: ValidationSchemaField,

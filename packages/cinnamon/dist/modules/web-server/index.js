@@ -13,16 +13,13 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LoadUnless = exports.LoadIf = exports.Middleware = exports.Route = exports.Controller = exports.Method = exports.WebServerModuleState = void 0;
-const internals_1 = __importDefault(require("../../internals"));
+const cinnamon_internals_1 = require("@apollosoftwarexyz/cinnamon-internals");
 const cinnamon_module_1 = require("../../sdk/cinnamon-module");
-const logger_1 = __importDefault(require("../logger"));
-const koa_1 = __importDefault(require("koa"));
-const loader_1 = __importDefault(require("./loader"));
+const logger_1 = require("../logger");
+const Koa = require("koa");
+const loader_1 = require("./loader");
 __exportStar(require("./plugin"), exports);
 /**
  * @internal
@@ -38,11 +35,11 @@ var WebServerModuleState;
 var Method_1 = require("./api/Method");
 Object.defineProperty(exports, "Method", { enumerable: true, get: function () { return Method_1.Method; } });
 var Controller_1 = require("./api/Controller");
-Object.defineProperty(exports, "Controller", { enumerable: true, get: function () { return __importDefault(Controller_1).default; } });
+Object.defineProperty(exports, "Controller", { enumerable: true, get: function () { return Controller_1.default; } });
 var Route_1 = require("./api/Route");
-Object.defineProperty(exports, "Route", { enumerable: true, get: function () { return __importDefault(Route_1).default; } });
+Object.defineProperty(exports, "Route", { enumerable: true, get: function () { return Route_1.default; } });
 var Middleware_1 = require("./api/Middleware");
-Object.defineProperty(exports, "Middleware", { enumerable: true, get: function () { return __importDefault(Middleware_1).default; } });
+Object.defineProperty(exports, "Middleware", { enumerable: true, get: function () { return Middleware_1.default; } });
 var introspection_1 = require("./introspection");
 Object.defineProperty(exports, "LoadIf", { enumerable: true, get: function () { return introspection_1.LoadIf; } });
 Object.defineProperty(exports, "LoadUnless", { enumerable: true, get: function () { return introspection_1.LoadUnless; } });
@@ -54,6 +51,20 @@ __exportStar(require("./middlewares"), exports);
  * @private
  */
 class WebServerModule extends cinnamon_module_1.CinnamonModule {
+    controllersPath;
+    controllersLoader;
+    currentState;
+    enableLogging;
+    /**
+     * Returns the Koa application instance. Useful for registering Middleware, etc.
+     */
+    server;
+    _underlyingServer;
+    /**
+     * Returns the underlying Node HTTP server instance used internally by Koa.
+     */
+    get underlyingServer() { return this._underlyingServer; }
+    activeConnections;
     /**
      * @CoreModule
      * Initializes a Cinnamon Web Server.
@@ -67,7 +78,7 @@ class WebServerModule extends cinnamon_module_1.CinnamonModule {
     constructor(framework, controllersPath, trustProxies) {
         super(framework);
         this.controllersPath = controllersPath;
-        this.server = new koa_1.default();
+        this.server = new Koa();
         this._underlyingServer = undefined;
         this.activeConnections = {};
         this.currentState = WebServerModuleState.INITIAL;
@@ -83,15 +94,11 @@ class WebServerModule extends cinnamon_module_1.CinnamonModule {
         }
     }
     /**
-     * Returns the underlying Node HTTP server instance used internally by Koa.
-     */
-    get underlyingServer() { return this._underlyingServer; }
-    /**
      * The current framework instance's logger.
      */
     get logger() { return this.framework.getModule(logger_1.default.prototype); }
     /**
-     * Whether or not logging is enabled on the web server.
+     * Whether logging is enabled on the web server.
      */
     get isLoggingEnabled() { return this.enableLogging; }
     /**
@@ -107,8 +114,8 @@ class WebServerModule extends cinnamon_module_1.CinnamonModule {
         // Ensure the controllers directory is present.
         // We do this check in core startup, but this will ensure we're in the correct state
         // even if this module is loaded independently of the default distribution's core class.
-        if (!await internals_1.default.fs.directoryExists(this.controllersPath)) {
-            this.logger.error(`Unable to load web server controllers due to missing controllers directory: ${internals_1.default.fs.toAbsolutePath(this.controllersPath)}`);
+        if (!await cinnamon_internals_1.default.fs.directoryExists(this.controllersPath)) {
+            this.logger.error(`Unable to load web server controllers due to missing controllers directory: ${cinnamon_internals_1.default.fs.toAbsolutePath(this.controllersPath)}`);
             await this.framework.terminate(true);
             return;
         }
@@ -119,15 +126,14 @@ class WebServerModule extends cinnamon_module_1.CinnamonModule {
         this.currentState = WebServerModuleState.READY;
     }
     async start(options) {
-        var _a, _b;
         // If we're in development mode, we'll also register file watchers.
         if (this.framework.inDevMode) {
             await this.controllersLoader.registerWatchers();
         }
         // If enable_logging is set (i.e., not null) and different to this.enableLogging
         // (the instance variable), then update the instance variable.
-        if (this.enableLogging !== ((_a = options.enable_logging) !== null && _a !== void 0 ? _a : false)) {
-            this.enableLogging = (_b = options.enable_logging) !== null && _b !== void 0 ? _b : false;
+        if (this.enableLogging !== (options.enable_logging ?? false)) {
+            this.enableLogging = options.enable_logging ?? false;
         }
         if (this.currentState != WebServerModuleState.READY) {
             let reason = "because it is in an invalid state.";
@@ -142,12 +148,11 @@ class WebServerModule extends cinnamon_module_1.CinnamonModule {
             };
             try {
                 this._underlyingServer = this.server.listen(options.port, options.host, async () => {
-                    var _a;
                     if (this._underlyingServer == null)
                         return reject("Failed to start web server!");
                     this.logger.info(`Listening for web requests on: http://${options.host}:${options.port}/`);
                     // Credit: https://github.com/isaacs/server-destroy/blob/master/index.js
-                    (_a = this._underlyingServer) === null || _a === void 0 ? void 0 : _a.on('connection', (connection) => {
+                    this._underlyingServer?.on('connection', (connection) => {
                         const key = `${connection.remoteAddress}:${connection.remotePort}`;
                         this.activeConnections[key] = connection;
                         connection.on('close', () => delete this.activeConnections[key]);
@@ -169,11 +174,10 @@ class WebServerModule extends cinnamon_module_1.CinnamonModule {
     }
     async terminate() {
         return new Promise(async (resolve, reject) => {
-            var _a, _b;
             try {
                 await this.controllersLoader.unregisterWatchers();
-                if ((_a = this._underlyingServer) === null || _a === void 0 ? void 0 : _a.listening) {
-                    (_b = this._underlyingServer) === null || _b === void 0 ? void 0 : _b.close((err) => {
+                if (this._underlyingServer?.listening) {
+                    this._underlyingServer?.close((err) => {
                         if (err)
                             return reject(err);
                         for (const key in this.activeConnections)

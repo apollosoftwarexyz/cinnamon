@@ -28,6 +28,16 @@ const base_1 = require("./base");
  */
 class CinnamonPlugin extends base_1.CinnamonSdkBase {
     /**
+     * The organization that publishes or maintains the package in
+     * reverse domain form. (e.g., xyz.apollosoftware).
+     */
+    organization;
+    /**
+     * The name of the package. Can be specified manually, or will
+     * default automatically to the plugin's class name.
+     */
+    name;
+    /**
      * Initializes a Cinnamon plugin on the given framework instance,
      * with the specified organization and, optionally, plugin name.
      *
@@ -39,7 +49,7 @@ class CinnamonPlugin extends base_1.CinnamonSdkBase {
     constructor(framework, organization, name) {
         super(framework);
         this.organization = organization;
-        this.name = name !== null && name !== void 0 ? name : new.target.name;
+        this.name = name ?? new.target.name;
     }
     /**
      * The plugin identifier (organization_name/plugin_name).

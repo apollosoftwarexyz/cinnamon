@@ -1,7 +1,4 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ValidationResult = exports.Validator = exports.$ = exports.createValidator = void 0;
 const executor_1 = require("./executor");
@@ -19,5 +16,5 @@ function createValidator(schema) {
 }
 exports.createValidator = createValidator;
 exports.$ = createValidator;
-const result_1 = __importDefault(require("./result"));
+const result_1 = require("./result");
 exports.ValidationResult = result_1.default;

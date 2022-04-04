@@ -5,6 +5,8 @@
  * See /LICENSE.md for license information.
  */
 
+/// <reference types="koa" />
+
 /*
  * Cinnamon main distribution package.
  * Be sure to export all production files/APIs/classes in this distribution package.
@@ -23,6 +25,7 @@ export * from './modules/logger';
 export { default as LoggerModule } from './modules/logger';
 
 export { Method, Controller, Route, Middleware, Body, LoadIf, LoadUnless } from './modules/web-server';
+export * from './plugins/web-server';
 
 ////////////////
 // Framework SDK.
@@ -35,8 +38,12 @@ export { default as WebServer, CinnamonWebServerModulePlugin } from './modules/w
 // Third Party.
 ////////////////
 import * as Koa from 'koa';
-import { Context, Next } from 'koa';
-export { Koa, Context, Next };
+import { Context as KoaContext, Next } from 'koa';
+export { Koa, Next };
+
+export interface Context extends KoaContext {
+
+}
 
 import * as Chalk from 'chalk';
 export { Chalk };

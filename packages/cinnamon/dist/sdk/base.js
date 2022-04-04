@@ -34,6 +34,7 @@ exports.MissingModuleError = MissingModuleError;
  * @Core
  */
 class CinnamonSdkBase {
+    framework;
     /**
      * Used to initialize a Cinnamon extension. This is a starting point for both
      * Cinnamon modules and Cinnamon plugins despite their key differences.

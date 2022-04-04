@@ -15,7 +15,7 @@ export declare let Logger: LoggerModule;
  * Whether the underlying framework is in debug mode.
  * This needs to be turned off for releases.
  */
-export declare const CINNAMON_CORE_DEBUG_MODE = true;
+export declare const CINNAMON_CORE_DEBUG_MODE = false;
 export declare type CinnamonInitializationOptions = {
     /**
      * An optional validation schema for the app configuration.

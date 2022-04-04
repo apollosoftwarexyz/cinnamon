@@ -4,14 +4,15 @@ exports.DatabaseModuleStub = void 0;
 const cinnamon_module_1 = require("../../sdk/cinnamon-module");
 const base_1 = require("../../sdk/base");
 class DatabaseModuleStub extends cinnamon_module_1.CinnamonOptionalCoreModuleStub {
-    constructor(framework) {
-        super(framework);
-    }
+    static DEFAULT_DATABASE_MODULE = "@apollosoftwarexyz/cinnamon-database";
     get __stubIdentifier() {
         return "DatabaseModule";
     }
     get __stubForModule() {
         return DatabaseModuleStub.DEFAULT_DATABASE_MODULE;
+    }
+    constructor(framework) {
+        super(framework);
     }
     get isInitialized() {
         throw new base_1.MissingModuleError(DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
@@ -29,6 +30,8 @@ class DatabaseModuleStub extends cinnamon_module_1.CinnamonOptionalCoreModuleStu
     get em() {
         return this.entityManager;
     }
+    get requestContext() {
+        throw new base_1.MissingModuleError(DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
+    }
 }
 exports.DatabaseModuleStub = DatabaseModuleStub;
-DatabaseModuleStub.DEFAULT_DATABASE_MODULE = "@apollosoftwarexyz/cinnamon-database";

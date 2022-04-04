@@ -2,14 +2,26 @@
   "compilerOptions": {
     "strict": true,
     "declaration": true,
-    "target":  "ES2018",
+    "target":  "ESNext",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "experimentalDecorators": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "lib": [ "ES2020", "ESNext" ]
+    "lib": [ "ESNext" ]
   },
+  "references": [
+    {
+      "path": "./packages/cinnamon"
+    },
+    {
+      "path": "./packages/cinnamon-database"
+    },
+    {
+      "path": "./packages/cinnamon-validator"
+    },
+    {
+      "path": "./packages/cinnamon-internals"
+    }
+  ],
   "exclude": [
     "packages/**/node_modules/**",
     "packages/**/dist/**"

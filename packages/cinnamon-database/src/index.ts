@@ -1,9 +1,9 @@
-import { MikroORM, EntityManager, Configuration } from "@mikro-orm/core";
+import {MikroORM, EntityManager, Configuration, RequestContext} from "@mikro-orm/core";
 import { TsMorphMetadataProvider } from "@mikro-orm/reflection";
 
 import type Cinnamon from "@apollosoftwarexyz/cinnamon";
 import { LoggerModule, CinnamonModule } from "@apollosoftwarexyz/cinnamon";
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon/src/internals";
+import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
 
 export type CinnamonDatabaseConfiguration = {
     /**
@@ -128,6 +128,10 @@ export default class DatabaseModule extends CinnamonModule {
         return this.entityManager;
     }
 
+    public get requestContext() {
+        return RequestContext;
+    }
+
     public async initialize(databaseConfig: CinnamonDatabaseConfiguration) {
         if (this.isInitialized) {
             throw new Error("The database module is already initialized. You cannot initialize it again.");
@@ -227,9 +231,14 @@ export default class DatabaseModule extends CinnamonModule {
     public async connect() {
         if (!this._underlyingOrmConfig) return;
 
+        let databaseOptions = {};
+        if (this._underlyingOrmConfig.type === "mongo") {
+            databaseOptions = { ensureIndexes: true };
+        }
+
         this.underlyingOrm = await MikroORM.init({
             ...this._underlyingOrmConfig,
-            ensureIndexes: true
+            ...databaseOptions
         });
     }
 

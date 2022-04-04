@@ -8,43 +8,16 @@
  *
  * @module
  */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activeLoader = exports.LOADER_ROOT_ROUTE_NAMESPACE = void 0;
-const internals_1 = __importDefault(require("../../internals"));
-const logger_1 = __importDefault(require("../../modules/logger"));
-const Chokidar = __importStar(require("chokidar"));
-const module_1 = __importDefault(require("module"));
-const chalk_1 = __importDefault(require("chalk"));
-const path_1 = __importDefault(require("path"));
-const co_1 = __importDefault(require("co"));
-const koa_router_1 = __importDefault(require("koa-router"));
-const core_1 = require("@mikro-orm/core");
+const cinnamon_internals_1 = require("@apollosoftwarexyz/cinnamon-internals");
+const logger_1 = require("../../modules/logger");
+const Chokidar = require("chokidar");
+const Module = require("module");
+const chalk = require("chalk");
+const path = require("path");
+const co_1 = require("co");
+const KoaRouter = require("koa-router");
 const database_1 = require("../_stubs/database");
 const base_1 = require("../../sdk/base");
 /**
@@ -62,13 +35,32 @@ exports.LOADER_ROOT_ROUTE_NAMESPACE = "29af6f1b-7584-484a-b627-8b25d47021ec";
  * @private
  */
 class Loader {
+    framework;
+    owner;
+    server;
+    controllersPath;
+    trackedControllers;
+    watcher;
+    /**
+     * Maps a controller ID to a KoaRouter. This is used for replacing the controller's router
+     * upon controller module reload.
+     * @private
+     */
+    routers;
+    /**
+     * Maps a route ID to a LoaderRoute containing the route's information.
+     * This is used to store the information collected when a controller is required and its routes
+     * are loaded (when the annotations are called, they populate this map).
+     * @private
+     */
+    routes;
+    BuiltinModuleAPI = {
+        // @ts-ignore
+        load: Module.prototype.load,
+        // @ts-ignore
+        require: Module.prototype.require,
+    };
     constructor(options) {
-        this.BuiltinModuleAPI = {
-            // @ts-ignore
-            load: module_1.default.prototype.load,
-            // @ts-ignore
-            require: module_1.default.prototype.require,
-        };
         this.framework = options.framework;
         this.owner = options.owner;
         this.server = options.server;
@@ -89,7 +81,7 @@ class Loader {
         // We use a temporary variable to make this operation atomic.
         let discoveredControllers = this.trackedControllers;
         // Scan for controller files.
-        for (let controllerFile of await internals_1.default.fs.listRecursively(this.controllersPath)) {
+        for (let controllerFile of await cinnamon_internals_1.default.fs.listRecursively(this.controllersPath)) {
             // Our supported controller files are currently only .ts files.
             // At some point JS support could be considered, but JS is undesirable for large projects
             // such as those which might be undertaken with this framework and ts-node can run
@@ -97,7 +89,7 @@ class Loader {
             // production.
             if (controllerFile.endsWith('.ts')) {
                 const existingController = discoveredControllers.find((controller) => controller.path === controllerFile);
-                const dateModified = await internals_1.default.fs.getLastModification(controllerFile);
+                const dateModified = await cinnamon_internals_1.default.fs.getLastModification(controllerFile);
                 // If the controller is not present, add it to the list of controllers.
                 if (!existingController) {
                     discoveredControllers.push({
@@ -164,10 +156,10 @@ class Loader {
                 }
             }
             catch (ex) {
-                const errorMessage = ex === null || ex === void 0 ? void 0 : ex.toString();
+                const errorMessage = ex?.toString();
                 this.framework.getModule(logger_1.default.prototype).error(((ex instanceof FatalLoaderError && ex.isControllerAgnostic)
                     ? "Error processing controllers..."
-                    : `Error loading controller: ${path_1.default.basename(controller.path)} (${controller.path})`) + (errorMessage ? `\n\n\t${errorMessage.replace(/\n/g, '\n\t')}\n` : ''));
+                    : `Error loading controller: ${path.basename(controller.path)} (${controller.path})`) + (errorMessage ? `\n\n\t${errorMessage.replace(/\n/g, '\n\t')}\n` : ''));
                 if (ex instanceof FatalLoaderError) {
                     await this.framework.terminate(true, "A fatal error with the web server module has prevented Cinnamon from loading.");
                     return;
@@ -238,11 +230,13 @@ class Loader {
         }
         // The routing prefix to prepend to each route belonging to this controller.
         const prefix = `/${group.map(item => item.replace(/^\/|\/$/g, '')).join('/')}`;
-        const controllerRouter = new koa_router_1.default({ prefix });
+        const controllerRouter = new KoaRouter({ prefix });
         for (const route of Object.values(exports.activeLoader.routes).filter(route => route.controller === controllerId)) {
             let routePath = route.path.replace(/\/$/g, '');
             if (!routePath.startsWith('/'))
                 routePath = `/${routePath}`;
+            if (prefix === '/' && routePath.startsWith('/'))
+                routePath = routePath.substring(1);
             // @ts-ignore
             const registerKoaRoute = controllerRouter[route.method.toLowerCase()];
             registerKoaRoute.call(controllerRouter, route.identifier, routePath, ...route.middleware, (...args) => route.handler.call(target.__cinnamonInstance, ...args));
@@ -300,7 +294,7 @@ class Loader {
         let modulePath;
         try {
             // @ts-ignore
-            modulePath = module_1.default._resolveFilename(request, caller);
+            modulePath = Module._resolveFilename(request, caller);
         }
         catch (ex) {
             // Error whilst resolving module.
@@ -336,7 +330,7 @@ class Loader {
                     ctx.body += "\n\nThe following is being displayed because you're in development mode:\n" + err;
                 }
                 console.error("");
-                console.error(chalk_1.default.red(err.stack));
+                console.error(chalk.red(err.stack));
                 console.error("");
             }
         });
@@ -345,10 +339,15 @@ class Loader {
         if (this.framework.hasModule(database_1.DatabaseModuleStub.prototype) &&
             this.framework.getModule(database_1.DatabaseModuleStub.prototype).isInitialized) {
             // Create request context.
-            this.server.use((ctx, next) => core_1.RequestContext.createAsync(this.framework.getModule(database_1.DatabaseModuleStub.prototype).em, next));
+            this.server.use((ctx, next) => this.framework
+                .getModule(database_1.DatabaseModuleStub.prototype)
+                .requestContext
+                .createAsync(this.framework.getModule(database_1.DatabaseModuleStub.prototype).em, next));
             // Add entity manager to context.
             this.server.use(async (ctx, next) => {
-                ctx.getEntityManager = () => core_1.RequestContext.getEntityManager();
+                ctx.getEntityManager = () => this.framework
+                    .getModule(database_1.DatabaseModuleStub.prototype)
+                    .requestContext.getEntityManager();
                 return await next();
             });
         }
@@ -417,15 +416,15 @@ class Loader {
             // Determine status code decoration.
             let status = `[${statusCode}]`;
             if (statusCode >= 100 && statusCode < 200)
-                status = chalk_1.default.cyanBright(status);
+                status = chalk.cyanBright(status);
             else if (statusCode >= 200 && statusCode < 300)
-                status = chalk_1.default.greenBright(status);
+                status = chalk.greenBright(status);
             else if (statusCode >= 300 && statusCode < 400)
-                status = chalk_1.default.blueBright(status);
+                status = chalk.blueBright(status);
             else if (statusCode >= 400 && statusCode < 500)
-                status = chalk_1.default.redBright(status);
+                status = chalk.redBright(status);
             else if (statusCode >= 500)
-                status = chalk_1.default.bgRedBright(status);
+                status = chalk.bgRedBright(status);
             if (statusCode < 400)
                 self.owner.logger.debug(`${status} ${ctx.method} ${ctx.path} (${responseTimeMs}ms) - ${ctx.headers['user-agent']}`);
             else
@@ -440,8 +439,14 @@ class Loader {
 }
 exports.default = Loader;
 class FatalLoaderError extends Error {
+    /**
+     * Set this to true if the error was not triggered by a specific controller,
+     * to ensure that the loader does not inject the currently processing
+     * controller into the error message.
+     */
+    isControllerAgnostic;
     constructor(controllerAgnostic, message) {
         super(message);
-        this.isControllerAgnostic = controllerAgnostic !== null && controllerAgnostic !== void 0 ? controllerAgnostic : false;
+        this.isControllerAgnostic = controllerAgnostic ?? false;
     }
 }

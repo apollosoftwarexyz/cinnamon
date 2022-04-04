@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import { parse as parseToml } from 'toml';
 
-import cinnamonInternals from "./internals";
+import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
 
 import WebServerModule from "./modules/web-server";
 import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
@@ -26,7 +26,7 @@ export let Logger: LoggerModule;
  * Whether the underlying framework is in debug mode.
  * This needs to be turned off for releases.
  */
-export const CINNAMON_CORE_DEBUG_MODE = true;
+export const CINNAMON_CORE_DEBUG_MODE = false;
 
 export type CinnamonInitializationOptions = {
     /**
@@ -399,12 +399,10 @@ export default class Cinnamon {
                 const Database = (require('@apollosoftwarexyz/cinnamon-database').default);
 
                 framework.registerModule(new Database(framework, modelsPath));
-                console.log(framework.getModule(Database.prototype));
                 await framework.getModule(Database.prototype).initialize(projectConfig.framework.database);
                 if (autostartServices) {
                     await framework.getModule(Database.prototype).connect();
                 }
-                console.log(framework.getModule(Database.prototype).isInitialized);
                 framework.getModule<LoggerModule>(LoggerModule.prototype).info("Successfully initialized database ORM and models.");
             }
 

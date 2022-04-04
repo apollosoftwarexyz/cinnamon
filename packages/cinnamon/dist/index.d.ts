@@ -12,11 +12,14 @@ export { default as ConfigModule } from './modules/config';
 export * from './modules/logger';
 export { default as LoggerModule } from './modules/logger';
 export { Method, Controller, Route, Middleware, Body, LoadIf, LoadUnless } from './modules/web-server';
+export * from './plugins/web-server';
 export { CinnamonModule } from './sdk/cinnamon-module';
 export { CinnamonPlugin } from './sdk/cinnamon-plugin';
 export { default as WebServer, CinnamonWebServerModulePlugin } from './modules/web-server';
 import * as Koa from 'koa';
-import { Context, Next } from 'koa';
-export { Koa, Context, Next };
+import { Context as KoaContext, Next } from 'koa';
+export { Koa, Next };
+export interface Context extends KoaContext {
+}
 import * as Chalk from 'chalk';
 export { Chalk };

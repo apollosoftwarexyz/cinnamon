@@ -11,7 +11,7 @@ import Cinnamon from "../../core";
 import WebServerModule from "./index";
 import { Method } from "./api/Method";
 import { MiddlewareFn } from "./api/Middleware";
-import Koa from 'koa';
+import * as Koa from 'koa';
 /**
  * @internal
  * @private

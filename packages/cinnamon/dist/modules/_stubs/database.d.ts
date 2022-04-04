@@ -13,6 +13,7 @@ export declare abstract class DatabaseModuleStub extends CinnamonOptionalCoreMod
     get ormConfig(): void;
     get entityManager(): any;
     get em(): any;
+    get requestContext(): any;
     abstract initialize(databaseConfig: any): Promise<void>;
     abstract connect(): Promise<void>;
     abstract terminate(force?: boolean): Promise<void>;

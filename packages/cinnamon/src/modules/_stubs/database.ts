@@ -38,6 +38,10 @@ export abstract class DatabaseModuleStub extends CinnamonOptionalCoreModuleStub 
         return this.entityManager;
     }
 
+    public get requestContext() : any {
+        throw new MissingModuleError(DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
+    }
+
     public abstract initialize(databaseConfig: any) : Promise<void>;
 
     public abstract connect() : Promise<void>;

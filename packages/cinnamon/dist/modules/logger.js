@@ -1,11 +1,8 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LogLevel = void 0;
 const cinnamon_module_1 = require("../sdk/cinnamon-module");
-const chalk_1 = __importDefault(require("chalk"));
+const chalk = require("chalk");
 var LogLevel;
 (function (LogLevel) {
     /**
@@ -66,6 +63,26 @@ var LogLevel;
  */
 class LoggerModule extends cinnamon_module_1.CinnamonModule {
     /**
+     * Whether application debug messages should be displayed.
+     * @private
+     */
+    showDebugMessages;
+    /**
+     * @see ExtendedLoggerOptions
+     * @private
+     */
+    showFrameworkDebugMessages;
+    /**
+     * @see ExtendedLoggerOptions
+     * @private
+     */
+    logDelegate;
+    /**
+     * @see ExtendedLoggerOptions
+     * @private
+     */
+    silenced;
+    /**
      * @CoreModule
      * Initializes a Cinnamon Framework logger.
      *
@@ -74,12 +91,11 @@ class LoggerModule extends cinnamon_module_1.CinnamonModule {
      * @param options Extended options for the logger module.
      */
     constructor(framework, showDebugMessages = false, options) {
-        var _a, _b;
         super(framework);
         this.showDebugMessages = showDebugMessages;
-        this.silenced = (_a = options === null || options === void 0 ? void 0 : options.silenced) !== null && _a !== void 0 ? _a : false;
-        this.logDelegate = this.silenced ? undefined : options === null || options === void 0 ? void 0 : options.logDelegate;
-        this.showFrameworkDebugMessages = (_b = options === null || options === void 0 ? void 0 : options.showFrameworkDebugMessages) !== null && _b !== void 0 ? _b : false;
+        this.silenced = options?.silenced ?? false;
+        this.logDelegate = this.silenced ? undefined : options?.logDelegate;
+        this.showFrameworkDebugMessages = options?.showFrameworkDebugMessages ?? false;
     }
     /**
      * Logs an internal framework messages. Intended for internal framework-use only.
@@ -205,20 +221,20 @@ class LoggerModule extends cinnamon_module_1.CinnamonModule {
                     printFunction = null;
                     break;
                 }
-                printFunction = (...data) => posixPrintFunction(chalk_1.default.bgGray.whiteBright(...data));
+                printFunction = (...data) => posixPrintFunction(chalk.bgGray.whiteBright(...data));
                 break;
             case LogLevel.DEBUG:
                 if (!this.showDebugMessages) {
                     printFunction = null;
                     break;
                 }
-                printFunction = (...data) => posixPrintFunction(chalk_1.default.bgGray.whiteBright(...data));
+                printFunction = (...data) => posixPrintFunction(chalk.bgGray.whiteBright(...data));
                 break;
             case LogLevel.WARN:
-                printFunction = (...data) => posixPrintFunction(chalk_1.default.bgRed.whiteBright.bold(...data));
+                printFunction = (...data) => posixPrintFunction(chalk.bgRed.whiteBright.bold(...data));
                 break;
             case LogLevel.ERROR:
-                printFunction = (...data) => posixPrintFunction(chalk_1.default.red(...data));
+                printFunction = (...data) => posixPrintFunction(chalk.red(...data));
                 break;
             default:
                 printFunction = (...data) => posixPrintFunction(...data);
