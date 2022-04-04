@@ -16,7 +16,7 @@
     "currentBundleSize": "yarn workspace @apollosoftwarexyz/cinnamon currentBundleSize",
     "publish": "yarn workspace @apollosoftwarexyz/cinnamon publish",
     "clean": "lerna run clean --parallel",
-    "build": "yarn workspace @apollosoftwarexyz/cinnamon updateReadme; lerna run build",
+    "build": "lerna run build",
     "version:patch": "yarn version patch && yarn workspace @apollosoftwarexyz/cinnamon version patch",
     "cli:local": "yarn cli:manifest; yarn workspace @apollosoftwarexyz/cinnamon-cli local",
     "cli:manifest": "cp package.json distributions/cli/cinnamonPackage.json",
