@@ -13,7 +13,6 @@
     "prerelease": "yarn workspace @apollosoftwarexyz/cinnamon prerelease",
     "prepublishOnly": "yarn prerelease",
     "currentBundleSize": "yarn workspace @apollosoftwarexyz/cinnamon currentBundleSize",
-    "publish": "yarn workspace @apollosoftwarexyz/cinnamon publish",
     "clean": "lerna run clean --parallel",
     "build": "lerna run build",
     "version:patch": "yarn version patch && yarn workspace @apollosoftwarexyz/cinnamon version patch",

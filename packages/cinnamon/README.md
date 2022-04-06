@@ -74,8 +74,7 @@ export default class IndexController {
   # ...should output "3.x.x"
   ```
 2. Run `yarn` in the repository root to install the packages and link the workspaces.
-3. Once you're set up, you should run `yarn docs:dev`, to run the documentation site in interactive development mode. The documentation site uses [Nuxt.js](https://nuxtjs.org) with the content plugin which allows you to update the documentation either by editing the markdown files, or by double-clicking on a documentation page and interactively editing the site.
-4. To build the project, use `yarn build`. You can also use `yarn example:start`, to run the example project.
+3. To build the project, use `yarn build`.
 
 ## License
 [MIT License](LICENSE.md)
