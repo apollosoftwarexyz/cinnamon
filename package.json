@@ -22,9 +22,7 @@
     "cli:publish": "yarn cli:manifest; yarn workspace @apollosoftwarexyz/cinnamon-cli publish",
     "docs:api": "typedoc packages/* --readme none",
     "docs:dev": "yarn workspace @apollosoftwarexyz/cinnamon-docs dev",
-    "docs:generate": "yarn docs:api; yarn docs:api; yarn workspace @apollosoftwarexyz/cinnamon-docs generate",
-    "example:start": "yarn workspace @apollosoftwarexyz/cinnamon-examples-basic-webserver start",
-    "example-validation:start": "yarn workspace @apollosoftwarexyz/cinnamon-examples-validation start"
+    "docs:generate": "yarn docs:api; yarn docs:api; yarn workspace @apollosoftwarexyz/cinnamon-docs generate"
   },
   "devDependencies": {
     "@types/node": "^17.0.23",
