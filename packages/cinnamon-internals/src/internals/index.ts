@@ -7,6 +7,7 @@
 import { error as _error } from './namespace/error';
 import { data as _data } from './namespace/data';
 import { fs as _fs } from './namespace/fs';
+import { format as _format } from './namespace/format';
 
 /**
  * @internal
@@ -28,6 +29,7 @@ namespace cinnamonInternals {
     export import error = _error;
     export import data = _data;
     export import fs = _fs;
+    export import format = _format;
 }
 
 export default cinnamonInternals;

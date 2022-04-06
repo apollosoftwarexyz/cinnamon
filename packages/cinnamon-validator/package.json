@@ -1,6 +1,6 @@
 {
   "name": "@apollosoftwarexyz/cinnamon-validator",
-  "version": "0.0.38",
+  "version": "0.1.0",
   "license": "MIT",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
@@ -15,7 +15,7 @@
     "publish": "yarn npm publish --access public"
   },
   "dependencies": {
-    "@apollosoftwarexyz/cinnamon-internals": "^0.0.38"
+    "@apollosoftwarexyz/cinnamon-internals": "^0.1.0"
   },
   "devDependencies": {
     "@types/node": "^17.0.23",

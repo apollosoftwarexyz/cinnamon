@@ -6,6 +6,10 @@ import { Context } from "../../../index";
 
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
 
+/**
+ * Options that may be specified when using `sendFile` to respond to a request with
+ * a file.
+ */
 export interface SendFileOptions {
     /**
      * The root directory that should be served from, relative to the project root.

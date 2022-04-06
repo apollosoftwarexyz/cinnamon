@@ -32,6 +32,8 @@ import sendFile, {SendFileOptions} from "./lib/files";
 import { Context } from "../../index";
 import { Next } from "koa";
 
+import * as Youch from '@apollosoftwarexyz/cinnamon-youch';
+
 /**
  * @internal
  * @private
@@ -536,21 +538,76 @@ export default class Loader {
 
         // Register the error handler. We do this after 'beforeRegisterControllers' to allow plugins to get
         // priority when they work with the error handler.
-        this.server.use(async (ctx, next) => {
+        this.server.use(async (ctx: Context, next) => {
             try {
                 await next();
+
+                // If we got a 404 error with no response body, return a response according to the
+                // request type.
+                if (ctx.status === 404 && !ctx.body) {
+                    if (ctx.request.is('application/json')) {
+                        ctx.status = 404;
+                        ctx.body = {
+                            success: false,
+                            error: 'ERR_NOT_FOUND',
+                            message: "The resource you requested could not be found."
+                        };
+                    } else {
+                        ctx.status = 404;
+                        ctx.body = '';
+                    }
+                }
             } catch (err: any) {
                 err.status = err.statusCode || err.status || 500;
-
                 ctx.status = err.status;
-                ctx.response.headers['content-type'] = "text/plain";
-                ctx.body = 'An unexpected error occurred.';
-                if (this.inDevMode) {
-                    ctx.body += "\n\nThe following is being displayed because you're in development mode:\n" + err;
+
+                ctx.errorObject = err;
+
+                // Render error output in the browser if no other output has been rendered.
+                if (!ctx.body) {
+                    // If it was a JSON request, we'll return JSON.
+                    // (and if we're in development mode, we'll include some useful development information.)
+                    if (ctx.request.is('application/json')) {
+                        ctx.response.headers['content-type'] = "application/json";
+                        let payload: any = {
+                            success: false
+                        };
+
+                        // Include development information if we're in dev mode.
+                        if (this.inDevMode) {
+                            const youch = new Youch(err, {});
+
+                            payload['devInfo'] = {
+                                status: err.status,
+                                message: err.toString(),
+                                timestamp: (new Date().toUTCString()),
+                                ...(await youch.toJSON())
+                            }
+                        }
+
+                        ctx.body = payload;
+                    }
+
+                    // Otherwise, we'll assume it was a browser request.
+                    else {
+                        ctx.response.headers['content-type'] = 'text/html';
+
+                        // In which case, we'll return a nice error page, courtesy of 'youch' if we're in
+                        // development mode...
+                        if (this.inDevMode) {
+                            const youch = new Youch(err, ctx.req);
+                            ctx.body = await youch.toHTML();
+                        }
+
+                        // Otherwise, we'll return an empty response which will cause the browser to show
+                        // its default error page.
+                        else ctx.body = '';
+                    }
                 }
 
+                // Print the error.
                 console.error("");
-                console.error(chalk.red(err.stack));
+                console.error(chalk.red(err.stack.toString().replace('\n>\t', '\n\t')));
                 console.error("");
             }
         });
@@ -601,20 +658,27 @@ export default class Loader {
         this.server.use(async (ctx, next) => {
             (() => {
                 let bodyValue: any;
-                Object.defineProperty(ctx.request, 'body', {
+
+                const bodyAttributes = {
                     get: () => {
-                        if (!bodyValue)
+                        if (!bodyValue) {
                             throw new Error(
-                                "You must use the body middleware to access the request body.\n" +
-                                "Annotate your request handler (route) with:\n\n" +
-                                "@Middleware(Body())"
+                                "You must use the Body middleware to access the request body. " +
+                                "You should annotate your request handler (route) with:\n" +
+                                ">\t@Middleware(Body())" +
+                                "\n"
                             );
+                        }
+
                         return bodyValue;
                     },
-                    set: function (value) {
+                    set: function (value: any) {
                         bodyValue = value;
                     }
-                });
+                };
+
+                Object.defineProperty(ctx.request, 'body', bodyAttributes);
+                Object.defineProperty(ctx.request, 'rawBody', bodyAttributes);
             })();
 
             return await next();
@@ -626,7 +690,11 @@ export default class Loader {
          */
         this.server.use(co.wrap(function* (ctx, next) {
             for (const handler of Object.values(routers)) {
-                yield handler.routes()(ctx, async () => {});
+                // If the handler yielded a result, and there wasn't one already, we'll
+                // assume that the expectation was for that result to be the body.
+                const result = yield handler.routes()(ctx, async () => {});
+                if (result && (ctx.status === 404 || !ctx.body)) ctx.body = result;
+
                 yield handler.allowedMethods()(ctx, async () => {});
             }
 

@@ -33,7 +33,7 @@ export enum WebServerModuleState {
 export { Method } from './api/Method';
 export { default as Controller } from './api/Controller';
 export { default as Route } from './api/Route';
-export { default as Middleware } from './api/Middleware';
+export { default as Middleware, MiddlewareFn } from './api/Middleware';
 export { LoadIf, LoadUnless } from './introspection';
 
 export * from './middlewares';

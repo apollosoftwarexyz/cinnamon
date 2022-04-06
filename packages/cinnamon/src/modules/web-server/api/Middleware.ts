@@ -1,8 +1,10 @@
 import { v5 as uuidv5 } from 'uuid';
 import Loader, {activeLoader, LOADER_ROOT_ROUTE_NAMESPACE} from "../loader";
 import LoggerModule from "../../logger";
+import { Context } from "../../../index";
+import { Next } from "koa";
 
-export type MiddlewareFn = Function;
+export type MiddlewareFn = (context: Context, next: Next) => Promise<void>;
 
 /**
  * Registers a middleware function for an API route.

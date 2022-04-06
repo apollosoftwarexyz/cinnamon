@@ -76,11 +76,11 @@ export namespace fs {
      */
     export function resolveAbsolutePath(rootPath: string, relativePath: string) {
         if (rootPath.indexOf('\0') !== -1 || path.isAbsolute(relativePath)) {
-            throw new error.HttpError('Malicious path detected.');
+            throw new error.HttpError('Malicious path detected');
         }
 
         if (UP_PATH_REGEXP.test(path.normalize(`.${path.sep}${relativePath}`))) {
-            throw new error.HttpError('Malicious path detected.', 403);
+            throw new error.HttpError('Malicious path detected', 403);
         }
 
         return path.normalize(path.join(path.resolve(rootPath), relativePath));
