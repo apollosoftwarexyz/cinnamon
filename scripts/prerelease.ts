@@ -2,12 +2,8 @@
  * Runs pre-release checks to ensure the package is ready for distribution.
  */
 
-// @ts-ignore - we're using esModuleInterop until ESM is ready.
-import chalk from 'chalk';
-import { CINNAMON_CORE_DEBUG_MODE } from "@apollosoftwarexyz/cinnamon-core";
-
-const workspacePackageConfig = require('../../../package.json');
-const distributionPackageConfig = require('../package.json');
+import * as chalk from 'chalk';
+import { CINNAMON_CORE_DEBUG_MODE } from "@apollosoftwarexyz/cinnamon/src/core";
 
 //// CLI Arguments.
 const onlyFailures = process.argv.includes('--only-failures');
@@ -71,17 +67,6 @@ async function check(assertion: string, check: () => Promise<boolean>, messages?
         failMessage: [,
             "The core must not be in debug mode for releases.",
             "Please set CINNAMON_CORE_DEBUG_MODE to false in packages/core/src/main.ts."
-        ]
-    });
-
-    await check("Workspace version matches package version", async () => workspacePackageConfig.version === distributionPackageConfig.version, {
-        failMessage: [,
-            "The workspace version (@apollosoftwarexyz/cinnamon-workspaces) must match the distribution package version.",
-            "Please check that the version property of the workspace's package.json (i.e, the one at the repository root)",
-            "matches the version property of the distribution's package.json (i.e., the one located in /distributions/cinnamon)",
-            "",
-            `Workspace: ${workspacePackageConfig.version}`,
-            `Distribution: ${distributionPackageConfig.version}`
         ]
     });
 
