@@ -1,15 +1,9 @@
 /**
- * @module @apollosoftwarexyz/cinnamon-internals
  * @internal
  * @private
+ * @module @apollosoftwarexyz/cinnamon-internals
  */
 
-/**
- * Part of {@link cinnamonInternals}.
- *
- * @internal
- * @private
- */
 export namespace data {
 
     /**

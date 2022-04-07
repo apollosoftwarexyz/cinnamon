@@ -9,7 +9,7 @@
  */
 
 import Cinnamon from "../../core";
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
+import cinnamonInternals, {$Cinnamon} from "@apollosoftwarexyz/cinnamon-internals";
 import LoggerModule from "../../modules/logger";
 
 import WebServerModule from "./index";
@@ -29,7 +29,7 @@ import { DatabaseModuleStub } from "../_stubs/database";
 import { MissingModuleError } from "../../sdk/base";
 import sendFile, {SendFileOptions} from "./lib/files";
 
-import { Context } from "../../index";
+import {Context, Request} from "../../index";
 import { Next } from "koa";
 
 import * as Youch from '@apollosoftwarexyz/cinnamon-youch';
@@ -316,6 +316,8 @@ export default class Loader {
                     );
                 }
             } catch (ex) {
+                console.log((ex as any).stack);
+
                 const errorMessage = (ex as any)?.toString();
 
                 this.framework.getModule<LoggerModule>(LoggerModule.prototype).error(
@@ -569,7 +571,7 @@ export default class Loader {
                     // (and if we're in development mode, we'll include some useful development information.)
                     if (ctx.request.is('application/json')) {
                         ctx.response.headers['content-type'] = "application/json";
-                        let payload: any = {
+                        const payload: any = {
                             success: false
                         };
 
@@ -656,30 +658,39 @@ export default class Loader {
         // Register a middleware to check if the body attribute on the context is usable (because the body
         // middleware has to be registered for it to be used.)
         this.server.use(async (ctx, next) => {
-            (() => {
-                let bodyValue: any;
+            const bodyProxy = () => {
+                // Might investigate this further – but it's probably better to check only if the body was initialized,
+                // rather than the rawBody as well as it would give more flexibility with middleware.
+                let didSetBodyValue: boolean;
 
-                const bodyAttributes = {
-                    get: () => {
-                        if (!bodyValue) {
-                            throw new Error(
-                                "You must use the Body middleware to access the request body. " +
-                                "You should annotate your request handler (route) with:\n" +
-                                ">\t@Middleware(Body())" +
-                                "\n"
-                            );
+                return {
+                    get: function (object: any, key: string | symbol): any {
+                        if ((key == 'body' || key == 'rawBody') && !didSetBodyValue) {
+                            const errorText = (ctx.request as Request<any> & { [$Cinnamon]: any })[$Cinnamon].bodyError
+                                ?? "You must use the Body middleware to access the request body. " +
+                                   "You should annotate your request handler (route) with:\n" +
+                                   ">\t@Middleware(Body())" +
+                                   "\n"
+
+                            throw new Error(errorText);
                         }
 
-                        return bodyValue;
+                        return object[key];
                     },
-                    set: function (value: any) {
-                        bodyValue = value;
-                    }
-                };
+                    set: function (object: any, key: string | symbol, value: any): boolean {
+                        if (key == 'body') didSetBodyValue = true;
+                        if (key == 'rawBody') didSetBodyValue = true;
 
-                Object.defineProperty(ctx.request, 'body', bodyAttributes);
-                Object.defineProperty(ctx.request, 'rawBody', bodyAttributes);
-            })();
+                        // Implement the default setter to set the value.
+                        object[key] = value;
+
+                        // Indicate success.
+                        return true;
+                    }
+                }
+            };
+
+            ctx.request = new Proxy(ctx.request, bodyProxy());
 
             return await next();
         });
@@ -689,6 +700,8 @@ export default class Loader {
         middleware in this loader instance and executes them.
          */
         this.server.use(co.wrap(function* (ctx, next) {
+            (ctx.request as Request<any> & { [$Cinnamon]: any })[$Cinnamon] = {};
+
             for (const handler of Object.values(routers)) {
                 // If the handler yielded a result, and there wasn't one already, we'll
                 // assume that the expectation was for that result to be the body.

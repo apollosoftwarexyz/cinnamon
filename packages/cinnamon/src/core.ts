@@ -8,8 +8,8 @@ import WebServerModule from "./modules/web-server";
 import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
 
 import ConfigModule from "./modules/config";
-import LoggerModule, {DelegateLogFunction} from "./modules/logger";
-import {CinnamonModule, CinnamonOptionalCoreModuleStub} from "./sdk/cinnamon-module";
+import LoggerModule, { DelegateLogFunction } from "./modules/logger";
+import { CinnamonModule, CinnamonOptionalCoreModuleStub } from "./sdk/cinnamon-module";
 import { CinnamonPlugin } from "./sdk/cinnamon-plugin";
 
 /**

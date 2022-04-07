@@ -1,21 +1,20 @@
 /**
- * @module @apollosoftwarexyz/cinnamon-internals
  * @internal
  * @private
+ * @module @apollosoftwarexyz/cinnamon-internals
  */
 
 import * as _fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import { error } from "./error";
+import { error } from './error';
 
-/**
- * Part of {@link cinnamonInternals}.
- *
- * @internal
- * @private
- */
 export namespace fs {
+
+    /**
+     * A regex for an up-path. This would, for example, match a path with ../ in it, which would be
+     * used to go to a parent directory. This is used to help block malicious paths.
+     */
     const UP_PATH_REGEXP = /(?:^|[\\/])\.\.(?:[\\/]|$)/;
 
     /**
@@ -45,7 +44,7 @@ export namespace fs {
      */
     export async function directoryExists(directoryPath: string | undefined) : Promise<boolean> {
         try {
-            if (typeof directoryPath !== "string") return false;
+            if (typeof directoryPath !== 'string') return false;
 
             const stats = await promisify(_fs.stat)(directoryPath);
             return stats.isDirectory();
@@ -62,7 +61,7 @@ export namespace fs {
      *                  absolute path.
      */
     export function toAbsolutePath(childPath: string) : string {
-        if (childPath === undefined || childPath === null) throw new Error("Missing path.");
+        if (childPath === undefined || childPath === null) throw new Error('Missing path.');
         return path.join(process.cwd(), childPath);
     }
 
@@ -94,7 +93,7 @@ export namespace fs {
      */
     export async function listRecursively(directoryPath: string) : Promise<string[]> {
 
-        let discoveredFiles = [];
+        const discoveredFiles = [];
 
         for (const filePath of await promisify(_fs.readdir)(directoryPath)) {
             const absoluteFilePath = path.join(directoryPath, filePath);

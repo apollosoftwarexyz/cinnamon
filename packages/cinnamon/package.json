@@ -1,6 +1,6 @@
 {
   "name": "@apollosoftwarexyz/cinnamon",
-  "version": "0.1.0",
+  "version": "0.1.0-beta.1",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,8 +10,8 @@
     "directory": "packages/core/"
   },
   "dependencies": {
-    "@apollosoftwarexyz/cinnamon-internals": "^0.1.0",
-    "@apollosoftwarexyz/cinnamon-validator": "^0.1.0",
+    "@apollosoftwarexyz/cinnamon-internals": "^0.1.0-beta.1",
+    "@apollosoftwarexyz/cinnamon-validator": "^0.1.0-beta.1",
     "@apollosoftwarexyz/cinnamon-youch": "^3.2.0",
     "@types/formidable": "^2.0.4",
     "@types/koa": "^2.13.4",

@@ -1,10 +1,11 @@
 import { MiddlewareFn } from "../../api/Middleware";
 import {Fields, Files, IncomingForm, Options as FormidableOptions} from 'formidable';
 
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
+import cinnamonInternals, {$Cinnamon} from "@apollosoftwarexyz/cinnamon-internals";
 import { readText } from "./text";
-import {jsonMimeTypes, readJson} from "./json";
-import {readUrlEncoded} from "./urlencoded";
+import { jsonMimeTypes, readJson } from "./json";
+import { readUrlEncoded } from "./urlencoded";
+import { Request } from "../../../../index";
 
 export interface TextualBodyOptions {
 
@@ -101,16 +102,24 @@ export function Body(options?: {
     }, options ?? {});
 
     // Validate the acceptedMethods argument.
-    if (!Array.isArray(options!.acceptedMethods)
-        && options!.acceptedMethods !== true
-        && options!.acceptedMethods !== 'all') {
+    if (!Array.isArray(options?.acceptedMethods)
+        && options?.acceptedMethods !== true
+        && options?.acceptedMethods !== 'all') {
         throw new Error(
-            `Invalid parameter value: acceptedMethods = ${options!.acceptedMethods}. ` +
+            `Invalid parameter value: acceptedMethods = ${options?.acceptedMethods}. ` +
             `If set, it must be an array or "all".`
         );
     }
 
     return async function (ctx, next) : Promise<void> {
+
+        if (!options) throw new cinnamonInternals.error.AssertionError('Options must be set');
+
+        (ctx.request as Request<any> & { [$Cinnamon]: any })[$Cinnamon].bodyError =
+            `You're attempting to read the body on a ${ctx.method.toUpperCase()} request, however that request is ` +
+            `only configured to accept bodies on the following methods:\n` +
+            `>\t[${(options?.acceptedMethods! as string[]).join(',')}]` +
+            `\n`;
 
         // If the request method was not one of the accepted methods (and the accepted methods wasn't
         // a string or true
@@ -118,6 +127,13 @@ export function Body(options?: {
             !options!.acceptedMethods.map(method => method.toUpperCase()).includes(ctx.method.toUpperCase())) {
             return await next();
         }
+
+        // Initialize body and rawBody.
+        // Ironically, we can do this by setting to 'undefined', because we can signal to Cinnamon's
+        // loader that these have been set by triggering the flag, regardless of what we set these
+        // to.
+        ctx.request.body = undefined;
+        ctx.request.rawBody = undefined;
 
         let customType;
         if (options!.customTypes && options!.customTypes[ctx.type])

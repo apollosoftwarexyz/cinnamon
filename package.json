@@ -11,11 +11,12 @@
     "packages/*"
   ],
   "scripts": {
+    "lint": "eslint .",
     "prerelease": "ts-node ./scripts/prerelease.ts",
     "prepublishOnly": "yarn prerelease",
     "currentBundleSize": "yarn workspace @apollosoftwarexyz/cinnamon currentBundleSize",
-    "clean": "lerna run clean --parallel",
-    "build": "lerna run build",
+    "clean": "yarn workspaces foreach -p --exclude \"@apollosoftwarexyz/cinnamon-workspaces\" run clean",
+    "build": "yarn workspaces foreach -i -t --exclude \"@apollosoftwarexyz/cinnamon-workspaces\" run build",
     "version:check": "yarn version check --interactive",
     "version:apply": "yarn version apply --all",
     "cli:local": "yarn cli:manifest; yarn workspace @apollosoftwarexyz/cinnamon-cli local",
@@ -25,7 +26,11 @@
   "devDependencies": {
     "@apollosoftwarexyz/cinnamon": "workspace:^",
     "@types/node": "^17.0.23",
+    "@typescript-eslint/eslint-plugin": "^5.18.0",
+    "@typescript-eslint/parser": "^5.18.0",
     "chalk": "^4.1.2",
+    "eslint": "^8.12.0",
+    "eslint-plugin-import-quotes": "^0.0.1",
     "rimraf": "^3.0.2",
     "ts-node": "^10.7.0",
     "tslib": "^2.3.1",

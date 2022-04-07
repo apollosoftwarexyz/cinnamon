@@ -9,6 +9,8 @@ import { data as _data } from './namespace/data';
 import { fs as _fs } from './namespace/fs';
 import { format as _format } from './namespace/format';
 
+export const $Cinnamon = Symbol('Cinnamon');
+
 /**
  * @internal
  *

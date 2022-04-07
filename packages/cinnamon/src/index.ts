@@ -27,7 +27,7 @@ export { default as LoggerModule } from './modules/logger';
 export { Method, Controller, Route, Middleware, MiddlewareFn, Body, LoadIf, LoadUnless } from './modules/web-server';
 export * from './plugins/web-server';
 
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
+import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
 import HttpError = cinnamonInternals.error.HttpError;
 export { HttpError };
 
@@ -43,13 +43,14 @@ export { default as WebServer, CinnamonWebServerModulePlugin } from './modules/w
 ////////////////
 import * as Koa from 'koa';
 import { Context as KoaContext, Request as KoaRequest, Next } from 'koa';
-import { Fields, Files } from "formidable";
+import { Fields, Files } from 'formidable';
 
 export { Koa, Next, KoaContext as _Context };
 
-import { SendFileOptions } from "./modules/web-server/lib/files";
+import { SendFileOptions } from './modules/web-server/lib/files';
 
 export interface Request<BodyType> extends KoaRequest {
+
     /**
      * The request body.
      * Your route must have the Body middleware applied to it or this will throw an error.

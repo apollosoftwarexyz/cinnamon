@@ -6,6 +6,24 @@
 
 export namespace error {
 
+    /**
+     * Indicates that an assertion in the framework is invalid.
+     * This should be used sparingly, and generally serves to 'force' TypeScript into resolving types that are
+     * assuredly correct.
+     */
+    export class AssertionError extends Error {
+
+        constructor(message: string) {
+            super(message);
+        }
+
+    }
+
+    /**
+     * Represents an error that may be returned as an HTTP response.
+     * This should be thrown internally within Cinnamon, wherever possible, to ensure that minimal work needs to be done
+     * to represent an error as an HTTP error.
+     */
     export class HttpError extends Error {
 
         /**
