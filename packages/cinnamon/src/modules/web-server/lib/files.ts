@@ -37,7 +37,15 @@ export interface SendFileOptions {
      *
      * Ignored if not specified.
      */
-    extensions?: string[];
+    optionalExtensions?: string[];
+
+    /**
+     * Similar to {@link optionalExtensions} but returns a 404 if the extension is explicitly
+     * specified.
+     *
+     * Ignored if not specified.
+     */
+    extensionless?: string[];
 
     /**
      * The max-age that the browser should cache the file for, in milliseconds.
@@ -82,6 +90,15 @@ export default async function sendFile(ctx: Context, path: string, options: Send
     // If hidden files is turned off and the user requested a hidden file, ignore the request.
     if (options.ignoreHiddenFiles && Path.basename(target).startsWith('.')) return;
 
+    // If extensionless is enabled and the basename DOES include an extension, throw a 404 if the extension is
+    // included in extensionless.
+    if (options.extensionless && options.extensionless.length > 0 && Path.basename(target).includes('.')) {
+        for (const invalidExtension of options.extensionless) {
+            if (Path.extname(target) == `.${invalidExtension}`)
+                throw new cinnamonInternals.error.HttpError('File not found', 404);
+        }
+    }
+
     // If index is turned on and the user requested a directory...
     if (options.index) {
         if (ctx.path.endsWith('/') || await cinnamonInternals.fs.directoryExists(target)) {
@@ -99,14 +116,20 @@ export default async function sendFile(ctx: Context, path: string, options: Send
 
     if (!(await cinnamonInternals.fs.fileExists(target))) {
 
+        const automaticExtensions = (options.optionalExtensions || options.extensionless) ?
+            cinnamonInternals.data.arrayUnique([
+                ...(options.optionalExtensions ?? []),
+                ...(options.extensionless ?? [])
+            ]) : undefined;
+
         // If extensions is enabled and the basename doesn't include an extension,
         // check each of those before we error out.
-        if (options.extensions && !Path.basename(target).includes('.')) {
+        if (automaticExtensions && automaticExtensions.length > 0 && !Path.basename(target).includes('.')) {
 
             let didFindExtension = false;
 
             // Check each extension.
-            for (let extension of options.extensions!) {
+            for (let extension of automaticExtensions!) {
                 let potentialFile = `${target}.${extension}`;
                 if (await cinnamonInternals.fs.fileExists(potentialFile)) {
                     target = potentialFile;

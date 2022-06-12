@@ -77,6 +77,11 @@ export interface Request<BodyType> extends KoaRequest {
  * Cinnamon-specific parameters or methods.
  */
 export interface Context<RequestBodyType = any> extends KoaContext {
+    /**
+     * The Cinnamon framework instance that handled the request.
+     */
+    framework: Cinnamon;
+
     request: Request<RequestBodyType>;
 
     /**

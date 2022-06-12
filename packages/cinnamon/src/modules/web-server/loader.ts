@@ -536,7 +536,13 @@ export default class Loader {
     private async hookWithKoa() {
         const routers = this.routers;
 
-        await this.framework.triggerPluginHook('beforeRegisterControllers');
+        // Inject Cinnamon into the request context.
+        this.server.use(async (ctx: Context, next: Next) => {
+            ctx.framework = this.framework;
+            return await next();
+        });
+
+        await this.framework.triggerPluginHook('beforeRegisterErrors');
 
         // Register the error handler. We do this after 'beforeRegisterControllers' to allow plugins to get
         // priority when they work with the error handler.
@@ -563,6 +569,7 @@ export default class Loader {
                 err.status = err.statusCode || err.status || 500;
                 ctx.status = err.status;
 
+                // Load the JavaScript error object.
                 ctx.errorObject = err;
 
                 // Render error output in the browser if no other output has been rendered.
@@ -596,7 +603,7 @@ export default class Loader {
 
                         // In which case, we'll return a nice error page, courtesy of 'youch' if we're in
                         // development mode...
-                        if (this.inDevMode) {
+                        if (this.inDevMode && !(err instanceof cinnamonInternals.error.HttpError)) {
                             const youch = new Youch(err, ctx.req);
                             ctx.body = await youch.toHTML();
                         }
@@ -608,11 +615,15 @@ export default class Loader {
                 }
 
                 // Print the error.
-                console.error("");
-                console.error(chalk.red(err.stack.toString().replace('\n>\t', '\n\t')));
-                console.error("");
+                if (!(err instanceof cinnamonInternals.error.HttpError)) {
+                    console.error("");
+                    console.error(chalk.red(err.stack.toString().replace('\n>\t', '\n\t')));
+                    console.error("");
+                }
             }
         });
+
+        await this.framework.triggerPluginHook('beforeRegisterControllers');
 
         // Register lib/ functions on the request context.
         this.server.use(async (ctx: Context, next: Next) => {

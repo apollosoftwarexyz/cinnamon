@@ -74,11 +74,11 @@ export abstract class CinnamonPlugin extends CinnamonSdkBase {
      * If your plugin requires no initialization at all, simply `return true`
      * from this method.
      *
-     * The method should return whether or not the plugin initialized successfully,
-     * if there's a possibility that it won't. If it did not initialize successfully,
-     * Cinnamon will not call other event handlers on the plugin.
+     * The method should return whether the plugin initialized successfully,
+     * if there's a possibility that it won't. If it did not initialize
+     * successfully, Cinnamon will not call other event handlers on the plugin.
      *
-     * @return didInitialize Whether or not the plugin initialized successfully,
+     * @return didInitialize Whether the plugin initialized successfully,
      * `true` implies that it did, `false` implies that it did not. **A return
      * value of void implies that it *did* initialize successfully.**
      */

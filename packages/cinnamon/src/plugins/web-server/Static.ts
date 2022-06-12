@@ -5,6 +5,8 @@ import sendFile from "../../modules/web-server/lib/files";
 
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
 
+type ServeStaticPreprocessor = (ctx: Context) => Promise<void>;
+
 interface ServeStaticOptions {
     /**
      * The root directory that should be served from, relative to the project root.
@@ -32,16 +34,31 @@ interface ServeStaticOptions {
      *
      * Ignored if not specified.
      */
-    extensions?: string[];
+    optionalExtensions?: string[];
+
+    /**
+     * Similar to {@link optionalExtensions} but returns a 404 if the extension is explicitly
+     * specified.
+     *
+     * Ignored if not specified.
+     */
+    extensionless?: string[];
 
     /**
      * Whether hidden files should be prevented from being transferred.
      * Default: true
      */
     ignoreHiddenFiles?: boolean;
-}
 
-// TODO: add templating engine support.
+    /**
+     * The list of preprocessors to apply to any files. Each takes a Cinnamon request
+     * context, ({@link Context}). They will be executed sequentially in the order they
+     * appear in the list (first in list = first executed).
+     *
+     * Ignored if not specified.
+     */
+    preprocess?: ServeStaticPreprocessor[];
+}
 
 /**
  * Cinnamon Web Server plugin that serves a static directory.
@@ -58,7 +75,8 @@ implements CinnamonWebServerModulePlugin {
             root: './static',
             index: true,
             indexFiles: ["index.html", "index.htm"],
-            ignoreHiddenFiles: true
+            extensionless: false,
+            ignoreHiddenFiles: true,
         }, options ?? {});
     }
 
@@ -76,7 +94,17 @@ implements CinnamonWebServerModulePlugin {
 
     async beforeRegisterControllers() {
         this.framework.getModule<WebServer>(WebServer.prototype).server.use(
-            (ctx: Context, next: Next) => this.handleStaticRequest(ctx, next)
+            (ctx: Context, next: Next) => this.handleStaticRequest(ctx, async () => {
+                // Execute preprocessors if there are any after the request has been handled.
+                if (this.options.preprocess && this.options.preprocess.length > 0) {
+                    for (const preprocessor of this.options.preprocess) {
+                        await preprocessor(ctx);
+                    }
+                }
+
+                // Then pass to any remaining middleware in the stack.
+                return await next();
+            })
         );
     }
 
@@ -94,7 +122,8 @@ implements CinnamonWebServerModulePlugin {
             root: this.options.root!,
             index: this.options.index,
             indexFiles: this.options.indexFiles,
-            extensions: this.options.extensions,
+            optionalExtensions: this.options.optionalExtensions,
+            extensionless: this.options.extensionless,
             ignoreHiddenFiles: this.options.ignoreHiddenFiles
         });
     }

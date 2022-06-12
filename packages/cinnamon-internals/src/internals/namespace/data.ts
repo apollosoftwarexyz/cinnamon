@@ -14,6 +14,10 @@ export namespace data {
      */
     export const NESTED_OBJECT_DELIMITER = '.';
 
+    export function arrayUnique(array: any[]) : any[] {
+        return array.filter((value, index, self) => self.indexOf(value) === index);
+    }
+
     /**
      * Compares two arrays to check if they are equal in terms of the values
      * they hold, out of order.
