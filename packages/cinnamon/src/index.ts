@@ -100,8 +100,9 @@ export interface Context<RequestBodyType = any> extends KoaContext {
      *
      * @param path The path, relative to `options.root` that should be loaded.
      * @param options Refer to SendFileOptions
+     * @return The absolute path to the file that was sent.
      */
-    sendFile(path: string, options: SendFileOptions) : Promise<void>;
+    sendFile(path: string, options: SendFileOptions) : Promise<string>;
 }
 
 /**

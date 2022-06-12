@@ -4,8 +4,20 @@ import Cinnamon, { Context, Next, WebServer } from "../../index";
 import sendFile from "../../modules/web-server/lib/files";
 
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
+import { ReadStream } from "fs";
 
-type ServeStaticPreprocessor = (ctx: Context) => Promise<void>;
+export interface PreprocessorContext extends Context {
+    /** The full path to the file that was loaded. */
+    filepath: string;
+
+    /**
+     * Reads the contents of the file stream into a Buffer or a string.
+     * @param raw Whether the file should be read as a buffer (true) or a string (false). Default: false.
+     */
+    readFileStream(raw: boolean): Promise<Buffer | string>;
+}
+
+type ServeStaticPreprocessor = (ctx: PreprocessorContext) => Promise<void>;
 
 interface ServeStaticOptions {
     /**
@@ -58,6 +70,22 @@ interface ServeStaticOptions {
      * Ignored if not specified.
      */
     preprocess?: ServeStaticPreprocessor[];
+
+    /**
+     * The function that is executed to read the file specified by 'filename'.
+     * Additionally, 'relativeFilename' is specified, as the path relative to the static root.
+     *
+     * If unspecified, this uses Cinnamon's internal sendFile reader. Otherwise, this can
+     * be specified to override the reader that is used.
+     *
+     * Additionally, if specified, this function should return either true (to indicate that
+     * the file reader is to be used instead) or false (to indicate that Cinnamon's internal
+     * file reader should be used).
+     *
+     * Instead of returning the file, this takes a Cinnamon request context, ({@link Context}),
+     * which the read file should be injected into instead to be returned by the web server.
+     */
+    fileReader?: (ctx: Context, filename: string, relativeFilename: string) => Promise<boolean>;
 }
 
 /**
@@ -94,21 +122,42 @@ implements CinnamonWebServerModulePlugin {
 
     async beforeRegisterControllers() {
         this.framework.getModule<WebServer>(WebServer.prototype).server.use(
-            (ctx: Context, next: Next) => this.handleStaticRequest(ctx, async () => {
+            async (ctx: Context, next: Next) => {
+                const target = await this.handleStaticRequest(ctx, next);
+
+                const readFileStreamFn = async (raw: boolean = false) => {
+                    const bodyStream: ReadStream = ctx.body as ReadStream;
+                    const buffer = await new Promise<Buffer>((resolve, reject) => {
+                        const _buffer = [];
+
+                        bodyStream.on('data', chunk => _buffer.push(chunk));
+                        bodyStream.on('end', () => resolve(Buffer.concat(_buffer)));
+                        bodyStream.on('error', err => reject(err));
+                    });
+
+                    if (raw) {
+                        return buffer;
+                    } else {
+                        return buffer.toString('utf-8');
+                    }
+                };
+
                 // Execute preprocessors if there are any after the request has been handled.
+                // This allows specifying a function that can preprocess the file contents before it is rendered in the
+                // browser, e.g., for templating, etc.
                 if (this.options.preprocess && this.options.preprocess.length > 0) {
                     for (const preprocessor of this.options.preprocess) {
-                        await preprocessor(ctx);
+                        const preprocessorCtx = ctx as PreprocessorContext;
+                        preprocessorCtx.filepath = target;
+                        preprocessorCtx.readFileStream = readFileStreamFn;
+                        await preprocessor(preprocessorCtx);
                     }
                 }
-
-                // Then pass to any remaining middleware in the stack.
-                return await next();
-            })
+            }
         );
     }
 
-    async handleStaticRequest(ctx: Context, next: Next) {
+    async handleStaticRequest(ctx: Context, next: Next) : Promise<string> {
         // Check if any other handlers exist in the stack for this request.
         await next();
 
@@ -118,13 +167,14 @@ implements CinnamonWebServerModulePlugin {
         if (ctx.body != null || ctx.status !== 404) return;
 
         // Otherwise, we'll attempt to send the static file.
-        await sendFile(ctx, ctx.path, {
+        return await sendFile(ctx, ctx.path, {
             root: this.options.root!,
             index: this.options.index,
             indexFiles: this.options.indexFiles,
             optionalExtensions: this.options.optionalExtensions,
             extensionless: this.options.extensionless,
-            ignoreHiddenFiles: this.options.ignoreHiddenFiles
+            ignoreHiddenFiles: this.options.ignoreHiddenFiles,
+            fileReader: this.options.fileReader,
         });
     }
 

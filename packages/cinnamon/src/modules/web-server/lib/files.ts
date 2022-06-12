@@ -64,9 +64,25 @@ export interface SendFileOptions {
      * Default: true
      */
     ignoreHiddenFiles?: boolean;
+
+    /**
+     * The function that is executed to read the file specified by 'filename'.
+     * Additionally, 'relativeFilename' is specified, as the path relative to the static root.
+     *
+     * If unspecified, this uses Cinnamon's internal sendFile reader. Otherwise, this can
+     * be specified to override the reader that is used.
+     *
+     * Additionally, if specified, this function should return either true (to indicate that
+     * the file reader is to be used instead) or false (to indicate that Cinnamon's internal
+     * file reader should be used).
+     *
+     * Instead of returning the file, this takes a Cinnamon request context, ({@link Context}),
+     * which the read file should be injected into instead to be returned by the web server.
+     */
+    fileReader?: (ctx: Context, filename: string, relativeFilename: string) => Promise<boolean>;
 }
 
-export default async function sendFile(ctx: Context, path: string, options: SendFileOptions) {
+export default async function sendFile(ctx: Context, path: string, options: SendFileOptions) : Promise<string> {
     options = cinnamonInternals.data.mergeObjectDeep({
         index: true,
         indexFiles: ["index.html", "index.htm"],
@@ -152,14 +168,34 @@ export default async function sendFile(ctx: Context, path: string, options: Send
     }
 
     // If we're here, the file must exist, so send it down.
-    const stat = await promisify(FileSystem.stat)(target);
-    ctx.set('Content-Length', stat.size.toString());
-    ctx.set('Last-Modified', stat.mtime.toUTCString());
-    ctx.set('Cache-Control', [
-        `max-age=${(options.maxAge ?? 0) / 1000 | 0}`,
-        options.immutable ? 'immutable' : undefined,
-    ].filter(entry => !!entry).join(','));
 
-    ctx.type = Path.basename(target);
-    ctx.body = FileSystem.createReadStream(target);
+    // If the file reader was specified AND returns true when executed, use it.
+    let useExternalFileReader: boolean = !!options.fileReader;
+    if (useExternalFileReader) {
+        try {
+            useExternalFileReader = await options.fileReader(
+                ctx,
+                target,
+                cinnamonInternals.fs.resolveRelativePath(options.root, target)
+            );
+        } catch (ex) {
+            console.error(ex);
+        }
+    }
+
+    // Otherwise, use Cinnamon's internal file reader instead.
+    if (!useExternalFileReader) {
+        const stat = await promisify(FileSystem.stat)(target);
+        ctx.set('Content-Length', stat.size.toString());
+        ctx.set('Last-Modified', stat.mtime.toUTCString());
+        ctx.set('Cache-Control', [
+            `max-age=${(options.maxAge ?? 0) / 1000 | 0}`,
+            options.immutable ? 'immutable' : undefined,
+        ].filter(entry => !!entry).join(','));
+
+        ctx.type = Path.extname(target);
+        ctx.body = FileSystem.createReadStream(target);
+    }
+
+    return target;
 }

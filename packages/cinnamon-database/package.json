@@ -1,6 +1,6 @@
 {
   "name": "@apollosoftwarexyz/cinnamon-database",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "types/cinnamon-database.d.ts",
@@ -10,8 +10,8 @@
     "directory": "packages/cinnamon-database/"
   },
   "dependencies": {
-    "@apollosoftwarexyz/cinnamon": "^0.1.1",
-    "@apollosoftwarexyz/cinnamon-internals": "^0.1.1",
+    "@apollosoftwarexyz/cinnamon": "^0.1.2",
+    "@apollosoftwarexyz/cinnamon-internals": "^0.1.2",
     "@mikro-orm/core": "^5.2.0",
     "@mikro-orm/reflection": "^5.2.0"
   },

@@ -23,8 +23,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon-database@workspace:packages/cinnamon-database"
   dependencies:
-    "@apollosoftwarexyz/cinnamon": ^0.1.1
-    "@apollosoftwarexyz/cinnamon-internals": ^0.1.1
+    "@apollosoftwarexyz/cinnamon": ^0.1.2
+    "@apollosoftwarexyz/cinnamon-internals": ^0.1.2
     "@mikro-orm/core": ^5.2.0
     "@mikro-orm/reflection": ^5.2.0
     "@types/node": ^17.0.42
@@ -32,7 +32,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@apollosoftwarexyz/cinnamon-internals@^0.1.1, @apollosoftwarexyz/cinnamon-internals@workspace:packages/cinnamon-internals":
+"@apollosoftwarexyz/cinnamon-internals@^0.1.2, @apollosoftwarexyz/cinnamon-internals@workspace:packages/cinnamon-internals":
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon-internals@workspace:packages/cinnamon-internals"
   dependencies:
@@ -42,11 +42,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@apollosoftwarexyz/cinnamon-validator@^0.1.1, @apollosoftwarexyz/cinnamon-validator@workspace:packages/cinnamon-validator":
+"@apollosoftwarexyz/cinnamon-validator@^0.1.2, @apollosoftwarexyz/cinnamon-validator@workspace:packages/cinnamon-validator":
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon-validator@workspace:packages/cinnamon-validator"
   dependencies:
-    "@apollosoftwarexyz/cinnamon-internals": ^0.1.1
+    "@apollosoftwarexyz/cinnamon-internals": ^0.1.2
     "@types/node": ^17.0.42
     rimraf: ^3.0.2
     typescript: ^4.7.3
@@ -82,12 +82,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollosoftwarexyz/cinnamon@^0.1.1, @apollosoftwarexyz/cinnamon@workspace:^, @apollosoftwarexyz/cinnamon@workspace:packages/cinnamon":
+"@apollosoftwarexyz/cinnamon@^0.1.2, @apollosoftwarexyz/cinnamon@workspace:^, @apollosoftwarexyz/cinnamon@workspace:packages/cinnamon":
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon@workspace:packages/cinnamon"
   dependencies:
-    "@apollosoftwarexyz/cinnamon-internals": ^0.1.1
-    "@apollosoftwarexyz/cinnamon-validator": ^0.1.1
+    "@apollosoftwarexyz/cinnamon-internals": ^0.1.2
+    "@apollosoftwarexyz/cinnamon-validator": ^0.1.2
     "@apollosoftwarexyz/cinnamon-youch": ^3.2.0
     "@types/co": ^4.6.3
     "@types/formidable": ^2.0.5

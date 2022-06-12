@@ -66,6 +66,21 @@ export namespace fs {
     }
 
     /**
+     * Locates the specified base, relative to the current working directory if it is not an absolute path, then
+     * resolves the path of target relative to the base path.
+     *
+     * @param base The base path that {@link target} should be found relative to.
+     * @param target The target path that should be converted to a relative path.
+     * @return The path of target, relative to base.
+     */
+    export function resolveRelativePath(base: string, target: string) : string {
+        base = toAbsolutePath(base);
+        if (!path.isAbsolute(target)) target = toAbsolutePath(target);
+
+        return path.relative(base, target);
+    }
+
+    /**
      * Resolves the relative path, path, with respect to the rootPath.
      * Also protects against malicious paths designed to access files outside the
      * rootPath.
@@ -74,7 +89,7 @@ export namespace fs {
      * @param relativePath The relative path to resolve.
      */
     export function resolveAbsolutePath(rootPath: string, relativePath: string) {
-        if (rootPath.indexOf('\0') !== -1 || path.isAbsolute(relativePath)) {
+        if (relativePath.indexOf('\0') !== -1 || path.isAbsolute(relativePath)) {
             throw new error.HttpError('Malicious path detected');
         }
 

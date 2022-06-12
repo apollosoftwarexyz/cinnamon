@@ -576,7 +576,7 @@ export default class Loader {
                 if (!ctx.body) {
                     // If it was a JSON request, we'll return JSON.
                     // (and if we're in development mode, we'll include some useful development information.)
-                    if (ctx.request.is('application/json')) {
+                    if (ctx.request.is('application/json') || ctx.request.type === 'application/json') {
                         ctx.response.headers['content-type'] = "application/json";
                         const payload: any = {
                             success: false
