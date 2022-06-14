@@ -10,7 +10,7 @@
     "directory": "packages/cinnamon-database/"
   },
   "dependencies": {
-    "@apollosoftwarexyz/cinnamon": "^0.1.2",
+    "@apollosoftwarexyz/cinnamon": "^0.1.3",
     "@apollosoftwarexyz/cinnamon-internals": "^0.1.2",
     "@mikro-orm/core": "^5.2.0",
     "@mikro-orm/reflection": "^5.2.0"

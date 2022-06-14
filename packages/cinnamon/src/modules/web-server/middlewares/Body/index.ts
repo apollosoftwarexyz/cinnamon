@@ -98,6 +98,7 @@ export function Body(options?: {
     options = cinnamonInternals.data.mergeObjectDeep({
         acceptedMethods: ['POST', 'PUT', 'PATCH'],
         json: true,
+        urlencoded: true,
         multipart: false
     }, options ?? {});
 
