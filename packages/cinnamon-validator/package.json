@@ -10,6 +10,7 @@
     "directory": "packages/cinnamon-validator/"
   },
   "scripts": {
+    "test": "ts-mocha --type-check test/**/*.spec.ts",
     "clean": "rimraf dist/",
     "build": "tsc --build",
     "publish": "yarn npm publish --access public"
