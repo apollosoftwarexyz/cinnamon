@@ -22,5 +22,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn install
+      # Perform a 'CI' install and test.
+      # We are not currently using Yarn PnP (and therefore not using Zero Installs)
+      # ...so IMMUTABLE_INSTALLS are disabled. If we do switch to PnP, these MUST be
+      # enabled.
+      - run: YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
       - run: yarn test
