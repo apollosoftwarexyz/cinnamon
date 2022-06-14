@@ -27,4 +27,5 @@ jobs:
       # ...so IMMUTABLE_INSTALLS are disabled. If we do switch to PnP, these MUST be
       # enabled.
       - run: YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
+      - run: yarn build
       - run: yarn test
