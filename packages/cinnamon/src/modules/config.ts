@@ -1,8 +1,13 @@
-import { $, ValidationSchema } from "@apollosoftwarexyz/cinnamon-validator";
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
 
 import type Cinnamon from "../core";
 import { CinnamonModule } from "../sdk/cinnamon-module";
+import * as chalk from "chalk";
+
+export type ConfigValidator = (
+    appConfig: any,
+    projectConfig: any
+) => Promise<boolean>;
 
 /**
  * @category Core Modules
@@ -40,6 +45,12 @@ export default class ConfigModule extends CinnamonModule {
         return this.appConfig !== null && this.appConfig !== undefined;
     }
 
+    private constructor(framework: Cinnamon, appConfig?: any, isConfigValid?: boolean) {
+        super(framework);
+        this.didFailValidation = !isConfigValid;
+        this.appConfig = isConfigValid ? appConfig : null;
+    }
+
     /**
      * @CoreModule
      * Initializes a Cinnamon Framework configuration module.
@@ -47,23 +58,30 @@ export default class ConfigModule extends CinnamonModule {
      * current framework instance.
      *
      * @param framework The Cinnamon framework instance.
+     * @param projectConfig The project configuration (can be validated) and defined for future use.
      * @param appConfig The app table of the cinnamon.toml configuration file.
-     * @param appConfigSchema A schema validator for the app configuration,
-     * this would usually be passed into the framework as a Cinnamon
-     * initialization option.
+     * @param configValidator The validator to execute to check the configuration.
      */
-    constructor(framework: Cinnamon, appConfig?: any, appConfigSchema?: ValidationSchema) {
-        super(framework);
+    public static async initialize(framework: Cinnamon, projectConfig: any, appConfig: any, configValidator?: ConfigValidator) : Promise<ConfigModule> {
+        console.log('Validating config...');
 
-        // If the validation schema is present and validation fails, set our
-        // config to null to indicate there is no valid configuration present.
-        if (appConfigSchema && !$(appConfigSchema).validate(appConfig)[0].success) {
-            this.didFailValidation = true;
-            this.appConfig = null;
-        // Otherwise, set the app config to the value provided.
-        } else {
-            this.didFailValidation = false;
-            this.appConfig = appConfig;
+        try {
+            const isConfigValid = configValidator ? await configValidator(appConfig, projectConfig) : true;
+            if (!isConfigValid) throw new Error(
+                'Config validation failed! If this was unexpected, you should change configValidator to ' +
+                'return true.\n' +
+                'Otherwise, you should throw an error in configValidator with a message explaining why validation ' +
+                'failed.'
+            );
+
+            return new ConfigModule(framework, appConfig, isConfigValid);
+        } catch(ex) {
+            console.error(chalk.red('Cinnamon startup was cancelled due to invalid configuration.'));
+            console.error(chalk.red('This error has NOT been logged (as the configuration failed to load).'));
+            console.error('');
+            console.error(ex);
+            console.error(ex.stack);
+            process.exit(1);
         }
     }
 
@@ -73,10 +91,10 @@ export default class ConfigModule extends CinnamonModule {
      * the key.
      *
      * @param key The key of the value to look up in the app configuration.
-     * @return {T} value - The retrieved value from the configuration file.
+     * @return value - The retrieved value from the configuration file.
      */
     public get<T = any>(key: string) : T {
-        if (!this.appConfig) throw new Error(
+        if (!this.hasAppConfig) throw new Error(
             "There is no app configuration loaded.\n" +
             "You can initialize a runtime app configuration by calling set to add a key to a new, empty, configuration.\n" +
             "Alternatively, ensure that no validation errors occurred whilst loading the configuration *and* that you have a loadable app configuration in your cinnamon.toml."
@@ -115,7 +133,7 @@ export default class ConfigModule extends CinnamonModule {
             throw new Error("This type of value cannot be stored.");
         }
 
-        if (!this.appConfig) this.appConfig = {};
+        if (!this.hasAppConfig) this.appConfig = {};
 
         cinnamonInternals.data.setObjectDeep(key, value, this.appConfig);
     }

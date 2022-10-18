@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@apollosoftwarexyz/cinnamon-internals": "^0.1.2",
-    "@apollosoftwarexyz/cinnamon-validator": "^0.1.2",
     "@apollosoftwarexyz/cinnamon-youch": "^3.2.0",
     "@types/formidable": "^2.0.5",
     "@types/koa": "^2.13.4",

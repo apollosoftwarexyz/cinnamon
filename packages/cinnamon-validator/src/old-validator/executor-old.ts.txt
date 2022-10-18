@@ -1,6 +1,6 @@
 import ValidationResult from "./result";
-import { ValidationSchemaFieldSmartAttribute } from "./validation-schema/attribute";
-import { ValidationSchema, ValidationSchemaField, ValidationSchemaObject } from "./validation-schema/core";
+import { ValidationSchemaFieldSmartAttribute } from "./schema/attribute";
+import { ValidationSchema, ValidationSchemaField, ValidationSchemaObject } from "./schema/core";
 
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
 
@@ -125,22 +125,22 @@ export class Validator {
 
         // If the field type is 'OneOf', check each of the possible schemas by
         // re-running the _validateAgainstSchemaField method.
-        if (field.type === 'OneOf') {
+        if (field.type === 'oneOf') {
             for (const possibleSchema of field.possibleSchemas) {
                 const childFieldValidation = this.validateSchemaAgainstField(possibleSchema, value, _entireObject);
                 if (!childFieldValidation.success)
                     return childFieldValidation;
             }
 
-            // If validation passes on all of the possible schemas, then we know
+            // If validation passes on all the possible schemas, then we know
             // this field must be good, so we can simply return true.
             return ValidationResult.success();
         }
 
         // Check common field values.
         if (field.required !== undefined && field.required !== null && field.required !== false) {
-            if (field.required === true && ( value === undefined || value === null )) return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be set and not null.' });
-            else if (field.required === 'explicit' && ( value === undefined )) return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be set.' });
+            if (field.required === true && ( value === undefined || value === null )) return Validator._fail(value, { field, fieldName, parentName, defaultMessage: 'must be set and not null.' });
+            else if (field.required === 'explicit' && ( value === undefined )) return Validator._fail(value, { field, fieldName, parentName, defaultMessage: 'must be set.' });
         } else if (field.required === false || field.required === undefined) {
             // If validation of the field is not required and the field is not
             // present, simply short-circuit by returning true.
@@ -162,12 +162,12 @@ export class Validator {
             if (Array.isArray(field.equals) && !Array.isArray(value)) {
                 // If not, short circuit and return false.
                 if (!field.equals.some(entry => value === entry))
-                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field was not set to a valid value. Possible values are: ' + JSON.stringify(field.equals)});
+                    return Validator._fail(value, { field, fieldName, parentName, defaultMessage: 'was not set to a valid value. Possible values are: ' + JSON.stringify(field.equals)});
             // Otherwise, if it's just an object, simply make sure if
             // field.equals in the schema is equal to the current value.
             } else {
                 if (value !== field.equals)
-                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to: ' + field.equals });
+                    return Validator._fail(value, { field, fieldName, parentName, defaultMessage: 'must be equal to: ' + field.equals });
             }
         }
 
@@ -177,31 +177,35 @@ export class Validator {
             // is included.
             if ((field.arrayEquals as any[]).every(entry => Array.isArray(entry))) {
                 if (!(field.arrayEquals as any[][]).some(entry => cinnamonInternals.data.arrayEquals(entry, value)))
-                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field was not set to a valid value. Possible values are: ' + JSON.stringify(field.arrayEquals)});
+                    return Validator._fail(value, { field, fieldName, parentName, defaultMessage: 'was not set to a valid value. Possible values are: ' + JSON.stringify(field.arrayEquals)});
             // Otherwise, simply compare the field.arrayEquals array to the
             // value, to ensure they're equal.
             } else {
                 if (!cinnamonInternals.data.arrayEquals(field.arrayEquals, value))
-                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to: ' + field.arrayEquals });
+                    return Validator._fail(value, { field, fieldName, parentName, defaultMessage: 'must be equal to: ' + field.arrayEquals });
             }
         }
 
         if (field.matches !== undefined && field.matches !== null) {
             if (field.matches instanceof RegExp) {
-                if (!field.matches.test(value)) return Validator._fail({ field, fieldName, parentName });
+                if (!field.matches.test(value)) return Validator._fail(value, { field, fieldName, parentName });
             } else {
-                // @ts-ignore
                 if (field.matches['$any'] && field.matches['$all'])
                     throw new Error("You may not have $any and $all specified on a field's 'matches' property; they are mutually exclusive.");
 
-                let comparisionFunc: 'some' | 'every' | undefined;
-                let aggregateOp: '$any' | '$all' | undefined;
-                if (field.matches.$any) { aggregateOp = '$any'; comparisionFunc = 'some';   }
-                if (field.matches.$all) { aggregateOp = '$all'; comparisionFunc = 'every';  }
+                const matches = field.matches as ({
+                    $any?: RegExp[];
+                    $all?: RegExp[];
+                });
 
-                if (comparisionFunc && aggregateOp) {
-                    if (! ((field.matches[aggregateOp] as RegExp[])[comparisionFunc]((expression: RegExp) => expression.test(value))) )
-                        return Validator._fail({ field, fieldName, parentName });
+                let comparisonFunc: 'some' | 'every' | undefined;
+                let aggregateOp: '$any' | '$all' | undefined;
+                if (matches.$any) { aggregateOp = '$any'; comparisonFunc = 'some';   }
+                if (matches.$all) { aggregateOp = '$all'; comparisonFunc = 'every';  }
+
+                if (comparisonFunc && aggregateOp) {
+                    if (! ((field.matches[aggregateOp] as RegExp[])[comparisonFunc]((expression: RegExp) => expression.test(value))) )
+                        return Validator._fail(value, { field, fieldName, parentName });
                 } else throw new Error("Invalid matches property. Must be a regular expression (regex), or an aggregate expression with $any or $all operator.");
             }
         }
@@ -209,7 +213,7 @@ export class Validator {
         if (field.$eq !== undefined) {
             if (_entireObject) {
                 if (cinnamonInternals.data.resolveObjectDeep(field.$eq, _entireObject) !== value)
-                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to the ' + Validator._toHumanReadableFieldName(_entireObject[field.$eq].fieldName ?? field.$eq) + ' field.' });
+                    return Validator._fail(value, { field, fieldName, parentName, defaultMessage: 'must be equal to the ' + Validator._toHumanReadableFieldName(_entireObject[field.$eq].fieldName ?? field.$eq) + ' field.' });
             } else throw new Error("The $eq operator may not be used on a field outside of an object context.");
         }
 
@@ -224,27 +228,28 @@ export class Validator {
                 attrs.maxLength = field.maxLength;
                 Validator._evaluateAttributeValues(attrs, _entireObject);
 
+                // TODO: split up min and max messages.
                 if ((attrs.minLength !== undefined && value.length < attrs.minLength) || (attrs.maxLength !== undefined && value.length > attrs.maxLength))
-                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be at least ' + attrs.minLength + ` character${attrs.minLength !== 1 ? 's' : ''}` + ' and at most ' + attrs.maxLength + ` character${attrs.maxLength !== 1 ? 's' : ''}` + '.' });
+                    return Validator._fail(value, { field, fieldName, parentName, defaultMessage: 'must be at least ' + attrs.minLength + ` character${attrs.minLength !== 1 ? 's' : ''}` + ' and at most ' + attrs.maxLength + ` character${attrs.maxLength !== 1 ? 's' : ''}` + '.' });
 
                 return ValidationResult.success();
 
             case 'boolean':
                 if (value !== false && value !== true)
-                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} must be either true or false.' });
+                    return Validator._fail(value, { field, fieldName, parentName, defaultMessage: 'must be either true or false.' });
 
                 return ValidationResult.success();
 
             case 'number':
                 if (isNaN(value))
-                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} must be a number.' });
+                    return Validator._fail(value, { field, fieldName, parentName, defaultMessage: 'must be a number.' });
 
                 attrs.min = field.min;
                 attrs.max = field.max;
                 Validator._evaluateAttributeValues(attrs, _entireObject);
 
                 if ((attrs.min !== undefined && value < attrs.min) || (attrs.max !== undefined && value > attrs.max))
-                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be at least ' + attrs.min + ' and at most ' + attrs.max + ' in value.' });
+                    return Validator._fail(value, { field, fieldName, parentName, defaultMessage: 'must be at between ' + attrs.min + ' and ' + attrs.max + '.' });
 
                 return ValidationResult.success();
 
@@ -272,13 +277,23 @@ export class Validator {
         }
     }
 
-    private static _fail(options: _ExecutorValidationFailOptions) : ValidationResult {
-        return ValidationResult.fail(Validator._badFieldMessage(options));
+    private static _fail(value: any, options: _ExecutorValidationFailOptions) : ValidationResult {
+        return ValidationResult.fail(Validator._badFieldMessage(value, options));
     }
 
-    private static _badFieldMessage(options: _ExecutorValidationFailOptions) {
-        const message = options.field.invalidMessage ?? options.defaultMessage ?? "The ${fieldName} field was invalid.";
-        return message.replace(/\$\{fieldName}/g, Validator._toHumanReadableFieldName(`${options.parentName}.${options.fieldName}`));
+    private static _badFieldMessage(value: any, options: _ExecutorValidationFailOptions) {
+        let message = options.defaultMessage ?? "was invalid.";
+
+        if (options.field.invalidMessage) {
+            if (typeof options.field.invalidMessage === 'function') {
+                message = (options.field.invalidMessage)(value);
+            } else {
+                message = options.field.invalidMessage;
+            }
+        }
+
+        const fieldName = Validator._toHumanReadableFieldName(`${options.parentName}.${options.fieldName}`);
+        return `The ${fieldName} field ` + message.replace(/\$\{fieldName}/g, fieldName);
     }
 
     private static _toHumanReadableFieldName(fieldName: string) {

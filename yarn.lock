@@ -42,7 +42,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@apollosoftwarexyz/cinnamon-validator@^0.1.2, @apollosoftwarexyz/cinnamon-validator@workspace:packages/cinnamon-validator":
+"@apollosoftwarexyz/cinnamon-validator@workspace:packages/cinnamon-validator":
   version: 0.0.0-use.local
   resolution: "@apollosoftwarexyz/cinnamon-validator@workspace:packages/cinnamon-validator"
   dependencies:
@@ -90,7 +90,6 @@ __metadata:
   resolution: "@apollosoftwarexyz/cinnamon@workspace:packages/cinnamon"
   dependencies:
     "@apollosoftwarexyz/cinnamon-internals": ^0.1.2
-    "@apollosoftwarexyz/cinnamon-validator": ^0.1.2
     "@apollosoftwarexyz/cinnamon-youch": ^3.2.0
     "@types/co": ^4.6.3
     "@types/formidable": ^2.0.5

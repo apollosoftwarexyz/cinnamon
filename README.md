@@ -10,7 +10,7 @@
 Cinnamon is a backend web framework with a key aim to achieve minimal code repetition between projects, allowing developers to focus on their product and not boilerplate.
 
 👉 **Learn more on our documentation site:**
-https://cinnamon.apollosoftware.xyz/
+https://docs.apollosoftware.xyz/cinnamon
 
 <br>
 

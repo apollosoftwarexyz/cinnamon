@@ -5,9 +5,8 @@ import { parse as parseToml } from 'toml';
 import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
 
 import WebServerModule from "./modules/web-server";
-import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
 
-import ConfigModule from "./modules/config";
+import ConfigModule, { ConfigValidator } from "./modules/config";
 import LoggerModule, { DelegateLogFunction } from "./modules/logger";
 import { CinnamonModule, CinnamonOptionalCoreModuleStub } from "./sdk/cinnamon-module";
 import { CinnamonPlugin } from "./sdk/cinnamon-plugin";
@@ -30,9 +29,9 @@ export const CINNAMON_CORE_DEBUG_MODE = false;
 
 export type CinnamonInitializationOptions = {
     /**
-     * An optional validation schema for the app configuration.
+     * An optional validator for the app configuration.
      */
-    appConfigSchema?: ValidationSchema;
+    validateConfig?: ConfigValidator;
 
     /**
      * If set to false, prevents Cinnamon from auto-starting modules, such as the web server.
@@ -287,7 +286,7 @@ export default class Cinnamon {
 
                 database: {
                     enabled: boolean;
-                };
+                }
 
                 structure: {
                     controllers: string;
@@ -345,11 +344,13 @@ export default class Cinnamon {
             appName: projectConfig.framework.app.name
         });
 
-        framework.registerModule(new ConfigModule(
+        framework.registerModule(await ConfigModule.initialize(
             framework,
+            projectConfig,
             projectConfig.app,
-            options?.appConfigSchema
+            options?.validateConfig
         ));
+
         framework.registerModule(new LoggerModule(framework, framework.devMode, {
             showFrameworkDebugMessages: CINNAMON_CORE_DEBUG_MODE,
             logDelegate: options?.loggerDelegate,

@@ -1,25 +1,14 @@
-import { ValidationSchema } from './validation-schema/core';
-import { Validator } from "./executor";
-
-/**
- * An alias to create a validator from the specified schema.
- * (Put simply, a validator handles performing validation on objects according to the specified validation schema.)
- *
- * This method is also exported as '$' to allow for convenient access to the validator.
- *
- * @param schema The schema to perform validation of values against.
- */
-function createValidator(schema: ValidationSchema) : Validator {
-    return new Validator(schema);
-}
+export * from './regexp';
 
 // Public exports.
 export {
-    ValidationSchema,
-    createValidator,
-    createValidator as $,
-    Validator
-};
+    ValidatorSchema,
+    ValidatorExecutor,
+    createValidator
+} from './executor';
+
+export { default as Field } from './api/Field';
+export { default as Validate } from './api/Validate';
 
 import ValidationResult from './result';
 export { ValidationResult };

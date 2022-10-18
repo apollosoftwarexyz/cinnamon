@@ -97,7 +97,7 @@ export default class DatabaseModule extends CinnamonModule {
      * Initializes Cinnamon's Database & ORM module.
      *
      * @param framework The Cinnamon Framework instance.
-     * @param modelsPath The path to the models directory.
+     * @param modelsPath The path to models directory.
      * @private
      */
     constructor(framework: Cinnamon, modelsPath: string) {
@@ -139,7 +139,7 @@ export default class DatabaseModule extends CinnamonModule {
 
         this.logger.frameworkDebug("Database module is loading models now.");
 
-        // Ensure the models directory is present.
+        // Ensure models directory is present.
         // We do this check in core startup, but this will ensure we're in the correct state
         // even if this module is loaded independently of the default distribution's core class.
         if (!await cinnamonInternals.fs.directoryExists(this.modelsPath)) {
