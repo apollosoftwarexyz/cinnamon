@@ -78,6 +78,13 @@ export class Validator {
         // We're attempting to validate against an object, so if the value in question is not
         // an object, clearly it does not meet validation.
         if (typeof value !== 'object') {
+            // If we're evaluating the root object against an object schema,
+            // but the value is not an object, we know the object is missing
+            // and thus the payload is invalid.
+            if (_parentName === undefined && _fieldName === '$root') {
+                return ValidationResult.fail('The submitted value is invalid.');
+            }
+
             let objectName = Validator._toHumanReadableFieldName(`${_parentName}.${_fieldName}`);
             return ValidationResult.fail(`The '${objectName}' field is missing.`);
         }

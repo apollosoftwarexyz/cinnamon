@@ -183,17 +183,37 @@ export async function readStream(stream: IncomingMessage, options?: {
             let received: number = 0;
 
             function onData(chunk: any) {
+                // If we've processed the entire response body, do not handle
+                // any more incoming data.
                 if (complete) return;
+
+                // Otherwise, add the length of the chunk to the received
+                // counter.
                 received += chunk.length;
 
-                if (options!.limit !== undefined && received > options!.limit) {
+                // At this point, we know the type of options.length is number,
+                // so we can safely compare it to received.
+                if (options!.limit !== undefined && received >
+                    (options!.limit as unknown as number)) {
+
+                    // If the number of received bytes exceeds the limit, throw
+                    // an HTTP 413 error.
                     return reject(cleanup(new cinnamonInternals.error.HttpError(
                         'Request entity too large',
                         413
                     )));
                 } else if (decoder) {
+                    // If a character set decoder is specified, decode the
+                    // payload as a string using that decoder. (As we're
+                    // receiving the response body in chunks, we just append
+                    // them together into a string buffer.)
                     buffer += decoder.write(chunk);
                 } else {
+                    // Otherwise, we're receiving the response body as a
+                    // buffer, so we just append the chunks to the buffer
+                    // array. (If we get sent a string, we know a character
+                    // set decoder was not specified but it should have been,
+                    // so we'll throw an error and clean up).
                     if (typeof buffer !== "string") {
                         buffer.push(chunk);
                     } else {
