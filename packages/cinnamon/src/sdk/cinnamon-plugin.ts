@@ -1,5 +1,5 @@
-import type Cinnamon from "../core";
-import { CinnamonSdkBase } from "./base";
+import type Cinnamon from '../core';
+import { CinnamonSdkBase } from './base';
 
 /**
  * The base class for a Cinnamon plugin. Cinnamon plugins,
@@ -88,7 +88,7 @@ export abstract class CinnamonPlugin extends CinnamonSdkBase {
      * Executed after Cinnamon's core and all modules have completely initialized,
      * but before the web server module has started and begun accepting requests.
      */
-    async onStart() : Promise<void> {};
+    async onStart() : Promise<void> {}
 
     /**
      * Executed after Cinnamon has completely initialized and the web server
@@ -96,6 +96,6 @@ export abstract class CinnamonPlugin extends CinnamonSdkBase {
      * you would need this method, but this might be helpful for accessing
      * the current underlying HTTP server.
      */
-    async afterStart() : Promise<void> {};
+    async afterStart() : Promise<void> {}
 
 }

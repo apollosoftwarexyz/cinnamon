@@ -108,8 +108,7 @@ export namespace data {
 
         // Either perform a direct set if this is the imperative key, or perform
         // a recursive set if neccessary.
-        if (isFinalKey) { obj[imperativeKey] = value; return; }
-        else setObjectDeep(
+        if (isFinalKey) { obj[imperativeKey] = value; return; } else setObjectDeep(
             keyParts.join(NESTED_OBJECT_DELIMITER),
             value,
             obj[imperativeKey],

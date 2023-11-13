@@ -1,5 +1,5 @@
 import { ValidationSchema } from './validation-schema/core';
-import { Validator } from "./executor";
+import { Validator } from './executor';
 
 /**
  * An alias to create a validator from the specified schema.

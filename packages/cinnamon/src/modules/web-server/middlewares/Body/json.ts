@@ -1,8 +1,8 @@
-import { IncomingMessage } from "http";
-import { TextualBodyOptions } from "./index";
-import {readText} from "./text";
+import { IncomingMessage } from 'http';
+import { TextualBodyOptions } from './index';
+import { readText } from './text';
 
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
+import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
 
 export const jsonMimeTypes = [
     'application/json',
@@ -26,9 +26,9 @@ export async function readJson(
 
     if (typeof raw !== 'string') {
         throw new cinnamonInternals.error.HttpError(
-            "Invalid request body character encoding",
+            'Invalid request body character encoding',
             415
-        )
+        );
     }
 
     try {
@@ -37,7 +37,7 @@ export async function readJson(
         if (strict) {
             if (!Array.isArray(parsed) && typeof parsed !== 'object') {
                 throw new cinnamonInternals.error.HttpError(
-                    "Invalid JSON; the top-level item must be an object or an array",
+                    'Invalid JSON; the top-level item must be an object or an array',
                     400
                 );
             }
@@ -46,10 +46,10 @@ export async function readJson(
         return {
             parsed,
             raw
-        }
+        };
     } catch(ex) {
         throw new cinnamonInternals.error.HttpError(
-            "Failed to parse JSON request body",
+            'Failed to parse JSON request body',
             400,
             ex
         );

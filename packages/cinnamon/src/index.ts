@@ -5,7 +5,7 @@
  * See /LICENSE.md for license information.
  */
 
-/// <reference types="koa" />
+// / <reference types="koa" />
 
 /*
  * Cinnamon main distribution package.
@@ -15,9 +15,9 @@
 import Cinnamon from './core';
 export default Cinnamon;
 
-////////////////
+// //////////////
 // Framework Modules.
-////////////////
+// //////////////
 export { Config, Logger } from './core';
 export * from './modules/config';
 export { default as ConfigModule } from './modules/config';
@@ -31,16 +31,16 @@ import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
 import HttpError = cinnamonInternals.error.HttpError;
 export { HttpError };
 
-////////////////
+// //////////////
 // Framework SDK.
-////////////////
+// //////////////
 export { CinnamonModule } from './sdk/cinnamon-module';
 export { CinnamonPlugin } from './sdk/cinnamon-plugin';
 export { default as WebServer, CinnamonWebServerModulePlugin } from './modules/web-server';
 
-////////////////
+// //////////////
 // Third Party.
-////////////////
+// //////////////
 import * as Koa from 'koa';
 import { Context as KoaContext, Request as KoaRequest, Next } from 'koa';
 import { Fields, Files } from 'formidable';
@@ -77,6 +77,7 @@ export interface Request<BodyType> extends KoaRequest {
  * Cinnamon-specific parameters or methods.
  */
 export interface Context<RequestBodyType = any> extends KoaContext {
+
     /**
      * The Cinnamon framework instance that handled the request.
      */

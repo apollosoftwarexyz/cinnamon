@@ -1,7 +1,7 @@
-import { IncomingMessage } from "http";
+import { IncomingMessage } from 'http';
 
-import { TextualBodyOptions } from "./index";
-import { determineCharset, inflateStream, readStream } from "./raw";
+import { TextualBodyOptions } from './index';
+import { determineCharset, inflateStream, readStream } from './raw';
 
 export async function readText(req: IncomingMessage, options?: TextualBodyOptions) {
 

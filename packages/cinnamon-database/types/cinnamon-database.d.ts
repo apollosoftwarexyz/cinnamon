@@ -1,7 +1,7 @@
-import { EntityManager } from "@mikro-orm/core/EntityManager";
+import { EntityManager } from '@mikro-orm/core/EntityManager';
 
 /* Koa type augmentation */
-declare module "koa" {
+declare module 'koa' {
     interface Context {
         getEntityManager(): EntityManager;
     }

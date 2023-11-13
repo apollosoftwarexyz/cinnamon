@@ -1,13 +1,13 @@
-import type Cinnamon from "../../core";
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
-import { CinnamonModule } from "../../sdk/cinnamon-module";
-import LoggerModule from "../logger";
+import type Cinnamon from '../../core';
+import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
+import { CinnamonModule } from '../../sdk/cinnamon-module';
+import LoggerModule from '../logger';
 
 import * as Koa from 'koa';
 import { Server } from 'http';
 import { Socket } from 'net';
 
-import Loader from "./loader";
+import Loader from './loader';
 
 export * from './plugin';
 
@@ -115,7 +115,7 @@ export default class WebServerModule extends CinnamonModule {
      * @private
      */
     public async initialize() {
-        this.logger.frameworkDebug("WebServer module is loading route controllers now.");
+        this.logger.frameworkDebug('WebServer module is loading route controllers now.');
 
         // Ensure the controllers' directory is present.
         // We do this check in core startup, but this will ensure we're in the correct state
@@ -131,7 +131,7 @@ export default class WebServerModule extends CinnamonModule {
 
         await this.controllersLoader.registerControllers();
 
-        this.logger.frameworkDebug("The internal web server is ready to be started.");
+        this.logger.frameworkDebug('The internal web server is ready to be started.');
         this.currentState = WebServerModuleState.READY;
     }
 
@@ -148,8 +148,8 @@ export default class WebServerModule extends CinnamonModule {
         }
 
         if (this.currentState != WebServerModuleState.READY) {
-            let reason = "because it is in an invalid state.";
-            if (this.currentState === WebServerModuleState.ONLINE) reason = "because it is already running.";
+            let reason = 'because it is in an invalid state.';
+            if (this.currentState === WebServerModuleState.ONLINE) reason = 'because it is already running.';
             throw new Error(`The web server cannot be started ${reason}`);
         }
 
@@ -157,11 +157,11 @@ export default class WebServerModule extends CinnamonModule {
             const reject = (reason?: any) => {
                 this.currentState = WebServerModuleState.ERRORED;
                 _reject(reason);
-            }
+            };
 
             try {
                 this._underlyingServer = this.server.listen(options.port, options.host, async () => {
-                    if (this._underlyingServer == null) return reject("Failed to start web server!");
+                    if (this._underlyingServer == null) return reject('Failed to start web server!');
                     this.logger.info(`Listening for web requests on: http://${options.host}:${options.port}/`);
 
                     // Credit: https://github.com/isaacs/server-destroy/blob/master/index.js
@@ -185,14 +185,14 @@ export default class WebServerModule extends CinnamonModule {
             } catch(ex) {
                 reject(ex);
             }
-        })
+        });
     }
 
     public async terminate() : Promise<void> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                await this.controllersLoader.unregisterWatchers();
+        await this.controllersLoader.unregisterWatchers();
 
+        return new Promise((resolve, reject) => {
+            try {
                 if (this._underlyingServer?.listening) {
                     this._underlyingServer?.close((err) => {
                         if (err) return reject(err);

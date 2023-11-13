@@ -8,16 +8,16 @@
  * @module
  */
 
-import Cinnamon from "../../core";
-import cinnamonInternals, {$Cinnamon} from "@apollosoftwarexyz/cinnamon-internals";
-import LoggerModule from "../../modules/logger";
+import Cinnamon from '../../core';
+import cinnamonInternals, { $Cinnamon } from '@apollosoftwarexyz/cinnamon-internals';
+import LoggerModule from '../../modules/logger';
 
-import WebServerModule from "./index";
-import { Method } from "./api/Method";
-import { MiddlewareFn } from "./api/Middleware";
+import WebServerModule from './index';
+import { Method } from './api/Method';
+import { MiddlewareFn } from './api/Middleware';
 
 import * as Chokidar from 'chokidar';
-import * as Module from "module";
+import * as Module from 'module';
 import * as chalk from 'chalk';
 import * as path from 'path';
 
@@ -25,12 +25,12 @@ import co from 'co';
 
 import * as Koa from 'koa';
 import * as KoaRouter from 'koa-router';
-import { DatabaseModuleStub } from "../_stubs/database";
-import { MissingModuleError } from "../../sdk/base";
-import sendFile, {SendFileOptions} from "./lib/files";
+import { DatabaseModuleStub } from '../_stubs/database';
+import { MissingModuleError } from '../../sdk/base';
+import sendFile, { SendFileOptions } from './lib/files';
 
-import {Context, Request} from "../../index";
-import { Next } from "koa";
+import { Context, Request } from '../../index';
+import { Next } from 'koa';
 
 import * as Youch from '@apollosoftwarexyz/cinnamon-youch';
 
@@ -39,6 +39,7 @@ import * as Youch from '@apollosoftwarexyz/cinnamon-youch';
  * @private
  */
 interface TrackedController {
+
     /**
      * The absolute path to the controller.
      */
@@ -72,7 +73,7 @@ interface TrackedController {
  * The hierarchy for namespaced routes is as follows:
  * ROOT -> Class (Controller) -> Method (Route)
  */
-export const LOADER_ROOT_ROUTE_NAMESPACE = "29af6f1b-7584-484a-b627-8b25d47021ec";
+export const LOADER_ROOT_ROUTE_NAMESPACE = '29af6f1b-7584-484a-b627-8b25d47021ec';
 
 /**
  * @internal
@@ -83,6 +84,7 @@ export const LOADER_ROOT_ROUTE_NAMESPACE = "29af6f1b-7584-484a-b627-8b25d47021ec
  * so it can be registered on the controller's router.
  */
 interface LoaderRoute {
+
     /**
      * The unique namespaced identifier (UUID v5) for this route.
      */
@@ -106,7 +108,7 @@ interface LoaderRoute {
     /**
      * The handler function implemented in the controller for this route.
      */
-    handler: Function;
+    handler: (cinnamon: Cinnamon, ...args: any[]) => void;
 
     /**
      * An array of middleware functions that should be executed before this
@@ -173,13 +175,13 @@ export default class Loader {
     private readonly routes: RouteIdToRouteDataDictionary;
 
     public readonly BuiltinModuleAPI = {
-        // @ts-ignore
+        // @ts-expect-error - this is a private API.
         load: Module.prototype.load as any,
-        // @ts-ignore
         require: Module.prototype.require as any,
-    }
+    };
 
     constructor(options: {
+
         /**
          * The Cinnamon framework instance this loader's owner (and, by extension,
          * this loader) belongs to.
@@ -286,18 +288,20 @@ export default class Loader {
         if (activeLoader != null) {
             throw new FatalLoaderError(
                 true,
-                "Attempted to lock already locked activeLoader interface.\n\n" +
-                "This might happen if:\n" +
+                'Attempted to lock already locked activeLoader interface.\n\n' +
+                'This might happen if:\n' +
                 "\t- you run two web servers in development mode simultaneously (don't)\n" +
-                "\t- a controller is stuck whilst loading (restart or investigate if\n" +
-                "\t\tthe problem persists)\n" +
-                "\t- a controller caused a fatal error, but for some reason, the framework" +
+                '\t- a controller is stuck whilst loading (restart or investigate if\n' +
+                '\t\tthe problem persists)\n' +
+                '\t- a controller caused a fatal error, but for some reason, the framework' +
                 "\t\tdidn't shut down. (try restarting the framework, if the problem persists\n" +
-                "\t\tpost an issue ticket on the Cinnamon project repository with any errors\n" +
-                "\t\tyou receive before this one.)\n\n" +
-                "\t(Apollo Software only): please consider opening an issue with the Internal Projects team."
+                '\t\tpost an issue ticket on the Cinnamon project repository with any errors\n' +
+                '\t\tyou receive before this one.)\n\n' +
+                '\t(Apollo Software only): please consider opening an issue with the Internal Projects team.'
             );
         }
+
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         activeLoader = this;
 
         for (const controller of this.trackedControllers) {
@@ -322,7 +326,7 @@ export default class Loader {
 
                 this.framework.getModule<LoggerModule>(LoggerModule.prototype).error(
                     ((ex instanceof FatalLoaderError && ex.isControllerAgnostic)
-                        ? "Error processing controllers..."
+                        ? 'Error processing controllers...'
                         : `Error loading controller: ${path.basename(controller.path)} (${controller.path})`
                     ) + (
                         errorMessage ? `\n\n\t${errorMessage.replace(/\n/g, '\n\t')}\n` : ''
@@ -332,7 +336,7 @@ export default class Loader {
                 if (ex instanceof FatalLoaderError) {
                     await this.framework.terminate(
                         true,
-                        "A fatal error with the web server module has prevented Cinnamon from loading."
+                        'A fatal error with the web server module has prevented Cinnamon from loading.'
                     );
                     return;
                 }
@@ -364,6 +368,7 @@ export default class Loader {
 
         this.watcher.on('all', () => {
             setTimeout(() => {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 this.scanForControllers(true).then(_ => this.registerControllers());
             }, 100);
         });
@@ -391,7 +396,7 @@ export default class Loader {
         if (!activeLoader) {
             throw new FatalLoaderError(
                 false,
-                "Attempted to lock missing activeLoader interface.\n" +
+                'Attempted to lock missing activeLoader interface.\n' +
                 "This would imply that a route attempted to register with a loader when that loader wasn't expecting it."
             );
         }
@@ -400,7 +405,7 @@ export default class Loader {
             throw new FatalLoaderError(
                 true,
                 "UUID collision detected. This shouldn't happen. Please restart the server.\n" +
-                "If you see this message more than once, something has gone VERY wrong, please contact us immediately.\n"
+                'If you see this message more than once, something has gone VERY wrong, please contact us immediately.\n'
             );
         }
 
@@ -411,7 +416,7 @@ export default class Loader {
         if (!activeLoader) {
             throw new FatalLoaderError(
                 false,
-                "Attempted to lock missing activeLoader interface.\n" +
+                'Attempted to lock missing activeLoader interface.\n' +
                 "This would imply that a controller attempted to register with a loader when that loader wasn't expecting it."
             );
         }
@@ -420,7 +425,7 @@ export default class Loader {
             throw new FatalLoaderError(
                 true,
                 "UUID collision detected. This shouldn't happen. Please restart the server.\n" +
-                "If you see this message more than once, something has gone VERY wrong, please contact us immediately.\n"
+                'If you see this message more than once, something has gone VERY wrong, please contact us immediately.\n'
             );
         }
 
@@ -433,7 +438,6 @@ export default class Loader {
             if (!routePath.startsWith('/')) routePath = `/${routePath}`;
             if (prefix === '/' && routePath.startsWith('/')) routePath = routePath.substring(1);
 
-            // @ts-ignore
             const registerKoaRoute = controllerRouter[route.method.toLowerCase()];
 
             registerKoaRoute.call(
@@ -450,7 +454,7 @@ export default class Loader {
         activeLoader.routers[controllerId] = controllerRouter;
         target._loaderActivatedController = true;
 
-        //////////////////////// (sanitization checks)
+        // ////////////////////// (sanitization checks)
 
         // If there is a mismatch between the number of Cinnamon's controller routers and the number of
         // tracked controllers, we must be attempting to load the same controller twice, which (for now)
@@ -469,15 +473,15 @@ export default class Loader {
         if (Object.keys(activeLoader.routers).length > activeLoader.trackedControllers.length) {
             throw new FatalLoaderError(
                 true,
-                "Cinnamon has detected a mismatch between the number of per-controller routers and the number of\n" +
-                "controllers.\n\n" +
-                "This would typically indicate that you have imported a Cinnamon controller in another Cinnamon\n" +
-                "controller, which is currently prevented.\n\n" +
-                "EXCEPT FOR unforeseen circumstances, doing this would indicate bad code structuring or design,\n" +
-                "however IF you are receiving this error for unrelated reasons – OR you believe you have a good\n" +
-                "reason for allowing this, please open an issue ticket on the Cinnamon project repository.\n\n" +
-                "(Apollo Software only): please consider opening an issue with the Internal Projects team.\n" +
-                "https://github.com/apollosoftwarexyz/cinnamon/issues/new\n"
+                'Cinnamon has detected a mismatch between the number of per-controller routers and the number of\n' +
+                'controllers.\n\n' +
+                'This would typically indicate that you have imported a Cinnamon controller in another Cinnamon\n' +
+                'controller, which is currently prevented.\n\n' +
+                'EXCEPT FOR unforeseen circumstances, doing this would indicate bad code structuring or design,\n' +
+                'however IF you are receiving this error for unrelated reasons – OR you believe you have a good\n' +
+                'reason for allowing this, please open an issue ticket on the Cinnamon project repository.\n\n' +
+                '(Apollo Software only): please consider opening an issue with the Internal Projects team.\n' +
+                'https://github.com/apollosoftwarexyz/cinnamon/issues/new\n'
             );
         }
     }
@@ -486,19 +490,19 @@ export default class Loader {
         if (!activeLoader) {
             throw new FatalLoaderError(
                 false,
-                "Attempted to lock missing activeLoader interface.\n" +
+                'Attempted to lock missing activeLoader interface.\n' +
                 "This would imply that a controller attempted to register with a loader when that loader wasn't expecting it."
             );
         }
 
         if (!activeLoader.routes[routeId]) {
-            throw new Error("Attempted to register middleware for invalid route.");
+            throw new Error('Attempted to register middleware for invalid route.');
         }
 
         activeLoader.routes[routeId].middleware.push(fn);
     }
 
-    /**********************************************************************/
+    /** ********************************************************************/
 
     private doRequire(request: string, caller?: NodeModule) {
         if (!caller) caller = require.main;
@@ -513,7 +517,7 @@ export default class Loader {
 
         let modulePath: string;
         try {
-            // @ts-ignore
+            // @ts-expect-error - this is a private API.
             modulePath = Module._resolveFilename(request, caller);
         } catch (ex) {
             // Error whilst resolving module.
@@ -558,7 +562,7 @@ export default class Loader {
                         ctx.body = {
                             success: false,
                             error: 'ERR_NOT_FOUND',
-                            message: "The resource you requested could not be found."
+                            message: 'The resource you requested could not be found.'
                         };
                     } else {
                         ctx.status = 404;
@@ -577,7 +581,7 @@ export default class Loader {
                     // If it was a JSON request, we'll return JSON.
                     // (and if we're in development mode, we'll include some useful development information.)
                     if (ctx.request.is('application/json') || ctx.request.type === 'application/json') {
-                        ctx.response.headers['content-type'] = "application/json";
+                        ctx.response.headers['content-type'] = 'application/json';
                         const payload: any = {
                             success: false
                         };
@@ -591,14 +595,12 @@ export default class Loader {
                                 message: err.toString(),
                                 timestamp: (new Date().toUTCString()),
                                 ...(await youch.toJSON())
-                            }
+                            };
                         }
 
                         ctx.body = payload;
-                    }
-
-                    // Otherwise, we'll assume it was a browser request.
-                    else {
+                    } else {
+                        // Otherwise, we'll assume it was a browser request.
                         ctx.response.headers['content-type'] = 'text/html';
 
                         // In which case, we'll return a nice error page, courtesy of 'youch' if we're in
@@ -606,19 +608,19 @@ export default class Loader {
                         if (this.inDevMode && !(err instanceof cinnamonInternals.error.HttpError)) {
                             const youch = new Youch(err, ctx.req);
                             ctx.body = await youch.toHTML();
+                        } else {
+                            // Otherwise, we'll return an empty response which will cause the browser to show
+                            // its default error page.
+                            ctx.body = '';
                         }
-
-                        // Otherwise, we'll return an empty response which will cause the browser to show
-                        // its default error page.
-                        else ctx.body = '';
                     }
                 }
 
                 // Print the error.
                 if (!(err instanceof cinnamonInternals.error.HttpError)) {
-                    console.error("");
+                    console.error('');
                     console.error(chalk.red(err.stack.toString().replace('\n>\t', '\n\t')));
-                    console.error("");
+                    console.error('');
                 }
             }
         });
@@ -636,7 +638,7 @@ export default class Loader {
         if (this.framework.hasModule<DatabaseModuleStub>(DatabaseModuleStub.prototype) &&
             this.framework.getModule<DatabaseModuleStub>(DatabaseModuleStub.prototype).isInitialized) {
             // Create request context.
-            this.server.use((ctx, next) => this.framework
+            this.server.use((_ctx, next) => this.framework
                 .getModule<DatabaseModuleStub>(DatabaseModuleStub.prototype)
                 .requestContext
                 .createAsync(
@@ -656,13 +658,13 @@ export default class Loader {
             this.server.use((ctx, next) => {
                 ctx.getEntityManager = () => {
                     if (!this.framework.hasModule<DatabaseModuleStub>(DatabaseModuleStub.prototype)) {
-                        throw new MissingModuleError("@apollosoftwarexyz/cinnamon-database");
+                        throw new MissingModuleError('@apollosoftwarexyz/cinnamon-database');
                     } else {
-                        throw new Error("The database module is present but has not been initialized, so you cannot use ctx.getEntityManager.\nPlease ensure your database configuration is correct!\n");
+                        throw new Error('The database module is present but has not been initialized, so you cannot use ctx.getEntityManager.\nPlease ensure your database configuration is correct!\n');
                     }
-                }
+                };
                 return next();
-            })
+            });
 
         }
 
@@ -678,10 +680,10 @@ export default class Loader {
                     get: function (object: any, key: string | symbol): any {
                         if ((key == 'body' || key == 'rawBody') && !didSetBodyValue) {
                             const errorText = (ctx.request as Request<any> & { [$Cinnamon]: any })[$Cinnamon].bodyError
-                                ?? "You must use the Body middleware to access the request body. " +
-                                   "You should annotate your request handler (route) with:\n" +
-                                   ">\t@Middleware(Body())" +
-                                   "\n"
+                                ?? 'You must use the Body middleware to access the request body. ' +
+                                   'You should annotate your request handler (route) with:\n' +
+                                   '>\t@Middleware(Body())' +
+                                   '\n';
 
                             throw new Error(errorText);
                         }
@@ -698,7 +700,7 @@ export default class Loader {
                         // Indicate success.
                         return true;
                     }
-                }
+                };
             };
 
             ctx.request = new Proxy(ctx.request, bodyProxy());
@@ -727,6 +729,7 @@ export default class Loader {
 
         await this.framework.triggerPluginHook('afterRegisterControllers');
 
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this;
         this.server.use(co.wrap(function* (ctx: Koa.BaseContext, next) {
             // Take a reading of the start time so we can calculate how long the

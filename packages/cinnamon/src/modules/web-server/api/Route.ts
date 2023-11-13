@@ -1,5 +1,5 @@
-import { Method } from "./Method";
-import Loader, {activeLoader, LOADER_ROOT_ROUTE_NAMESPACE} from "../loader";
+import { Method } from './Method';
+import Loader, { activeLoader, LOADER_ROOT_ROUTE_NAMESPACE } from '../loader';
 
 import { v4 as uuidv4, v5 as uuidv5 } from 'uuid';
 
@@ -35,7 +35,7 @@ export default function Route(method: Method, path: string) {
                 handler,
                 middleware: []
             });
-        } else throw new Error("Failed to identify the active loader.");
+        } else throw new Error('Failed to identify the active loader.');
 
-    }
+    };
 }

@@ -1,12 +1,13 @@
-import { CinnamonPlugin } from "../../sdk/cinnamon-plugin";
-import { CinnamonWebServerModulePlugin } from "../../modules/web-server";
-import Cinnamon, { Context, Next, WebServer } from "../../index";
-import sendFile from "../../modules/web-server/lib/files";
+import { CinnamonPlugin } from '../../sdk/cinnamon-plugin';
+import { CinnamonWebServerModulePlugin } from '../../modules/web-server';
+import Cinnamon, { Context, Next, WebServer } from '../../index';
+import sendFile from '../../modules/web-server/lib/files';
 
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
-import { ReadStream } from "fs";
+import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
+import { ReadStream } from 'fs';
 
 export interface PreprocessorContext extends Context {
+
     /** The full path to the file that was loaded. */
     filepath: string;
 
@@ -20,6 +21,7 @@ export interface PreprocessorContext extends Context {
 type ServeStaticPreprocessor = (ctx: PreprocessorContext) => Promise<void>;
 
 interface ServeStaticOptions {
+
     /**
      * The root directory that should be served from, relative to the project root.
      */
@@ -92,17 +94,17 @@ interface ServeStaticOptions {
  * Cinnamon Web Server plugin that serves a static directory.
  */
 export class ServeStatic extends CinnamonPlugin
-implements CinnamonWebServerModulePlugin {
+    implements CinnamonWebServerModulePlugin {
 
     private options: ServeStaticOptions;
 
     public constructor(framework: Cinnamon, options?: ServeStaticOptions) {
-        super(framework, "xyz.apollosoftware", "cinnamon.static");
+        super(framework, 'xyz.apollosoftware', 'cinnamon.static');
 
         this.options = cinnamonInternals.data.mergeObjectDeep({
             root: './static',
             index: true,
-            indexFiles: ["index.html", "index.htm"],
+            indexFiles: ['index.html', 'index.htm'],
             extensionless: false,
             ignoreHiddenFiles: true,
         }, options ?? {});

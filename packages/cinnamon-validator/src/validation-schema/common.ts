@@ -1,7 +1,7 @@
-/// Validation Schema Common definitions
-/// ---
-/// This file defines attributes which are common to all field types, as
-/// well as the operators common to all field types.
+// / Validation Schema Common definitions
+// / ---
+// / This file defines attributes which are common to all field types, as
+// / well as the operators common to all field types.
 
 /**
  * Defines a type which can either be a common aggregate operator OR a
@@ -19,6 +19,7 @@ export type ValueOrAggregateOperator<T> = {
  * Message attributes that are common to all field types.
  */
 export type ValidationSchemaFieldCommonMessage = {
+
     /**
      * The human-readable name of the field to be substituted into the invalidMessage.
      * If you set an invalidMessage that does not use the fieldName placeholder (${fieldName}),
@@ -62,18 +63,18 @@ export type ValidationSchemaFieldCommon<T> = ({
      * passing validation if the value matches any of the specified values.
      *
      * Instead of using JavaScript's type-equal equality operator (===), the
-     * array elements are compared with each other, meaning the array's needn't
+     * array elements are compared with each other, meaning the arrays needn't
      * be sorted (as JSON has no set representation). If your intention is that
      * the array should be equal *in order*, string equality should be checked
      * instead.
      *
      * This is essentially a version of equals that enables checking equality
-     * with an array or one in a set of nested arrays. In other words, you'd use
-     * this check if the value you're checking would be an array.
+     * with an array or one in a set of nested arrays.
      */
     arrayEquals?: T | T[];
 
 }) & {
+
     /**
      * Tests the value against the regular expression(s). Validation is passed if the
      * regular expression has one or more match, if all the regular expressions have a match ($all)
@@ -95,6 +96,7 @@ export type ValidationSchemaFieldCommon<T> = ({
  * Operators that can be applied to all field types in the schema.
  */
 export type ValidationSchemaFieldCommonOperators = {
+
     /**
      * If set, the value must be equal to the value of the specified property to pass validation.
      */

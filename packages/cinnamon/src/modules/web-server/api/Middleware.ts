@@ -1,8 +1,8 @@
 import { v5 as uuidv5 } from 'uuid';
-import Loader, {activeLoader, LOADER_ROOT_ROUTE_NAMESPACE} from "../loader";
-import LoggerModule from "../../logger";
-import { Context } from "../../../index";
-import { Next } from "koa";
+import Loader, { activeLoader, LOADER_ROOT_ROUTE_NAMESPACE } from '../loader';
+import LoggerModule from '../../logger';
+import { Context } from '../../../index';
+import { Next } from 'koa';
 
 export type MiddlewareFn = (context: Context, next: Next) => Promise<void>;
 
@@ -13,7 +13,7 @@ export type MiddlewareFn = (context: Context, next: Next) => Promise<void>;
 export default function Middleware(fn: MiddlewareFn) {
     return function (target: any, propertyKey: string) {
 
-        if (!activeLoader) throw new Error("Failed to identify the active loader.");
+        if (!activeLoader) throw new Error('Failed to identify the active loader.');
 
         // Gather class data.
         const classIdentifier = target.constructor._loaderId;
@@ -29,5 +29,5 @@ export default function Middleware(fn: MiddlewareFn) {
 
         Loader.loadMiddleware(identifier, fn);
 
-    }
+    };
 }

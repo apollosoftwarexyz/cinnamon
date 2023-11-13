@@ -1,5 +1,5 @@
-import type Cinnamon from "../core";
-import {CinnamonSdkBase, UnimplementedError} from "./base";
+import type Cinnamon from '../core';
+import { CinnamonSdkBase, UnimplementedError } from './base';
 
 /**
  * The base class for a Cinnamon module. This class is currently
@@ -54,14 +54,14 @@ export abstract class CinnamonOptionalCoreModuleStub extends CinnamonModule {
      * The class constructor name of the class that this class is a stub for.
      */
     get __stubIdentifier() : string {
-        throw new UnimplementedError("You must override __stubIdentifier for CinnamonOptionalCoreModuleStub.");
+        throw new UnimplementedError('You must override __stubIdentifier for CinnamonOptionalCoreModuleStub.');
     }
 
     /**
      * The npm package name of the module that this class is a stub for.
      */
     get __stubForModule() : string | undefined {
-        throw new UnimplementedError("You must override __stubForModule for CinnamonOptionalCoreModuleStub.")
+        throw new UnimplementedError('You must override __stubForModule for CinnamonOptionalCoreModuleStub.');
     }
 
 }

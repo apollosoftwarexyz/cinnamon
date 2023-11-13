@@ -1,9 +1,9 @@
-import * as zlib from "zlib";
-import { Buffer } from "buffer";
+import * as zlib from 'zlib';
+import { Buffer } from 'buffer';
 import { getDecoder as getIconvDecoder, DecoderStream } from 'iconv-lite';
-import { IncomingMessage } from "http";
+import { IncomingMessage } from 'http';
 
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
+import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
 
 /**
  * Attempts to fetch a decoder for the specified character set encoding, throwing a Cinnamon HttpError
@@ -20,7 +20,7 @@ function getCharsetDecoder(encoding?: string) : DecoderStream | undefined {
         throw new cinnamonInternals.error.HttpError(
             `Unsupported character set`,
             415
-        )
+        );
     }
 }
 
@@ -44,13 +44,13 @@ function haltStream(stream: IncomingMessage) {
  */
 export function determineCharset(req: IncomingMessage) : string | undefined {
     const type = req.headers['content-type'];
-    if (type && type.includes(";")) {
+    if (type && type.includes(';')) {
 
         // Loop over all parameters in the content-type header, if there are any.
         for (const parameter of type.split(';').slice(1)) {
 
             // Split the parameter into its constituent parts.
-            const parts = parameter.split("=");
+            const parts = parameter.split('=');
 
             if (parts.length < 2) continue;
 
@@ -109,6 +109,7 @@ export function inflateStream(stream: IncomingMessage, encoding?: string) : Inco
  * @param options
  */
 export async function readStream(stream: IncomingMessage, options?: {
+
     /**
      * The character encoding to use.
      * If not specified, a buffer will be returned. Otherwise, the payload will be a string, decoded accordingly.
@@ -214,7 +215,7 @@ export async function readStream(stream: IncomingMessage, options?: {
                     // array. (If we get sent a string, we know a character
                     // set decoder was not specified but it should have been,
                     // so we'll throw an error and clean up).
-                    if (typeof buffer !== "string") {
+                    if (typeof buffer !== 'string') {
                         buffer.push(chunk);
                     } else {
                         return reject(cleanup(new cinnamonInternals.error.HttpError(
@@ -248,8 +249,8 @@ export async function readStream(stream: IncomingMessage, options?: {
                 } else {
                     complete = true;
 
-                    if (typeof buffer === "string") {
-                        return resolve(buffer + (decoder!.end() || ''))
+                    if (typeof buffer === 'string') {
+                        return resolve(buffer + (decoder!.end() || ''));
                     }
 
                     return resolve(Buffer.concat(buffer));

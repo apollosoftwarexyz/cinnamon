@@ -12,15 +12,15 @@
   "dependencies": {
     "@apollosoftwarexyz/cinnamon": "^0.1.4",
     "@apollosoftwarexyz/cinnamon-internals": "^0.1.4",
-    "@mikro-orm/core": "^5.7.14",
-    "@mikro-orm/reflection": "^5.7.14"
+    "@mikro-orm/core": "^5.9.3",
+    "@mikro-orm/reflection": "^5.9.3"
   },
   "scripts": {
     "build": "tsc --build",
     "publish": "yarn npm publish --access public"
   },
   "devDependencies": {
-    "@types/node": "^20.5.7",
-    "rimraf": "^5.0.1"
+    "@types/node": "^20.9.0",
+    "rimraf": "^5.0.5"
   }
 }

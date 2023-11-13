@@ -1,4 +1,4 @@
-import { activeLoader } from "../loader";
+import { activeLoader } from '../loader';
 
 /**
  * If applied to a controller, the controller will only be loaded if the
@@ -16,7 +16,7 @@ export function LoadIf(predicate: () => boolean) {
 
         const shouldLoad = predicate();
 
-        if (!activeLoader) throw new Error("Failed to identify the active loader.");
+        if (!activeLoader) throw new Error('Failed to identify the active loader.');
 
         // If the _loaderId was empty, we're either operating on an invalid object
         // or the controller is empty, in which case the user will be warned and
@@ -25,14 +25,14 @@ export function LoadIf(predicate: () => boolean) {
 
         if (target._loaderActivatedController && !shouldLoad) {
             throw new Error(
-                "A LoadIf was specified on a controller that was already loaded, yet it indicated that the controller should not have been loaded.\n" +
+                'A LoadIf was specified on a controller that was already loaded, yet it indicated that the controller should not have been loaded.\n' +
                 "Make sure you've applied @LoadIf underneath @Controller (so that it loads before the controller.)"
             );
         }
 
         target._loaderIgnored = !shouldLoad;
 
-    }
+    };
 }
 
 /**

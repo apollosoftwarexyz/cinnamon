@@ -1,6 +1,6 @@
 import { v5 as uuidv5 } from 'uuid';
-import Loader, {activeLoader, LOADER_ROOT_ROUTE_NAMESPACE} from "../loader";
-import LoggerModule from "../../logger";
+import Loader, { activeLoader, LOADER_ROOT_ROUTE_NAMESPACE } from '../loader';
+import LoggerModule from '../../logger';
 
 /**
  * Registers a class as a Cinnamon API controller.
@@ -14,7 +14,7 @@ import LoggerModule from "../../logger";
 export default function Controller(...group: string[]) {
     return function (target: any) {
 
-        if (!activeLoader) throw new Error("Failed to identify the active loader.");
+        if (!activeLoader) throw new Error('Failed to identify the active loader.');
 
         if (!target._loaderId) {
             activeLoader.framework.getModule<LoggerModule>(LoggerModule.prototype).warn(`Empty controller ${target.name} detected. Skipping loading.`);
@@ -31,5 +31,5 @@ export default function Controller(...group: string[]) {
 
         Loader.loadController(controller, group, target);
 
-    }
+    };
 }

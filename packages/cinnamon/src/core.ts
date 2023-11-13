@@ -2,15 +2,15 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import { parse as parseToml } from 'toml';
 
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
+import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
 
-import WebServerModule from "./modules/web-server";
+import WebServerModule from './modules/web-server';
 import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
 
-import ConfigModule from "./modules/config";
-import LoggerModule, { DelegateLogFunction } from "./modules/logger";
-import { CinnamonModule, CinnamonOptionalCoreModuleStub } from "./sdk/cinnamon-module";
-import { CinnamonPlugin } from "./sdk/cinnamon-plugin";
+import ConfigModule from './modules/config';
+import LoggerModule, { DelegateLogFunction } from './modules/logger';
+import { CinnamonModule, CinnamonOptionalCoreModuleStub } from './sdk/cinnamon-module';
+import { CinnamonPlugin } from './sdk/cinnamon-plugin';
 
 /**
  * A convenience field for the default Cinnamon instance's ConfigModule.
@@ -29,6 +29,7 @@ export let Logger: LoggerModule;
 export const CINNAMON_CORE_DEBUG_MODE = false;
 
 export type CinnamonInitializationOptions = {
+
     /**
      * An optional validation schema for the app configuration.
      */
@@ -80,7 +81,7 @@ export default class Cinnamon {
      *
      * If no instance of Cinnamon has been initialized, this will be undefined.
      */
-    public static get defaultInstance() { return Cinnamon._defaultInstance; };
+    public static get defaultInstance() { return Cinnamon._defaultInstance; }
     private static _defaultInstance?: Cinnamon;
 
     private readonly devMode: boolean;
@@ -144,13 +145,13 @@ export default class Cinnamon {
      */
     public getModule<T extends CinnamonModule>(moduleType: T) : T {
         const module = this.modules.find(module => (module.constructor.name === moduleType.constructor.name
-            || (CinnamonOptionalCoreModuleStub.prototype.isPrototypeOf(moduleType) &&
+            || (Object.prototype.isPrototypeOf.call(CinnamonOptionalCoreModuleStub.prototype, moduleType) &&
                 (moduleType as any).__isStub &&
                 module.constructor.name === (moduleType as any).__stubIdentifier))
         ) as T;
 
         if (module != null) return module;
-        else throw new Error("(!) Attempted to access unknown module: " + moduleType);
+        else throw new Error('(!) Attempted to access unknown module: ' + moduleType);
     }
 
     /**
@@ -265,7 +266,7 @@ export default class Cinnamon {
         }
 
         // If the file exists, we're ready to load cinnamon.toml, and to process and validate the contents.
-        console.log("Initializing Cinnamon...");
+        console.log('Initializing Cinnamon...');
         const projectConfigFile = (await promisify(fs.readFile)('./cinnamon.toml', 'utf-8'));
 
         let projectConfig: {
@@ -287,7 +288,7 @@ export default class Cinnamon {
 
                 database: {
                     enabled: boolean;
-                };
+                } & any;
 
                 structure: {
                     controllers: string;
@@ -336,7 +337,7 @@ export default class Cinnamon {
         // If the NODE_ENV environment variable is set, override the value from
         // cinnamon.toml.
         if (process.env.NODE_ENV) {
-            projectConfig.framework.core.development_mode = process.env.NODE_ENV.toLowerCase() === "development";
+            projectConfig.framework.core.development_mode = process.env.NODE_ENV.toLowerCase() === 'development';
         }
 
         // Initialize the framework using the project configuration.
@@ -364,7 +365,7 @@ export default class Cinnamon {
             Logger = framework.getModule<LoggerModule>(LoggerModule.prototype);
         }
 
-        framework.getModule<LoggerModule>(LoggerModule.prototype).info("Starting Cinnamon...");
+        framework.getModule<LoggerModule>(LoggerModule.prototype).info('Starting Cinnamon...');
 
         // Call the load function if it was supplied to the initialize options.
         // We do this before calling onInitialize on all the plugins to allow the user to register
@@ -375,9 +376,7 @@ export default class Cinnamon {
         // initialized.
         await Promise.all(Object.entries(framework.plugins).map(async ([identifier, plugin]) => {
             framework.getModule<LoggerModule>(LoggerModule.prototype).info(`Loaded plugin ${identifier}!`);
-            if(!(await plugin.onInitialize())) {
-
-            }
+            await plugin.onInitialize();
         }));
 
         try {
@@ -387,7 +386,7 @@ export default class Cinnamon {
 
             // Initialize ORM.
             if (projectConfig.framework.database.enabled) {
-                framework.getModule<LoggerModule>(LoggerModule.prototype).info("Initializing database and ORM models...");
+                framework.getModule<LoggerModule>(LoggerModule.prototype).info('Initializing database and ORM models...');
 
                 const modelsPath = cinnamonInternals.fs.toAbsolutePath(projectConfig.framework.structure.models);
                 if (!await cinnamonInternals.fs.directoryExists(modelsPath)) {
@@ -396,6 +395,7 @@ export default class Cinnamon {
                     process.exit(2);
                 }
 
+                // eslint-disable-next-line @typescript-eslint/no-var-requires
                 const Database = (require('@apollosoftwarexyz/cinnamon-database').default);
 
                 framework.registerModule(new Database(framework, modelsPath));
@@ -403,11 +403,11 @@ export default class Cinnamon {
                 if (autostartServices) {
                     await framework.getModule(Database.prototype).connect();
                 }
-                framework.getModule<LoggerModule>(LoggerModule.prototype).info("Successfully initialized database ORM and models.");
+                framework.getModule<LoggerModule>(LoggerModule.prototype).info('Successfully initialized database ORM and models.');
             }
 
             // Initialize web service controllers.
-            framework.getModule<LoggerModule>(LoggerModule.prototype).info("Initializing web service controllers...");
+            framework.getModule<LoggerModule>(LoggerModule.prototype).info('Initializing web service controllers...');
 
             const controllersPath = cinnamonInternals.fs.toAbsolutePath(projectConfig.framework.structure.controllers);
             if (!await cinnamonInternals.fs.directoryExists(controllersPath)) {
@@ -419,7 +419,7 @@ export default class Cinnamon {
             // Now, register and initialize the web server, and load the controllers.
             framework.registerModule(new WebServerModule(framework, controllersPath, projectConfig.framework.http.trust_proxy));
             await framework.getModule<WebServerModule>(WebServerModule.prototype).initialize();
-            framework.getModule<LoggerModule>(LoggerModule.prototype).info("Successfully initialized web service controllers.");
+            framework.getModule<LoggerModule>(LoggerModule.prototype).info('Successfully initialized web service controllers.');
 
             // Trigger 'onStart' for all plugins and wait for it to complete. This is essentially the
             // 'post-initialize' hook for the framework.
@@ -435,16 +435,16 @@ export default class Cinnamon {
             // etc., and could even help mitigate security risks due to ensuring development-only code
             // is not accidentally enabled on a production service.
             if (framework.devMode)
-                framework.getModule<LoggerModule>(LoggerModule.prototype).warn("Application running in DEVELOPMENT mode.");
+                framework.getModule<LoggerModule>(LoggerModule.prototype).warn('Application running in DEVELOPMENT mode.');
 
             return framework;
         } catch(ex: any) {
             framework.getModule<LoggerModule>(LoggerModule.prototype).error(
-                "Failed to start Cinnamon. If you believe this is a framework error, please open an issue in the " +
-                "Cinnamon project repository.\n" +
-                "(Apollo Software only): please consider opening an issue with the Internal Projects team." +
-                "\n" +
-                "https://github.com/apollosoftwarexyz/cinnamon/issues/new\n"
+                'Failed to start Cinnamon. If you believe this is a framework error, please open an issue in the ' +
+                'Cinnamon project repository.\n' +
+                '(Apollo Software only): please consider opening an issue with the Internal Projects team.' +
+                '\n' +
+                'https://github.com/apollosoftwarexyz/cinnamon/issues/new\n'
             );
             framework.getModule<LoggerModule>(LoggerModule.prototype).error(ex.message);
             console.error('');
@@ -469,15 +469,13 @@ export default class Cinnamon {
      */
     async terminate(inErrorState: boolean = false, message?: string, exitCode?: number) : Promise<never> {
         try {
-            if (message) this.getModule<LoggerModule>(LoggerModule.prototype)[inErrorState ? 'error' : 'warn']
-            (message);
-            this.getModule<LoggerModule>(LoggerModule.prototype)[inErrorState ? 'error' : 'warn']
-            (`Shutting down...`);
+            if (message) this.getModule<LoggerModule>(LoggerModule.prototype)[inErrorState ? 'error' : 'warn'](message);
+            this.getModule<LoggerModule>(LoggerModule.prototype)[inErrorState ? 'error' : 'warn'](`Shutting down...`);
         } catch (ex) {
             console.error(message);
             console.error(
-                "Cinnamon is shutting down.\n" +
-                "This has not been logged because the logger was inactive or returned an error."
+                'Cinnamon is shutting down.\n' +
+                'This has not been logged because the logger was inactive or returned an error.'
             );
         }
 

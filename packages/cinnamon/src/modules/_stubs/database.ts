@@ -1,13 +1,13 @@
-import { CinnamonOptionalCoreModuleStub } from "../../sdk/cinnamon-module";
-import { MissingModuleError } from "../../sdk/base";
-import Cinnamon from "../../core";
+import { CinnamonOptionalCoreModuleStub } from '../../sdk/cinnamon-module';
+import { MissingModuleError } from '../../sdk/base';
+import Cinnamon from '../../core';
 
 export abstract class DatabaseModuleStub extends CinnamonOptionalCoreModuleStub {
 
-    private static readonly DEFAULT_DATABASE_MODULE = "@apollosoftwarexyz/cinnamon-database";
+    private static readonly DEFAULT_DATABASE_MODULE = '@apollosoftwarexyz/cinnamon-database';
 
     get __stubIdentifier() {
-        return "DatabaseModule";
+        return 'DatabaseModule';
     }
 
     get __stubForModule() {

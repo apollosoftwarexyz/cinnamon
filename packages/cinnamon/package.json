@@ -13,20 +13,20 @@
     "@apollosoftwarexyz/cinnamon-internals": "^0.1.4",
     "@apollosoftwarexyz/cinnamon-validator": "^0.1.4",
     "@apollosoftwarexyz/cinnamon-youch": "^3.2.0",
-    "@types/formidable": "^3.4.2",
-    "@types/koa": "^2.13.8",
-    "@types/node": "^20.5.7",
-    "@types/qs": "^6.9.7",
+    "@types/formidable": "^3.4.4",
+    "@types/koa": "^2.13.10",
+    "@types/node": "^20.8.7",
+    "@types/qs": "^6.9.9",
     "chalk": "^4",
     "chokidar": "^3.5.3",
     "co": "^4.6.0",
     "formidable": "^3.5.1",
     "iconv-lite": "^0.6.3",
     "koa": "^2.14.2",
-    "koa-router": "^12.0.0",
+    "koa-router": "^12.0.1",
     "qs": "^6.11.2",
     "toml": "^3.0.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.1"
   },
   "scripts": {
     "updateReadme": "cp ../../README.md ./README.md",
@@ -35,10 +35,10 @@
     "publish": "yarn npm publish --access public"
   },
   "devDependencies": {
-    "@types/co": "^4.6.3",
-    "@types/koa-router": "^7.4.4",
-    "@types/uuid": "^9.0.2",
-    "rimraf": "^5.0.1",
+    "@types/co": "^4.6.5",
+    "@types/koa-router": "^7.4.6",
+    "@types/uuid": "^9.0.6",
+    "rimraf": "^5.0.5",
     "typescript": "^5.2.2"
   }
 }

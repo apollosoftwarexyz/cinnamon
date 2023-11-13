@@ -1,9 +1,9 @@
-import { IncomingMessage } from "http";
+import { IncomingMessage } from 'http';
 import * as qs from 'qs';
-import { TextualBodyOptions } from "./index";
-import { readText } from "./text";
+import { TextualBodyOptions } from './index';
+import { readText } from './text';
 
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
+import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
 
 export type QueryStringOptions = qs.IParseOptions;
 
@@ -18,9 +18,9 @@ export async function readUrlEncoded(req: IncomingMessage, options?: TextualBody
 
     if (typeof raw !== 'string') {
         throw new cinnamonInternals.error.HttpError(
-            "Invalid request body character encoding",
+            'Invalid request body character encoding',
             415
-        )
+        );
     }
 
     try {
@@ -29,10 +29,10 @@ export async function readUrlEncoded(req: IncomingMessage, options?: TextualBody
         return {
             parsed,
             raw
-        }
+        };
     } catch(ex) {
         throw new cinnamonInternals.error.HttpError(
-            "Failed to parse request body",
+            'Failed to parse request body',
             400,
             ex
         );

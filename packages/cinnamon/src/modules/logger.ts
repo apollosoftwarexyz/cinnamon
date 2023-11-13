@@ -1,8 +1,9 @@
-import type Cinnamon from "../core";
-import { CinnamonModule } from "../sdk/cinnamon-module";
+import type Cinnamon from '../core';
+import { CinnamonModule } from '../sdk/cinnamon-module';
 import * as chalk from 'chalk';
 
 export enum LogLevel {
+
     /**
      * **Used for internal framework-level debugging messages.**
      * This log-level should not be used by any application and definitely not in production.
@@ -65,18 +66,22 @@ export enum LogLevel {
  * This is the object passed to the {@link DelegateLogFunction} or the log method.
  */
 export interface LogEntry {
+
     /**
      * The LogLevel of the log. One of DEBUG, INFO, WARN or ERROR.
      */
     level: LogLevel;
+
     /**
      * The timestamp of the log entry, in JavaScript Date form.
      */
     timestamp: Date;
+
     /**
      * The module that generated the log entry. Leave as none for default (application).
      */
     module?: string;
+
     /**
      * The textual message that was logged.
      */
@@ -84,14 +89,17 @@ export interface LogEntry {
 }
 
 export interface DelegateLogEntry extends LogEntry {
+
     /**
      * A string representation of the log level.
      */
     levelString: string;
+
     /**
      * The prefix of the logger that generated the log entry.
      */
     prefix: string;
+
     /**
      * A string representation of the timestamp of the log entry.
      */
@@ -114,6 +122,7 @@ export interface DelegateLogEntry extends LogEntry {
 export type DelegateLogFunction = (message: DelegateLogEntry) => void;
 
 interface ExtendedLoggerOptions {
+
     /**
      * Whether internal framework debugging messages should be displayed/logged as well as application debugging
      * messages.
@@ -195,7 +204,7 @@ export default class LoggerModule extends CinnamonModule {
             timestamp: new Date(),
             module,
             message
-        })
+        });
     }
 
     /**

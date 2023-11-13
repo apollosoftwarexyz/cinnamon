@@ -1,4 +1,4 @@
-import type Cinnamon from "../core";
+import type Cinnamon from '../core';
 
 /**
  * A general unimplemented error for use within Cinnamon's SDK
@@ -7,7 +7,7 @@ import type Cinnamon from "../core";
 export class UnimplementedError extends Error {
     constructor(message?: string) {
         super(message);
-        this.message = `Not yet implemented${message ? `: ${message}` : ''}`
+        this.message = `Not yet implemented${message ? `: ${message}` : ''}`;
     }
 }
 
@@ -19,8 +19,8 @@ export class UnimplementedError extends Error {
 export class MissingModuleError extends UnimplementedError {
     constructor(message?: string, moduleName?: string) {
         super(message);
-        this.message = `Missing module${message ? `: ${message}` : ''}`
-        if (moduleName) this.message += `\nPlease install ${moduleName}.`
+        this.message = `Missing module${message ? `: ${message}` : ''}`;
+        if (moduleName) this.message += `\nPlease install ${moduleName}.`;
     }
 }
 

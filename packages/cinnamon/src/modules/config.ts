@@ -1,8 +1,8 @@
-import { $, ValidationSchema } from "@apollosoftwarexyz/cinnamon-validator";
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
+import { $, ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
+import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
 
-import type Cinnamon from "../core";
-import { CinnamonModule } from "../sdk/cinnamon-module";
+import type Cinnamon from '../core';
+import { CinnamonModule } from '../sdk/cinnamon-module';
 
 /**
  * @category Core Modules
@@ -77,9 +77,9 @@ export default class ConfigModule extends CinnamonModule {
      */
     public get<T = any>(key: string) : T {
         if (!this.appConfig) throw new Error(
-            "There is no app configuration loaded.\n" +
-            "You can initialize a runtime app configuration by calling set to add a key to a new, empty, configuration.\n" +
-            "Alternatively, ensure that no validation errors occurred whilst loading the configuration *and* that you have a loadable app configuration in your cinnamon.toml."
+            'There is no app configuration loaded.\n' +
+            'You can initialize a runtime app configuration by calling set to add a key to a new, empty, configuration.\n' +
+            'Alternatively, ensure that no validation errors occurred whilst loading the configuration *and* that you have a loadable app configuration in your cinnamon.toml.'
         );
 
         const result = cinnamonInternals.data.resolveObjectDeep(
@@ -112,7 +112,7 @@ export default class ConfigModule extends CinnamonModule {
     public set<T>(key: string, value: T) : void {
         const jsonValue = JSON.stringify(value);
         if (JSON.parse(jsonValue) !== value) {
-            throw new Error("This type of value cannot be stored.");
+            throw new Error('This type of value cannot be stored.');
         }
 
         if (!this.appConfig) this.appConfig = {};

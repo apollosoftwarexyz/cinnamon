@@ -1,11 +1,13 @@
-import { MiddlewareFn } from "../../api/Middleware";
-import {Fields, Files, IncomingForm, Options as FormidableOptions} from 'formidable';
+import { MiddlewareFn } from '../../api/Middleware';
+import { Fields, Files, IncomingForm, Options as FormidableOptions } from 'formidable';
 
-import cinnamonInternals, {$Cinnamon} from "@apollosoftwarexyz/cinnamon-internals";
-import { readText } from "./text";
-import { jsonMimeTypes, readJson } from "./json";
-import { readUrlEncoded } from "./urlencoded";
-import { Request } from "../../../../index";
+import cinnamonInternals, { $Cinnamon } from '@apollosoftwarexyz/cinnamon-internals';
+import { readText } from './text';
+import { jsonMimeTypes, readJson } from './json';
+import { readUrlEncoded } from './urlencoded';
+import { Request } from '../../../../index';
+
+type KnownBodyTypes = 'json' | 'urlencoded' | 'text' | 'multipart';
 
 export interface TextualBodyOptions {
 
@@ -26,6 +28,7 @@ export interface TextualBodyOptions {
 }
 
 export function Body(options?: {
+
     /**
      * The HTTP methods to parse the body for. If set to "all" or true, this will accept all methods.
      * Otherwise, only the specified methods will be accepted.
@@ -91,7 +94,7 @@ export function Body(options?: {
      * recognized by this middleware: 'json', 'urlencoded', 'text' or 'multipart'.
      */
     customTypes?: {
-        [key: string]: 'json' | 'urlencoded' | 'text' | 'multipart';
+        [key: string]: KnownBodyTypes;
     }
 }) : MiddlewareFn {
 
@@ -119,7 +122,7 @@ export function Body(options?: {
         (ctx.request as Request<any> & { [$Cinnamon]: any })[$Cinnamon].bodyError =
             `You're attempting to read the body on a ${ctx.method.toUpperCase()} request, however that request is ` +
             `only configured to accept bodies on the following methods:\n` +
-            `>\t[${(options?.acceptedMethods! as string[]).join(',')}]` +
+            `>\t[${(options!.acceptedMethods as string[]).join(',')}]` +
             `\n`;
 
         // If the request method was not one of the accepted methods (and the accepted methods wasn't
@@ -136,7 +139,7 @@ export function Body(options?: {
         ctx.request.body = undefined;
         ctx.request.rawBody = undefined;
 
-        let customType;
+        let customType: KnownBodyTypes;
         if (options!.customTypes && options!.customTypes[ctx.type])
             customType = options!.customTypes[ctx.type];
 
@@ -146,7 +149,7 @@ export function Body(options?: {
             const form = new IncomingForm(options!.multipartOptions);
 
             try {
-                const parsedForm = await new Promise<{ fields: Fields, files: Files }>((resolve, reject) => {
+                const parsedForm = await new Promise<{ fields: Fields, files: Files }>((_, reject) => {
                     form.parse(ctx.req, (err, fields, files) => {
                         if (err) return reject(err);
                         return { fields, files };
@@ -163,10 +166,9 @@ export function Body(options?: {
                 );
             }
 
-        }
+        } else {
 
-        // Attempt to parse the body if it is a recognized text type.
-        else {
+            // Attempt to parse the body if it is a recognized text type.
 
             if (options!.json && (ctx.is(jsonMimeTypes) || (customType && customType === 'json'))) {
 
@@ -197,6 +199,6 @@ export function Body(options?: {
 
         return await next();
 
-    }
+    };
 
 }

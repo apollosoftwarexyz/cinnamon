@@ -1,8 +1,13 @@
-import ValidationResult from "./result";
-import { ValidationSchemaFieldSmartAttribute } from "./validation-schema/attribute";
-import { ValidationSchema, ValidationSchemaField, ValidationSchemaObject } from "./validation-schema/core";
+import ValidationResult from './result';
+import { ValidationSchemaFieldSmartAttribute } from './validation-schema/attribute';
+import {
+    ValidationSchema,
+    ValidationSchemaArray,
+    ValidationSchemaField,
+    ValidationSchemaObject
+} from './validation-schema/core';
 
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
+import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
 
 type _ExecutorValidationFailOptions = {
     field: ValidationSchemaField,
@@ -15,6 +20,12 @@ type _ValidationSchemaFieldSmartAttributeObject = {
     [key: string]: ValidationSchemaFieldSmartAttribute<any>;
 };
 
+enum _ValidationSchemaType {
+    Object = 'object',
+    Array = 'array',
+    Field = 'field'
+}
+
 /**
  * A Validator handles performing validation on objects according to the specified schema provided to it when it was
  * initialized.
@@ -25,10 +36,12 @@ export class Validator {
 
     /**
      * Whether the schema on this executor is for a single field (i.e., a
-     * validation schema field) (= true) or for an entire object (i.e., a
-     * validation schema object) (= false).
+     * validation schema field) (= _ValidationSchemaType.Field), for an
+     * entire object (i.e., a validation schema object)
+     * (= _ValidationSchemaType.Object), or for an array (i.e., a validation
+     * schema array) (= _ValidationSchemaType.Array).
      */
-    private readonly isSingleFieldSchema: boolean;
+    private readonly schemaType: _ValidationSchemaType;
 
     /**
      * Initializes a ValidationSchemaExecutor with the specified schema. Once initialized, the
@@ -38,7 +51,14 @@ export class Validator {
      */
     constructor(schema: ValidationSchema) {
         this.schema = schema;
-        this.isSingleFieldSchema = !Validator._isValidationSchemaObject(this.schema);
+
+        if (Validator._isValidationSchemaObject(this.schema)) {
+            this.schemaType = _ValidationSchemaType.Object;
+        } else if (Validator._isValidationSchemaArray(this.schema)) {
+            this.schemaType = _ValidationSchemaType.Array;
+        } else {
+            this.schemaType = _ValidationSchemaType.Field;
+        }
     }
 
     /**
@@ -50,24 +70,36 @@ export class Validator {
      * second (1) being either the inputted value if it was valid, or undefined if it wasn't.
      */
     public validate(value: any) : [ ValidationResult, any | undefined ] {
-        let result;
+        let result: ValidationResult;
 
-        if (this.isSingleFieldSchema) {
-            result = this.validateSchemaAgainstField(
-                this.schema as ValidationSchemaField,
-                value,
-                undefined,
-                '$root',
-                undefined
-            );
-        } else {
-            result = this.validateSchemaAgainstObject(
-                this.schema as ValidationSchemaObject,
-                value,
-                value,
-                '$root',
-                undefined
-            );
+        switch (this.schemaType) {
+            case _ValidationSchemaType.Object:
+                result = this.validateSchemaAgainstObject(
+                    this.schema as ValidationSchemaObject,
+                    value,
+                    value,
+                    '$root',
+                    undefined
+                );
+                break;
+            case _ValidationSchemaType.Array:
+                result = this.validateSchemaAgainstArray(
+                    this.schema as ValidationSchemaArray,
+                    value,
+                    undefined,
+                    '$root',
+                    undefined
+                );
+                break;
+            case _ValidationSchemaType.Field:
+                result = this.validateSchemaAgainstField(
+                    this.schema as ValidationSchemaField,
+                    value,
+                    undefined,
+                    '$root',
+                    undefined
+                );
+                break;
         }
 
         return [ result, result.success ? value : undefined ];
@@ -86,7 +118,7 @@ export class Validator {
             }
 
             let objectName = Validator._toHumanReadableFieldName(`${_parentName}.${_fieldName}`);
-            return ValidationResult.fail(`The '${objectName}' field is missing.`);
+            return ValidationResult.fail(`The '${objectName}' field is missing or invalid.`);
         }
 
         // Loop over every key in the current object.
@@ -106,10 +138,24 @@ export class Validator {
                 );
                 if (!childSchemaValidation.success) return childSchemaValidation;
 
+            // Otherwise, if the current entry is a validation schema array,
+            // then validate against the array.
+            } else if (Validator._isValidationSchemaArray(object[key])) {
+
+                const childSchemaValidation = this.validateSchemaAgainstArray(
+                    object[key] as ValidationSchemaArray,
+                    value[key],
+                    _entireObject,
+                    key,
+                    `${_parentName !== undefined ? _parentName + '.' : ''}${_fieldName}`
+                );
+                if (!childSchemaValidation.success) return childSchemaValidation;
+
             // Otherwise, if the current entry is a field, attempt to validate
             // that sole field, again, immediately failing validation if that
             // field fails validation.
             } else {
+
                 const childFieldValidation = this.validateSchemaAgainstField(
                     object[key] as ValidationSchemaField,
                     value[key],
@@ -118,6 +164,7 @@ export class Validator {
                     `${_parentName !== undefined ? _parentName + '.' : ''}${_fieldName}`
                 );
                 if (!childFieldValidation.success) return childFieldValidation;
+
             }
         }
 
@@ -125,6 +172,105 @@ export class Validator {
         // then we may reasonably conclude validation must have passed.
         return ValidationResult.success();
 
+    }
+
+    private validateSchemaAgainstArray(array: ValidationSchemaArray, value: any, _entireObject?: any, _fieldName?: string, _parentName?: string) : ValidationResult {
+        let arrayName = Validator._toHumanReadableFieldName(`${_parentName}.${_fieldName}`);
+        let normalizedValue = value;
+
+        // If the array is a stringified JSON array, parse it.
+        if (typeof value === 'string' && value.trim().startsWith('[') && value.trim().endsWith(']')) {
+            try {
+                normalizedValue = JSON.parse(value);
+            } catch (_) {
+                // If the value is not a valid JSON array, we know it cannot
+                // pass validation.
+                return ValidationResult.fail(`The '${arrayName}' field is missing or invalid.`);
+            }
+        }
+
+        // If the value is not an array, we know it cannot pass validation.
+        if (!Array.isArray(normalizedValue)) {
+            // If we're evaluating the root object against an object schema,
+            // but the value is not an object, we know the object is missing
+            // and thus the payload is invalid.
+            if (_parentName === undefined && _fieldName === '$root') {
+                return ValidationResult.fail('The submitted value is invalid.');
+            }
+
+            return ValidationResult.fail(`The '${arrayName}' field is missing or invalid.`);
+        }
+
+        // Overwrite the value with the normalized value to avoid mistakes.
+        value = normalizedValue;
+
+        // Check the array length.
+        // Empty arrays are only valid if the array is made optional with an
+        // empty array schema.
+        if (value.length === 0) {
+            if (array.length === 0) {
+                return ValidationResult.success();
+            } else {
+                return ValidationResult.fail(`The '${arrayName}' field must contain at least one entry.`);
+            }
+        }
+
+        // If the schema is an array of arrays, return the result of validating
+        // the nested array.
+        if (Validator._isValidationSchemaArray(array[0])) {
+            // If the array is an array of arrays, we know the array must be
+            // nested, so we can simply return the result of validating the
+            // nested array.
+            return value.every((entry: any) => this.validateSchemaAgainstArray(
+                array[0] as ValidationSchemaArray,
+                entry,
+                _entireObject,
+                _fieldName,
+                _parentName
+            ).success)
+                ? ValidationResult.success()
+                : ValidationResult.fail(`The '${arrayName}' field contains invalid entries.`);
+        }
+
+        // If the schema is an array of objects, return the result of validating
+        // the nested object.
+        if (Validator._isValidationSchemaObject(array[0])) {
+            return value.every((entry: any) => this.validateSchemaAgainstObject(
+                array[0] as ValidationSchemaObject,
+                entry,
+                _entireObject,
+                _fieldName,
+                _parentName
+            ).success)
+                ? ValidationResult.success()
+                : ValidationResult.fail(`The '${arrayName}' field contains invalid entries.`);
+        }
+
+        // If the schema is an array of fields, return the result of validating
+        // the nested fields.
+        let readableIndex = 1;
+        for (let entry of value) {
+            let result = this.validateSchemaAgainstField(
+                array[0] as ValidationSchemaField,
+                entry,
+                _entireObject,
+                _fieldName,
+                _parentName
+            );
+
+            // If any of the fields fail validation, short-circuit and return
+            // the result of that field's validation.
+            if (!result.success) {
+                return Validator._fail({
+                    field: array[0] as ValidationSchemaField,
+                    fieldName: `${Validator._toOrdinalNumber(readableIndex)} ${_fieldName}`, parentName: _parentName
+                });
+            }
+
+            readableIndex++;
+        }
+
+        return ValidationResult.success();
     }
 
     private validateSchemaAgainstField(field: ValidationSchemaField, value: any, _entireObject?: any, fieldName?: string, parentName?: string) : ValidationResult {
@@ -157,7 +303,7 @@ export class Validator {
         }
 
         if (field.equals && field.arrayEquals) {
-            throw new Error("You may not specify equals AND arrayEquals; they are mutually exclusive.");
+            throw new Error('You may not specify equals AND arrayEquals; they are mutually exclusive.');
         }
 
         if (field.equals !== undefined && field.equals !== null) {
@@ -169,7 +315,7 @@ export class Validator {
             if (Array.isArray(field.equals) && !Array.isArray(value)) {
                 // If not, short circuit and return false.
                 if (!field.equals.some(entry => value === entry))
-                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field was not set to a valid value. Possible values are: ' + JSON.stringify(field.equals)});
+                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field was not set to a valid value. Possible values are: ' + JSON.stringify(field.equals) });
             // Otherwise, if it's just an object, simply make sure if
             // field.equals in the schema is equal to the current value.
             } else {
@@ -184,7 +330,7 @@ export class Validator {
             // is included.
             if ((field.arrayEquals as any[]).every(entry => Array.isArray(entry))) {
                 if (!(field.arrayEquals as any[][]).some(entry => cinnamonInternals.data.arrayEquals(entry, value)))
-                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field was not set to a valid value. Possible values are: ' + JSON.stringify(field.arrayEquals)});
+                    return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field was not set to a valid value. Possible values are: ' + JSON.stringify(field.arrayEquals) });
             // Otherwise, simply compare the field.arrayEquals array to the
             // value, to ensure they're equal.
             } else {
@@ -197,19 +343,18 @@ export class Validator {
             if (field.matches instanceof RegExp) {
                 if (!field.matches.test(value)) return Validator._fail({ field, fieldName, parentName });
             } else {
-                // @ts-ignore
                 if (field.matches['$any'] && field.matches['$all'])
                     throw new Error("You may not have $any and $all specified on a field's 'matches' property; they are mutually exclusive.");
 
-                let comparisionFunc: 'some' | 'every' | undefined;
+                let comparisonFunc: 'some' | 'every' | undefined;
                 let aggregateOp: '$any' | '$all' | undefined;
-                if (field.matches.$any) { aggregateOp = '$any'; comparisionFunc = 'some';   }
-                if (field.matches.$all) { aggregateOp = '$all'; comparisionFunc = 'every';  }
+                if (field.matches.$any) { aggregateOp = '$any'; comparisonFunc = 'some'; }
+                if (field.matches.$all) { aggregateOp = '$all'; comparisonFunc = 'every'; }
 
-                if (comparisionFunc && aggregateOp) {
-                    if (! ((field.matches[aggregateOp] as RegExp[])[comparisionFunc]((expression: RegExp) => expression.test(value))) )
+                if (comparisonFunc && aggregateOp) {
+                    if (! ((field.matches[aggregateOp] as RegExp[])[comparisonFunc]((expression: RegExp) => expression.test(value))) )
                         return Validator._fail({ field, fieldName, parentName });
-                } else throw new Error("Invalid matches property. Must be a regular expression (regex), or an aggregate expression with $any or $all operator.");
+                } else throw new Error('Invalid matches property. Must be a regular expression (regex), or an aggregate expression with $any or $all operator.');
             }
         }
 
@@ -217,7 +362,7 @@ export class Validator {
             if (_entireObject) {
                 if (cinnamonInternals.data.resolveObjectDeep(field.$eq, _entireObject) !== value)
                     return Validator._fail({ field, fieldName, parentName, defaultMessage: 'The ${fieldName} field must be equal to the ' + Validator._toHumanReadableFieldName(_entireObject[field.$eq].fieldName ?? field.$eq) + ' field.' });
-            } else throw new Error("The $eq operator may not be used on a field outside of an object context.");
+            } else throw new Error('The $eq operator may not be used on a field outside of an object context.');
         }
 
         // Now check type-specific field values.
@@ -256,8 +401,7 @@ export class Validator {
                 return ValidationResult.success();
 
             default:
-                // @ts-ignore
-                throw new Error(`Invalid or unimplemented validation type '${field.type}' encountered!`);
+                throw new Error(`Invalid or unimplemented validation type '${(field as any).type}' encountered!`);
         }
     }
 
@@ -284,8 +428,21 @@ export class Validator {
     }
 
     private static _badFieldMessage(options: _ExecutorValidationFailOptions) {
-        const message = options.field.invalidMessage ?? options.defaultMessage ?? "The ${fieldName} field was invalid.";
+        const message = options.field.invalidMessage ?? options.defaultMessage ?? 'The ${fieldName} field was invalid.';
         return message.replace(/\$\{fieldName}/g, Validator._toHumanReadableFieldName(`${options.parentName}.${options.fieldName}`));
+    }
+
+    private static _toOrdinalNumber(value: number) {
+        switch (value % 10) {
+            case 1:
+                return `${value}${value % 100 === 11 ? 'th' : 'st'}`;
+            case 2:
+                return `${value}${value % 100 === 12 ? 'th' : 'nd'}`;
+            case 3:
+                return `${value}${value % 100 === 13 ? 'th' : 'rd'}`;
+            default:
+                return `${value}th`;
+        }
     }
 
     private static _toHumanReadableFieldName(fieldName: string) {
@@ -304,13 +461,14 @@ export class Validator {
 
     /**
      * Checks if the specified object is a validation schema object (true) or
-     * a single validation schema field (false).
-     * @param  value               The object to check.
-     * @return {boolean} isValidationSchemaObject - true the specified value is
-     * a validation schema object, false if it's just a validation schema field.
+     * something else (false).
+     * @param value The object to check.
+     * @return {boolean} isValidationSchemaObject - true if the specified value
+     * is a validation schema object, false if it's an array or field.
+     * @private
      */
     private static _isValidationSchemaObject(value: any) : boolean {
-        if (typeof value !== 'object') return false;
+        if (typeof value !== 'object' || Array.isArray(value)) return false;
 
         // If our object solely consists of entry values that are validation
         // schema fields, we know this must be a validation schema object.
@@ -318,11 +476,24 @@ export class Validator {
             // If it has a string 'type' entry, we know this entry must be a
             // field. Otherwise, it's something else, meaning the parent
             // cannot be a validation schema object.
-            if ((!(entry as any)['type'] || typeof ((entry as any)['type']) !== 'string') && !this._isValidationSchemaObject(entry as any))
+            if ((!(entry as any)['type'] || typeof ((entry as any)['type']) !== 'string') && !this._isValidationSchemaObject(entry as any) && !this._isValidationSchemaArray(entry as any))
                 return false;
         }
 
         return true;
+    }
+
+    /**
+     * Checks if the specified object is a validation schema array (true) or
+     * something else (false).
+     * @param value The object to check.
+     * @return {boolean} isValidationSchemaArray - true if the specified value
+     * is a validation schema array, false if it's an object or field.
+     * @private
+     */
+    private static _isValidationSchemaArray(value: any) : boolean {
+        // For now, we'll just check the type of the value.
+        return Array.isArray(value);
     }
 
 }

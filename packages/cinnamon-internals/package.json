@@ -14,10 +14,10 @@
     "publish": "yarn npm publish --access public"
   },
   "devDependencies": {
-    "@types/node": "^20.5.7",
+    "@types/node": "^20.8.7",
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "rimraf": "^5.0.1"
+    "rimraf": "^5.0.5"
   }
 }

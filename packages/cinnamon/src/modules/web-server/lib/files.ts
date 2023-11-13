@@ -2,15 +2,16 @@ import * as FileSystem from 'fs';
 import * as Path from 'path';
 import { promisify } from 'util';
 
-import { Context } from "../../../index";
+import { Context } from '../../../index';
 
-import cinnamonInternals from "@apollosoftwarexyz/cinnamon-internals";
+import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
 
 /**
  * Options that may be specified when using `sendFile` to respond to a request with
  * a file.
  */
 export interface SendFileOptions {
+
     /**
      * The root directory that should be served from, relative to the project root.
      */
@@ -85,7 +86,7 @@ export interface SendFileOptions {
 export default async function sendFile(ctx: Context, path: string, options: SendFileOptions) : Promise<string> {
     options = cinnamonInternals.data.mergeObjectDeep({
         index: true,
-        indexFiles: ["index.html", "index.htm"],
+        indexFiles: ['index.html', 'index.htm'],
         maxAge: 0,
         immutable: false,
         ignoreHiddenFiles: true
@@ -158,10 +159,8 @@ export default async function sendFile(ctx: Context, path: string, options: Send
             if (!didFindExtension)
                 throw new cinnamonInternals.error.HttpError('File not found', 404);
 
-        }
-
-        // Otherwise, error out straight away.
-        else {
+        } else {
+            // Otherwise, error out straight away.
             throw new cinnamonInternals.error.HttpError('File not found', 404);
         }
 
