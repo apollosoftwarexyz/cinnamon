@@ -1,3 +1,35 @@
+# v0.2.0
+- Refactor `@apollosoftwarexyz/cinnamon-internals` to remove namespaces and
+  improve code quality.
+  - Add unit tests to `@apollosoftwarexyz/cinnamon-internals`.
+- Add `CinnamonModuleRegistry` for internal modules to improve performance on
+  registering and resolving modules.
+- Add `CinnamonHookRegistry` for hooks to improve performance on triggering
+  hooks and allow for a centralized, type-safe, set of hooks that are unified
+  and accessible by both plugins and modules.
+  - Deprecate `CinnamonWebServerModulePlugin` in favor of the new hook system
+    and `CinnamonHookConsumer` interface.
+- Add `autoConnect` as a configuration option for the database module.
+- Removed the `terminateOnInitError` option from the database module (it is now
+  always enabled).
+- Convert the framework passed to each module to a proxy to allow for
+  additional functionality to be added to the framework without breaking
+  existing modules.
+  - Automatically inject a per-module logger into the module's framework proxy.
+  - Allow modules to register hooks via their proxy, but only allow plugins to
+    trigger hooks (per the API contracts implied by both plugins and modules).
+- Added `prepareContext` hook to allow plugins to prepare the context before
+  the request is processed and before hooks are triggered on the request.
+- Deprecate `em` alias for `entityManager` on the database module and remove
+  the `requestContext` getter (use `ctx` instead).
+
+# v0.1.5 (release candidate)
+- Bump dependencies to latest versions.
+- Add array support to Cinnamon's validation library.
+- Remove `@apollosoftwarexyz/cinnamon-cli` package in favor of `create-cinnamon-project`.
+- Bump Cinnamon to Yarn 4.0.0.
+- Minor code base fixes with by activating the linter.
+
 # v0.1.4
 - Bump all Cinnamon components and modules to v0.1.4.
 - Bump general dependencies to latest versions.

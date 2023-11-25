@@ -31,9 +31,10 @@
             }
         ],
         "@typescript-eslint/no-unused-vars": [
-            "warn",
+            "error",
             {
-                "varsIgnorePattern": "^_" // ignore unused variables starting with _
+                "varsIgnorePattern": "^_",      // ignore unused variables starting with _
+                "argsIgnorePattern": "(^_|ctx)" // ignore unused variables starting with _, or the request context.
             }
         ],
         "linebreak-style": [
@@ -80,8 +81,6 @@
         "no-inner-declarations": "off",
         "object-curly-spacing": ["error", "always"],
         "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-non-null-assertion": "off",
-
-      "@typescript-eslint/no-namespace": "warn"
+        "@typescript-eslint/no-non-null-assertion": "off"
     }
 }

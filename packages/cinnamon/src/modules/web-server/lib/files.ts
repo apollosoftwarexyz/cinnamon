@@ -3,8 +3,13 @@ import * as Path from 'path';
 import { promisify } from 'util';
 
 import { Context } from '../../../index';
-
-import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
+import {
+    arrayUnique,
+    directoryExists, fileExists,
+    HttpError,
+    mergeObjectDeep,
+    resolveAbsolutePath, resolveRelativePath
+} from '@apollosoftwarexyz/cinnamon-internals';
 
 /**
  * Options that may be specified when using `sendFile` to respond to a request with
@@ -84,7 +89,7 @@ export interface SendFileOptions {
 }
 
 export default async function sendFile(ctx: Context, path: string, options: SendFileOptions) : Promise<string> {
-    options = cinnamonInternals.data.mergeObjectDeep({
+    options = mergeObjectDeep({
         index: true,
         indexFiles: ['index.html', 'index.htm'],
         maxAge: 0,
@@ -96,13 +101,13 @@ export default async function sendFile(ctx: Context, path: string, options: Send
         path = decodeURIComponent(path);
         path = path.substring(Path.parse(path).root.length, path.length);
     } catch(ex) {
-        throw new cinnamonInternals.error.HttpError('Invalid path', 400);
+        throw new HttpError('Invalid path', 400);
     }
 
     // If the path is empty, resolve the root directory instead.
     if (path === '' && ctx.path === '/') path = './';
 
-    let target = cinnamonInternals.fs.resolveAbsolutePath(options.root, path);
+    let target = resolveAbsolutePath(options.root, path);
 
     // If hidden files is turned off and the user requested a hidden file, ignore the request.
     if (options.ignoreHiddenFiles && Path.basename(target).startsWith('.')) return;
@@ -112,17 +117,17 @@ export default async function sendFile(ctx: Context, path: string, options: Send
     if (options.extensionless && options.extensionless.length > 0 && Path.basename(target).includes('.')) {
         for (const invalidExtension of options.extensionless) {
             if (Path.extname(target) == `.${invalidExtension}`)
-                throw new cinnamonInternals.error.HttpError('File not found', 404);
+                throw new HttpError('File not found', 404);
         }
     }
 
     // If index is turned on and the user requested a directory...
     if (options.index) {
-        if (ctx.path.endsWith('/') || await cinnamonInternals.fs.directoryExists(target)) {
+        if (ctx.path.endsWith('/') || await directoryExists(target)) {
 
             // Attempt to find the index file.
             for (let indexName of options.indexFiles!) {
-                if (await cinnamonInternals.fs.fileExists(Path.join(target, indexName))) {
+                if (await fileExists(Path.join(target, indexName))) {
                     target = Path.join(target, indexName);
                     break;
                 }
@@ -131,10 +136,10 @@ export default async function sendFile(ctx: Context, path: string, options: Send
         }
     }
 
-    if (!(await cinnamonInternals.fs.fileExists(target))) {
+    if (!(await fileExists(target))) {
 
         const automaticExtensions = (options.optionalExtensions || options.extensionless) ?
-            cinnamonInternals.data.arrayUnique([
+            arrayUnique([
                 ...(options.optionalExtensions ?? []),
                 ...(options.extensionless ?? [])
             ]) : undefined;
@@ -148,7 +153,7 @@ export default async function sendFile(ctx: Context, path: string, options: Send
             // Check each extension.
             for (let extension of automaticExtensions!) {
                 let potentialFile = `${target}.${extension}`;
-                if (await cinnamonInternals.fs.fileExists(potentialFile)) {
+                if (await fileExists(potentialFile)) {
                     target = potentialFile;
                     didFindExtension = true;
                     break;
@@ -157,11 +162,11 @@ export default async function sendFile(ctx: Context, path: string, options: Send
 
             // Throw an error if none of the extensions worked either.
             if (!didFindExtension)
-                throw new cinnamonInternals.error.HttpError('File not found', 404);
+                throw new HttpError('File not found', 404);
 
         } else {
             // Otherwise, error out straight away.
-            throw new cinnamonInternals.error.HttpError('File not found', 404);
+            throw new HttpError('File not found', 404);
         }
 
     }
@@ -175,7 +180,7 @@ export default async function sendFile(ctx: Context, path: string, options: Send
             useExternalFileReader = await options.fileReader(
                 ctx,
                 target,
-                cinnamonInternals.fs.resolveRelativePath(options.root, target)
+                resolveRelativePath(options.root, target)
             );
         } catch (ex) {
             console.error(ex);

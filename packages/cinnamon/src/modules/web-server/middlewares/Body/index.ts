@@ -1,7 +1,7 @@
 import { MiddlewareFn } from '../../api/Middleware';
 import { Fields, Files, IncomingForm, Options as FormidableOptions } from 'formidable';
 
-import cinnamonInternals, { $Cinnamon } from '@apollosoftwarexyz/cinnamon-internals';
+import { $Cinnamon, AssertionError, HttpError, mergeObjectDeep } from '@apollosoftwarexyz/cinnamon-internals';
 import { readText } from './text';
 import { jsonMimeTypes, readJson } from './json';
 import { readUrlEncoded } from './urlencoded';
@@ -98,7 +98,7 @@ export function Body(options?: {
     }
 }) : MiddlewareFn {
 
-    options = cinnamonInternals.data.mergeObjectDeep({
+    options = mergeObjectDeep({
         acceptedMethods: ['POST', 'PUT', 'PATCH'],
         json: true,
         urlencoded: true,
@@ -117,7 +117,7 @@ export function Body(options?: {
 
     return async function (ctx, next) : Promise<void> {
 
-        if (!options) throw new cinnamonInternals.error.AssertionError('Options must be set');
+        if (!options) throw new AssertionError('Options must be set');
 
         (ctx.request as Request<any> & { [$Cinnamon]: any })[$Cinnamon].bodyError =
             `You're attempting to read the body on a ${ctx.method.toUpperCase()} request, however that request is ` +
@@ -159,7 +159,7 @@ export function Body(options?: {
                 ctx.request.body = parsedForm.fields;
                 ctx.request.files = parsedForm.files;
             } catch(err) {
-                throw new cinnamonInternals.error.HttpError(
+                throw new HttpError(
                     'Failed to parse multipart form',
                     400,
                     err

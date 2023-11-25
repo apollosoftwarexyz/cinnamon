@@ -1,7 +1,7 @@
 /**
  * Cinnamon Web Framework
  *
- * Copyright (c) Apollo Software Limited 2021 - MIT License
+ * Copyright (c) Apollo Software Limited 2023 - MIT License
  * See /LICENSE.md for license information.
  */
 
@@ -20,32 +20,37 @@ export default Cinnamon;
 // //////////////
 export { Config, Logger } from './core';
 export * from './modules/config';
-export { default as ConfigModule } from './modules/config';
 export * from './modules/logger';
-export { default as LoggerModule } from './modules/logger';
 
 export { Method, Controller, Route, Middleware, MiddlewareFn, Body, LoadIf, LoadUnless } from './modules/web-server';
 export * from './plugins/web-server';
 
-import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
-import HttpError = cinnamonInternals.error.HttpError;
-export { HttpError };
+export { HttpError } from '@apollosoftwarexyz/cinnamon-internals';
 
 // //////////////
 // Framework SDK.
 // //////////////
-export { CinnamonModule } from './sdk/cinnamon-module';
+export { CinnamonModule, CinnamonModuleBase } from './sdk/cinnamon-module';
 export { CinnamonPlugin } from './sdk/cinnamon-plugin';
 export { default as WebServer, CinnamonWebServerModulePlugin } from './modules/web-server';
+
+export { CinnamonModuleRegistry } from './modules';
+export { CinnamonHooks, CinnamonHook, CinnamonHookConsumer, CinnamonHookRegistry } from './hooks';
 
 // //////////////
 // Third Party.
 // //////////////
 import * as Koa from 'koa';
-import { Context as KoaContext, Request as KoaRequest, Next } from 'koa';
+import {
+    DefaultState as KoaDefaultState,
+    DefaultContext as KoaDefaultContext,
+    ParameterizedContext as KoaContext,
+    Request as KoaRequest,
+    Next
+} from 'koa';
 import { Fields, Files } from 'formidable';
 
-export { Koa, Next, KoaContext as _Context };
+export { Koa, Next, KoaContext as BaseContext };
 
 import { SendFileOptions } from './modules/web-server/lib/files';
 
@@ -53,19 +58,21 @@ export interface Request<BodyType> extends KoaRequest {
 
     /**
      * The request body.
-     * Your route must have the Body middleware applied to it or this will throw an error.
+     * Your route must have the Body middleware applied to it or this will
+     * throw an error.
      */
     body?: BodyType;
 
     /**
      * The raw, unparsed, request body.
-     * Your route must have the Body middleware applied to it or this will throw an error.
+     * Your route must have the Body middleware applied to it or this will
+     * throw an error.
      */
     rawBody?: any;
 
     /**
-     * If a multipart form body is used and files are uploaded to that form, they may be
-     * accessed here.
+     * If a multipart form body is used and files are uploaded to that form,
+     * they may be accessed here.
      *
      * This is set by the formidable package under-the-hood.
      */
@@ -73,10 +80,13 @@ export interface Request<BodyType> extends KoaRequest {
 }
 
 /**
- * The Cinnamon request/response context. This extends Koa's context type to include any
- * Cinnamon-specific parameters or methods.
+ * The Cinnamon request/response context.
+ *
+ * This extends Koa's context type to include any Cinnamon-specific parameters
+ * or methods.
  */
-export interface Context<RequestBodyType = any> extends KoaContext {
+export interface Context<RequestBodyType = any, ResponseBodyType = unknown>
+    extends KoaContext<KoaDefaultState, KoaDefaultContext, ResponseBodyType> {
 
     /**
      * The Cinnamon framework instance that handled the request.
@@ -107,8 +117,8 @@ export interface Context<RequestBodyType = any> extends KoaContext {
 }
 
 /**
- * An alias for formidable's Fields type intended for readability when parameterizing
- * Context.
+ * An alias for formidable's Fields type intended for readability when
+ * parameterizing Context.
  *
  * @see Context
  */

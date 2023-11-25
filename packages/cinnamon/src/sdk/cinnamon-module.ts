@@ -1,5 +1,88 @@
 import type Cinnamon from '../core';
 import { CinnamonSdkBase, UnimplementedError } from './base';
+import { prototype } from '@apollosoftwarexyz/cinnamon-internals';
+
+export enum CinnamonModuleType {
+    DEFAULT = 0b000,
+    CORE = 0b001,
+    OPTIONAL = 0b010,
+    STUB = 0b100,
+    OPTIONAL_CORE_STUB = OPTIONAL | CORE | STUB,
+}
+
+export const moduleIsCore = (module: CinnamonModuleBase): boolean =>
+    !!((module as any).__type & CinnamonModuleType.CORE);
+
+export const moduleIsOptional = (module: CinnamonModuleBase): boolean =>
+    !!((module as any).__type & CinnamonModuleType.OPTIONAL);
+
+export const moduleIsStub = (module: CinnamonModuleBase): boolean =>
+    !!((module as any).__type & CinnamonModuleType.STUB);
+
+export const moduleIsOptionalCoreStub = (module: CinnamonModuleBase): boolean =>
+    !!((module as any).__type & CinnamonModuleType.OPTIONAL_CORE_STUB);
+
+
+/** @see {CinnamonModule} */
+export abstract class CinnamonModuleBase extends CinnamonSdkBase {
+
+    /**
+     * The type of the module.
+     * @private
+     */
+    @prototype(CinnamonModuleType.DEFAULT)
+    protected readonly __type: CinnamonModuleType = undefined;
+
+    /**
+     * Initializes a Cinnamon module on the given framework instance.
+     *
+     * @param framework The framework to register the module with.
+     * @protected
+     */
+    protected constructor(framework: Cinnamon) {
+        super(framework);
+    }
+
+    /**
+     * Initializes the module.
+     * Use this method to perform any initialization logic that your module
+     * requires. This method is called by the framework when the module is
+     * registered.
+     *
+     * Unlike with plugins, this does not return a boolean value indicating
+     * whether the module initialized successfully. If the module fails to
+     * initialize, the module should use its discretion to determine whether
+     * to shut down the entire framework or continue running in a degraded
+     * state.
+     *
+     * Modules provide essential functionality to the framework, and as such
+     * should not be allowed to fail to initialize unless the framework and
+     * any potential dependencies of the module will be able to continue
+     * with the module in a degraded state.
+     */
+    public abstract initialize(): Promise<void>;
+
+    /**
+     * Terminates the module.
+     * @param inErrorState Whether the module is terminating due to an error.
+     */
+    public abstract terminate(inErrorState: boolean): Promise<void>;
+
+}
+
+/**
+ * See {@link CinnamonModule}.
+ *
+ * This just omits the logger property as it doesn't make sense for
+ * a logger module to have a logger.
+ *
+ * Logger modules can extend this class to provide logging services to the
+ * framework.
+ *
+ * @category Core
+ * @Core
+ */
+export abstract class CinnamonLoggerModuleBase extends CinnamonModuleBase {}
 
 /**
  * The base class for a Cinnamon module. This class is currently
@@ -25,10 +108,26 @@ import { CinnamonSdkBase, UnimplementedError } from './base';
  * @category Core
  * @Core
  */
-export abstract class CinnamonModule extends CinnamonSdkBase {
+export abstract class CinnamonModule extends CinnamonModuleBase {
 
     /**
-     * Initializes a Cinnamon module on the given framework instance.
+     * The logger for this module.
+     */
+    public get logger() { return this.framework.logger; }
+
+}
+
+export abstract class CinnamonCoreModule extends CinnamonModule {
+
+    /**
+    * The type of the module.
+    * @private
+    */
+    @prototype(CinnamonModuleType.CORE)
+    protected readonly __type: CinnamonModuleType = undefined;
+
+    /**
+     * Initializes a Cinnamon core module on the given framework instance.
      *
      * @param framework The framework to register the module with.
      * @protected
@@ -37,47 +136,29 @@ export abstract class CinnamonModule extends CinnamonSdkBase {
         super(framework);
     }
 
-    public terminate(inErrorState: boolean) {}
-
 }
 
 export abstract class CinnamonOptionalCoreModuleStub extends CinnamonModule {
 
     /**
-     * Whether this class is a stub.
+     * The type of the module.
+     * @private
      */
-    get __isStub() : boolean {
-        return true;
-    }
+    @prototype(CinnamonModuleType.OPTIONAL_CORE_STUB)
+    protected readonly __type: CinnamonModuleType = undefined;
 
     /**
      * The class constructor name of the class that this class is a stub for.
      */
-    get __stubIdentifier() : string {
+    protected get __stubIdentifier() : string {
         throw new UnimplementedError('You must override __stubIdentifier for CinnamonOptionalCoreModuleStub.');
     }
 
     /**
      * The npm package name of the module that this class is a stub for.
      */
-    get __stubForModule() : string | undefined {
+    protected get __stubForModule() : string | undefined {
         throw new UnimplementedError('You must override __stubForModule for CinnamonOptionalCoreModuleStub.');
-    }
-
-}
-
-export abstract class CinnamonOptionalCoreModule extends CinnamonOptionalCoreModuleStub {
-
-    get __isStub() {
-        return false;
-    }
-
-    get __stubIdentifier() {
-        return this.constructor.name;
-    }
-
-    get __stubForModule() {
-        return undefined;
     }
 
 }

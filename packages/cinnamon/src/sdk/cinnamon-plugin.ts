@@ -84,18 +84,4 @@ export abstract class CinnamonPlugin extends CinnamonSdkBase {
      */
     abstract onInitialize() : Promise<boolean | void>;
 
-    /**
-     * Executed after Cinnamon's core and all modules have completely initialized,
-     * but before the web server module has started and begun accepting requests.
-     */
-    async onStart() : Promise<void> {}
-
-    /**
-     * Executed after Cinnamon has completely initialized and the web server
-     * module has started and begun accepting requests. It is unusual that
-     * you would need this method, but this might be helpful for accessing
-     * the current underlying HTTP server.
-     */
-    async afterStart() : Promise<void> {}
-
 }

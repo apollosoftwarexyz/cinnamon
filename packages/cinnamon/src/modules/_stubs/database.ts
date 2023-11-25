@@ -1,9 +1,10 @@
 import { CinnamonOptionalCoreModuleStub } from '../../sdk/cinnamon-module';
-import { MissingModuleError } from '../../sdk/base';
+import { MissingPackageError } from '../../sdk/base';
 import Cinnamon from '../../core';
 
-export abstract class DatabaseModuleStub extends CinnamonOptionalCoreModuleStub {
+export class DatabaseModuleStub extends CinnamonOptionalCoreModuleStub {
 
+    private static readonly MODULE_LABEL = 'Cinnamon Database Connector';
     private static readonly DEFAULT_DATABASE_MODULE = '@apollosoftwarexyz/cinnamon-database';
 
     get __stubIdentifier() {
@@ -14,37 +15,33 @@ export abstract class DatabaseModuleStub extends CinnamonOptionalCoreModuleStub 
         return DatabaseModuleStub.DEFAULT_DATABASE_MODULE;
     }
 
-    protected constructor(framework: Cinnamon) {
+    constructor(framework: Cinnamon, _models: any, _databaseConfig: any) {
         super(framework);
+        throw new MissingPackageError(DatabaseModuleStub.MODULE_LABEL, DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
     }
 
     public get isInitialized() : boolean {
-        throw new MissingModuleError(DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
+        throw new MissingPackageError(DatabaseModuleStub.MODULE_LABEL, DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
     }
 
-    /**
-     * Returns the ORM configuration as it would be passed to Mikro-ORM in the
-     * database module.
-     */
     public get ormConfig() {
-        throw new MissingModuleError(DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
+        throw new MissingPackageError(DatabaseModuleStub.MODULE_LABEL, DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
     }
 
     public get entityManager() : any {
-        throw new MissingModuleError(DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
+        throw new MissingPackageError(DatabaseModuleStub.MODULE_LABEL, DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
     }
 
-    public get em() {
-        return this.entityManager;
+    public initialize() : Promise<void> {
+        throw new MissingPackageError(DatabaseModuleStub.MODULE_LABEL, DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
     }
 
-    public get requestContext() : any {
-        throw new MissingModuleError(DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
+    public connect(_passive?: boolean) : Promise<void> {
+        throw new MissingPackageError(DatabaseModuleStub.MODULE_LABEL, DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
     }
 
-    public abstract initialize(databaseConfig: any) : Promise<void>;
-
-    public abstract connect() : Promise<void>;
-    public abstract terminate(force?: boolean) : Promise<void>;
+    public terminate(_force?: boolean) : Promise<void> {
+        throw new MissingPackageError(DatabaseModuleStub.MODULE_LABEL, DatabaseModuleStub.DEFAULT_DATABASE_MODULE);
+    }
 
 }

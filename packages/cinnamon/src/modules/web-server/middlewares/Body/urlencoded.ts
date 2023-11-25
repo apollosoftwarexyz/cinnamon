@@ -2,8 +2,7 @@ import { IncomingMessage } from 'http';
 import * as qs from 'qs';
 import { TextualBodyOptions } from './index';
 import { readText } from './text';
-
-import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
+import { HttpError } from '@apollosoftwarexyz/cinnamon-internals';
 
 export type QueryStringOptions = qs.IParseOptions;
 
@@ -17,7 +16,7 @@ export async function readUrlEncoded(req: IncomingMessage, options?: TextualBody
     });
 
     if (typeof raw !== 'string') {
-        throw new cinnamonInternals.error.HttpError(
+        throw new HttpError(
             'Invalid request body character encoding',
             415
         );
@@ -31,7 +30,7 @@ export async function readUrlEncoded(req: IncomingMessage, options?: TextualBody
             raw
         };
     } catch(ex) {
-        throw new cinnamonInternals.error.HttpError(
+        throw new HttpError(
             'Failed to parse request body',
             400,
             ex

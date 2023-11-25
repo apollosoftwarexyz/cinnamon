@@ -1,7 +1,7 @@
-import { EntityManager } from '@mikro-orm/core/EntityManager';
+import { EntityManager } from '@mikro-orm/core';
 
-/* Koa type augmentation */
-declare module 'koa' {
+/* Cinnamon Context augmentation */
+declare module '@apollosoftwarexyz/cinnamon' {
     interface Context {
         getEntityManager(): EntityManager;
     }

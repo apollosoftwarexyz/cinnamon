@@ -1,5 +1,5 @@
 import type Cinnamon from '../core';
-import { CinnamonModule } from '../sdk/cinnamon-module';
+import { CinnamonLoggerModuleBase } from '../sdk/cinnamon-module';
 import * as chalk from 'chalk';
 
 export enum LogLevel {
@@ -149,7 +149,7 @@ interface ExtendedLoggerOptions {
  * @category Core Modules
  * @CoreModule
  */
-export default class LoggerModule extends CinnamonModule {
+export default class LoggerModule extends CinnamonLoggerModuleBase {
 
     /**
      * Whether application debug messages should be displayed.
@@ -175,6 +175,9 @@ export default class LoggerModule extends CinnamonModule {
      */
     private readonly silenced?: boolean;
 
+    private readonly module?: string;
+    private readonly parent?: LoggerModule;
+
     /**
      * @CoreModule
      * Initializes a Cinnamon Framework logger.
@@ -183,26 +186,54 @@ export default class LoggerModule extends CinnamonModule {
      * @param showDebugMessages If true, messages with the debug log level will be shown.
      * @param options Extended options for the logger module.
      */
-    constructor(framework: Cinnamon, showDebugMessages: boolean = false, options?: ExtendedLoggerOptions) {
+    public static create(
+        framework: Cinnamon,
+        showDebugMessages: boolean = false,
+        options?: ExtendedLoggerOptions
+    ) {
+        return new LoggerModule(framework, showDebugMessages, options);
+    }
+
+    /**
+     * Forks the logger module to create a new logger module for another module
+     * with the specified name.
+     *
+     * @internal
+     * @param module
+     */
+    public fork(module: string): LoggerModule {
+        return new LoggerModule(this.framework, null, null, module, this);
+    }
+
+    private constructor(
+        framework: Cinnamon,
+        showDebugMessages: boolean,
+        options?: ExtendedLoggerOptions,
+        module?: string,
+        parent?: LoggerModule
+    ) {
         super(framework);
-        this.showDebugMessages = showDebugMessages;
+        this.showDebugMessages = showDebugMessages ?? false;
+        this.module = module;
+        this.parent = parent;
 
         this.silenced = options?.silenced ?? false;
         this.logDelegate = this.silenced ? undefined : options?.logDelegate;
         this.showFrameworkDebugMessages = options?.showFrameworkDebugMessages ?? false;
     }
 
+    public async initialize() {}
+    public async terminate(_inErrorState: boolean) {}
+
     /**
      * Logs an internal framework messages. Intended for internal framework-use only.
      * @param message The framework message to log.
-     * @param module The module that generated the log.
      * @internal
      */
-    frameworkDebug(message: string, module?: string) {
+    frameworkDebug(message: string) {
         this.log({
             level: LogLevel.FRAMEWORK,
             timestamp: new Date(),
-            module,
             message
         });
     }
@@ -216,13 +247,11 @@ export default class LoggerModule extends CinnamonModule {
      * delegate if it is present regardless of {@link showDebugMessages}._
      *
      * @param message The message to log.
-     * @param module Optionally, a module name to prefix to the log message.
      */
-    public debug(message: string, module?: string) {
+    public debug(message: string) {
         this.log({
             level: LogLevel.DEBUG,
             timestamp: new Date(),
-            module,
             message
         });
     }
@@ -244,13 +273,11 @@ export default class LoggerModule extends CinnamonModule {
      *   no way to filter them out.)
      *
      * @param message The message to log.
-     * @param module Optionally, a module name to prefix to the log message.
      */
-    public info(message: string, module?: string) {
+    public info(message: string) {
         this.log({
             level: LogLevel.INFO,
             timestamp: new Date(),
-            module,
             message
         });
     }
@@ -268,13 +295,11 @@ export default class LoggerModule extends CinnamonModule {
      * in debug mode as certain performance optimizations and security features may be turned off.
      *
      * @param message The message to log.
-     * @param module Optionally, a module name to prefix to the log message.
      */
-    public warn(message: string, module?: string) {
+    public warn(message: string) {
         this.log({
             level: LogLevel.WARN,
             timestamp: new Date(),
-            module,
             message
         });
     }
@@ -294,13 +319,11 @@ export default class LoggerModule extends CinnamonModule {
      * understand the error.
      *
      * @param message The message to log.
-     * @param module Optionally, a module name to prefix to the log message.
      */
-    public error(message: string, module?: string) {
+    public error(message: string) {
         this.log({
             level: LogLevel.ERROR,
             timestamp: new Date(),
-            module,
             message
         });
     }
@@ -310,13 +333,20 @@ export default class LoggerModule extends CinnamonModule {
      * @param entry The log entry to be displayed and passed to the remote log delegate.
      */
     private log(entry: LogEntry) {
+        if (this.parent !== undefined) {
+            return this.parent.log({
+                ...entry,
+                module: this.module,
+            });
+        }
+
         if (this.silenced && entry.level < LogLevel.ERROR) return;
 
         // The function that will print the content to the underlying OS POSIX stream.
         // (Essentially STDERR vs STDOUT)
         let posixPrintFunction = entry.level === LogLevel.ERROR ? console.error : console.log;
 
-        let printFunction;
+        let printFunction: ((...data: any[]) => void) | null;
         switch (entry.level) {
             case LogLevel.FRAMEWORK:
                 if (!this.showFrameworkDebugMessages) {
@@ -348,7 +378,7 @@ export default class LoggerModule extends CinnamonModule {
 
         // Log in the console locally.
         if (printFunction !== null)
-            printFunction(`${LogLevel[entry.level]}\t[${this.framework.appName}]${moduleName} [${LoggerModule.timestampStringFor(entry.timestamp)}] ${entry.message}`);
+            printFunction(`${chalk.bold(LogLevel[entry.level])}\t[${this.framework.appName}]${moduleName} [${LoggerModule.timestampStringFor(entry.timestamp)}] ${entry.message}`);
 
         // Now pass to the delegate, if it exists, and we aren't logging a framework debugging message without it being
         // explicitly enabled.

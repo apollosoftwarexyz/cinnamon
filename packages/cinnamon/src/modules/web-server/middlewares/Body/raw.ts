@@ -2,8 +2,7 @@ import * as zlib from 'zlib';
 import { Buffer } from 'buffer';
 import { getDecoder as getIconvDecoder, DecoderStream } from 'iconv-lite';
 import { IncomingMessage } from 'http';
-
-import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
+import { HttpError, parseHumanReadableBytes } from '@apollosoftwarexyz/cinnamon-internals';
 
 /**
  * Attempts to fetch a decoder for the specified character set encoding, throwing a Cinnamon HttpError
@@ -17,7 +16,7 @@ function getCharsetDecoder(encoding?: string) : DecoderStream | undefined {
     try {
         return getIconvDecoder(encoding);
     } catch(ex) {
-        throw new cinnamonInternals.error.HttpError(
+        throw new HttpError(
             `Unsupported character set`,
             415
         );
@@ -89,7 +88,7 @@ export function inflateStream(stream: IncomingMessage, encoding?: string) : Inco
         case 'identity':
             return stream;
         default:
-            throw new cinnamonInternals.error.HttpError(
+            throw new HttpError(
                 `Unsupported Content-Encoding type: ${encoding}`,
                 415
             );
@@ -130,14 +129,14 @@ export async function readStream(stream: IncomingMessage, options?: {
     options = options ?? {};
 
     if (options.length && typeof options.length === 'string')
-        options.length = cinnamonInternals.format.parseBytes(options.length);
+        options.length = parseHumanReadableBytes(options.length);
 
     if (options.limit && typeof options.limit === 'string')
-        options.limit = cinnamonInternals.format.parseBytes(options.limit);
+        options.limit = parseHumanReadableBytes(options.limit);
 
     // If the length is bigger than the length, throw a 413 (too large) error.
     if (options.limit !== undefined && options.length !== undefined && options.length > options.limit) {
-        throw new cinnamonInternals.error.HttpError(
+        throw new HttpError(
             'Request entity too large',
             413
         );
@@ -145,7 +144,7 @@ export async function readStream(stream: IncomingMessage, options?: {
 
     // Ensure that the stream is readable.
     if (!stream.readable) {
-        throw new cinnamonInternals.error.HttpError(
+        throw new HttpError(
             'Stream not readable',
             500
         );
@@ -193,13 +192,13 @@ export async function readStream(stream: IncomingMessage, options?: {
                 received += chunk.length;
 
                 // At this point, we know the type of options.length is number,
-                // so we can safely compare it to received.
+                // so we can safely compare it to the received.
                 if (options!.limit !== undefined && received >
                     (options!.limit as unknown as number)) {
 
                     // If the number of received bytes exceeds the limit, throw
                     // an HTTP 413 error.
-                    return reject(cleanup(new cinnamonInternals.error.HttpError(
+                    return reject(cleanup(new HttpError(
                         'Request entity too large',
                         413
                     )));
@@ -213,12 +212,12 @@ export async function readStream(stream: IncomingMessage, options?: {
                     // Otherwise, we're receiving the response body as a
                     // buffer, so we just append the chunks to the buffer
                     // array. (If we get sent a string, we know a character
-                    // set decoder was not specified but it should have been,
+                    // set decoder was not specified, but it should have been,
                     // so we'll throw an error and clean up).
                     if (typeof buffer !== 'string') {
                         buffer.push(chunk);
                     } else {
-                        return reject(cleanup(new cinnamonInternals.error.HttpError(
+                        return reject(cleanup(new HttpError(
                             'An internal server error occurred whilst parsing the payload',
                             500
                         )));
@@ -229,7 +228,7 @@ export async function readStream(stream: IncomingMessage, options?: {
             function onAborted() {
                 if (complete) return;
 
-                return reject(cleanup(new cinnamonInternals.error.HttpError(
+                return reject(cleanup(new HttpError(
                     'Request aborted',
                     400
                 )));
@@ -242,7 +241,7 @@ export async function readStream(stream: IncomingMessage, options?: {
                 }
 
                 if (options!.length !== undefined && received !== options!.length) {
-                    return reject(cleanup(new cinnamonInternals.error.HttpError(
+                    return reject(cleanup(new HttpError(
                         'Request size did not match content length',
                         400
                     )));
@@ -260,9 +259,9 @@ export async function readStream(stream: IncomingMessage, options?: {
         });
 
     } catch(err) {
-        throw err instanceof cinnamonInternals.error.HttpError
+        throw err instanceof HttpError
             ? err
-            : new cinnamonInternals.error.HttpError(
+            : new HttpError(
                 'An unexpected error occurred',
                 500
             );

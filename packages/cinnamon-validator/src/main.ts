@@ -1,5 +1,5 @@
 import { ValidationSchema } from './validation-schema/core';
-import { Validator } from './executor';
+import { Validator, ValidatorOptions } from './executor';
 
 /**
  * An alias to create a validator from the specified schema.
@@ -8,9 +8,10 @@ import { Validator } from './executor';
  * This method is also exported as '$' to allow for convenient access to the validator.
  *
  * @param schema The schema to perform validation of values against.
+ * @param options Additional options for the validator.
  */
-function createValidator(schema: ValidationSchema) : Validator {
-    return new Validator(schema);
+function createValidator(schema: ValidationSchema, options?: ValidatorOptions) : Validator {
+    return new Validator(schema, options);
 }
 
 // Public exports.
@@ -18,7 +19,8 @@ export {
     ValidationSchema,
     createValidator,
     createValidator as $,
-    Validator
+    Validator,
+    ValidatorOptions
 };
 
 import ValidationResult from './result';

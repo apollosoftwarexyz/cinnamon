@@ -2,15 +2,32 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import { parse as parseToml } from 'toml';
 
-import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
+import {
+    CinnamonError,
+    directoryExists,
+    fileExists,
+    mergeObjectDeep,
+    toAbsolutePath, toLowerKebabCase,
+} from '@apollosoftwarexyz/cinnamon-internals';
 
 import WebServerModule from './modules/web-server';
 import { ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
 
 import ConfigModule from './modules/config';
 import LoggerModule, { DelegateLogFunction } from './modules/logger';
-import { CinnamonModule, CinnamonOptionalCoreModuleStub } from './sdk/cinnamon-module';
 import { CinnamonPlugin } from './sdk/cinnamon-plugin';
+import { CinnamonModuleRegistry, _CinnamonModuleRegistryImpl, CinnamonModuleRegistryAccess } from './modules';
+import { CinnamonModule, CinnamonModuleBase } from './sdk/cinnamon-module';
+import {
+    _CinnamonHookRegistryImpl,
+    AsyncCinnamonHook, AsyncCinnamonHooks,
+    CinnamonHook,
+    CinnamonHookRegistry,
+    CinnamonHooks
+} from './hooks';
+
+import { DatabaseModuleStub } from './modules/_stubs/database';
+import { MissingPackageError } from './sdk/base';
 
 /**
  * A convenience field for the default Cinnamon instance's ConfigModule.
@@ -60,8 +77,8 @@ export type CinnamonInitializationOptions = {
      * using the Logger.
      */
     silenced?: boolean;
-};
 
+};
 
 /**
  * The main class of the Cinnamon framework. To initialize the framework, you initialize
@@ -72,7 +89,7 @@ export type CinnamonInitializationOptions = {
  * @category Core
  * @Core
  */
-export default class Cinnamon {
+export default class Cinnamon implements CinnamonModuleRegistryAccess, CinnamonHookRegistry {
 
     /**
      * Gets the default instance of Cinnamon. This is ordinarily the only instance of Cinnamon
@@ -81,16 +98,21 @@ export default class Cinnamon {
      *
      * If no instance of Cinnamon has been initialized, this will be undefined.
      */
-    public static get defaultInstance() { return Cinnamon._defaultInstance; }
+    public static get defaultInstance() {
+        return Cinnamon._defaultInstance;
+    }
+
     private static _defaultInstance?: Cinnamon;
 
     private readonly devMode: boolean;
     public readonly appName: string;
 
-    private readonly modules: CinnamonModule[];
+    private readonly modules: CinnamonModuleRegistry;
     private readonly plugins: {
         [key: string]: CinnamonPlugin
     };
+
+    private readonly hooks: CinnamonHookRegistry;
 
     public get logger() {
         return this.getModule<LoggerModule>(LoggerModule.prototype);
@@ -100,18 +122,27 @@ export default class Cinnamon {
         return this.getModule<ConfigModule>(ConfigModule.prototype);
     }
 
-    constructor(props: {
+    private constructor(props: {
         devMode?: boolean;
         appName?: string;
     }) {
         this.devMode = props.devMode ?? false;
         this.appName = props.appName ?? 'cinnamon';
 
-        this.modules = [];
+        this.modules = new _CinnamonModuleRegistryImpl();
         this.plugins = {};
+        this.hooks = new _CinnamonHookRegistryImpl();
 
         // Populate the default instance of Cinnamon, if it does not already exist.
-        if (!Cinnamon._defaultInstance) Cinnamon._defaultInstance = this;
+        if (!Cinnamon._defaultInstance) {
+            Cinnamon._defaultInstance = this;
+        }
+
+        // Additionally, in debug mode register a global variable for the
+        // default instance.
+        if (CINNAMON_CORE_DEBUG_MODE || this.devMode) {
+            global.cinnamonDebug?.register(this);
+        }
     }
 
     /**
@@ -122,61 +153,6 @@ export default class Cinnamon {
      * or security penalty present when certain development features are active.
      */
     get inDevMode() { return this.devMode; }
-
-    /**
-     * Checks if the specified module is registered in the framework based on its type.
-     * If it is, the module is returned, otherwise false is returned.
-     *
-     * @param moduleType The module type (i.e. typeof MyModule)
-     */
-    public hasModule<T extends CinnamonModule>(moduleType: T) : T | boolean {
-        try {
-            return this.getModule<T>(moduleType);
-        } catch(ex) {
-            return false;
-        }
-    }
-
-    /**
-     * Gets the module if it is registered in the framework based on its type.
-     * If it is not registered, an exception is thrown.
-     *
-     * @param moduleType The module type (i.e. typeof MyModule)
-     */
-    public getModule<T extends CinnamonModule>(moduleType: T) : T {
-        const module = this.modules.find(module => (module.constructor.name === moduleType.constructor.name
-            || (Object.prototype.isPrototypeOf.call(CinnamonOptionalCoreModuleStub.prototype, moduleType) &&
-                (moduleType as any).__isStub &&
-                module.constructor.name === (moduleType as any).__stubIdentifier))
-        ) as T;
-
-        if (module != null) return module;
-        else throw new Error('(!) Attempted to access unknown module: ' + moduleType);
-    }
-
-    /**
-     * Registers the specified module.
-     * If it has already been registered in the framework, the old module reference
-     * will be overwritten with the new one.
-     *
-     * @param module The module instance to register.
-     */
-    public registerModule<T extends CinnamonModule>(module: T) {
-        this.unregisterModule(module);
-        this.modules.push(module);
-    }
-
-    /**
-     * Unregisters the specified module.
-     * If the module was not already registered in the framework, this method
-     * is a no-op.
-     *
-     * @param module The module instance to unregister.
-     */
-    public unregisterModule<T extends CinnamonModule>(module: T) {
-        if (this.hasModule<T>(module))
-            this.modules.splice(this.modules.indexOf(module), 1);
-    }
 
     /**
      * Checks if the specified plugin is registered in the framework based on
@@ -208,6 +184,17 @@ export default class Cinnamon {
      * @param plugin The plugin instance to register.
      */
     public use(plugin: CinnamonPlugin) : void {
+        // Automatically register all hooks in the plugin.
+        for (const method of Object.getOwnPropertyNames(Object.getPrototypeOf(plugin))) {
+            const hookName = method as keyof CinnamonHooks;
+            const hook = plugin[hookName];
+            if (typeof hook !== 'function') continue;
+            if (!this.registeredHooks.has(hookName)) continue;
+
+            this.hooks.useHook(hookName, hook.bind(plugin));
+        }
+
+        // Register the plugin.
         this.plugins[plugin.identifier] = plugin;
     }
 
@@ -219,29 +206,20 @@ export default class Cinnamon {
      * @param pluginIdentifier The identifier of the plugin instance to unregister.
      */
     public unregisterPlugin(pluginIdentifier: string) : void {
-        if (this.hasPlugin(pluginIdentifier))
-            delete this.plugins[pluginIdentifier];
-    }
+        if (this.hasPlugin(pluginIdentifier)) {
+            // Automatically unregister all hooks in the plugin.
+            for (const method of Object.getOwnPropertyNames(Object.getPrototypeOf(this.plugins[pluginIdentifier]))) {
+                const hookName = method as keyof CinnamonHooks;
+                const hook = this.plugins[pluginIdentifier][hookName];
+                if (typeof hook !== 'function') continue;
+                if (!this.registeredHooks.has(hookName)) continue;
 
-    /**
-     * Trigger the named hook on all the plugins currently registered with
-     * Cinnamon. e.g., triggerPluginHook('onInitialize') will call the
-     * onInitialize hook on all plugins.
-     *
-     * @param hookName The name of the hook to trigger.
-     */
-    public async triggerPluginHook(hookName: string) : Promise<void> {
-        await Promise.all(
-            // Get all plugins
-            Object.values(this.plugins)
-                // Filter to those that have the function 'hookName' as a property.
-                .filter((plugin: any) => hookName in plugin && typeof plugin[hookName] === 'function')
-                // Then, map the plugin to the hook's promise by calling the 'hookName' function
-                // on the plugin.
-                .map((plugin: any) => {
-                    (plugin)[hookName]();
-                })
-        );
+                this.hooks.cancelHook(hookName, hook.bind(this.plugins[pluginIdentifier]));
+            }
+
+            // Unregister the plugin.
+            delete this.plugins[pluginIdentifier];
+        }
     }
 
     /**
@@ -259,7 +237,7 @@ export default class Cinnamon {
 
         // Stat cinnamon.toml to make sure it exists.
         // This doubles as making sure the process is started in the project root.
-        if (!await cinnamonInternals.fs.fileExists(('./cinnamon.toml'))) {
+        if (!await fileExists(('./cinnamon.toml'))) {
             console.error(`(!) cinnamon.toml not found in ${process.cwd()}`);
             console.error(`(!) Please make sure your current working directory is the project's root directory and that your project's cinnamon.toml exists.`);
             return process.exit(1);
@@ -304,7 +282,7 @@ export default class Cinnamon {
             // one of the defaults specified in the structure below. We use Object.assign to
             // copy anything from the TOML file (source parameter) into the in-memory object
             // (target parameter).
-            projectConfig = cinnamonInternals.data.mergeObjectDeep({
+            projectConfig = mergeObjectDeep({
                 framework: {
                     core: {
                         development_mode: false
@@ -346,26 +324,31 @@ export default class Cinnamon {
             appName: projectConfig.framework.app.name
         });
 
-        framework.registerModule(new ConfigModule(
-            framework,
-            projectConfig.app,
-            options?.appConfigSchema
-        ));
-        framework.registerModule(new LoggerModule(framework, framework.devMode, {
+        framework.registerModule(framework => LoggerModule.create(framework, framework.devMode, {
             showFrameworkDebugMessages: CINNAMON_CORE_DEBUG_MODE,
             logDelegate: options?.loggerDelegate,
             silenced: options?.silenced ?? false,
         }));
 
+        framework.registerModule(framework => new ConfigModule(
+            framework,
+            projectConfig.app,
+            options?.appConfigSchema
+        ));
+
+        // Initialize the config and logger modules.
+        await framework.getModule<LoggerModule>(LoggerModule.prototype).initialize();
+        await framework.getModule<ConfigModule>(ConfigModule.prototype).initialize();
+
         // If we're the default instance (i.e., if the instantiated framework variable is equal to
         // the value of Cinnamon.defaultInstance), we can go ahead and initialize the global core
         // modules fields with the modules registered with this instance.
         if (Cinnamon.defaultInstance == framework) {
-            Config = framework.getModule<ConfigModule>(ConfigModule.prototype);
-            Logger = framework.getModule<LoggerModule>(LoggerModule.prototype);
+            Config = framework.config;
+            Logger = framework.logger;
         }
 
-        framework.getModule<LoggerModule>(LoggerModule.prototype).info('Starting Cinnamon...');
+        framework.logger.info('Starting Cinnamon...');
 
         // Call the load function if it was supplied to the initialize options.
         // We do this before calling onInitialize on all the plugins to allow the user to register
@@ -375,7 +358,7 @@ export default class Cinnamon {
         // Now await the onInitialize method for all plugins to make sure they've successfully
         // initialized.
         await Promise.all(Object.entries(framework.plugins).map(async ([identifier, plugin]) => {
-            framework.getModule<LoggerModule>(LoggerModule.prototype).info(`Loaded plugin ${identifier}!`);
+            framework.logger.info(`Loaded plugin ${identifier}!`);
             await plugin.onInitialize();
         }));
 
@@ -386,48 +369,66 @@ export default class Cinnamon {
 
             // Initialize ORM.
             if (projectConfig.framework.database.enabled) {
-                framework.getModule<LoggerModule>(LoggerModule.prototype).info('Initializing database and ORM models...');
+                framework.logger.info('Initializing database and ORM models...');
 
-                const modelsPath = cinnamonInternals.fs.toAbsolutePath(projectConfig.framework.structure.models);
-                if (!await cinnamonInternals.fs.directoryExists(modelsPath)) {
-                    framework.getModule<LoggerModule>(LoggerModule.prototype).error(`(!) The specified models path does not exist: ${projectConfig.framework.structure.models}`);
-                    framework.getModule<LoggerModule>(LoggerModule.prototype).error(`(!) Full resolved path: ${modelsPath}`);
+                let DatabaseModule: typeof DatabaseModuleStub;
+                try {
+                    // The 'as any' on the import name is necessary to ensure
+                    // TypeScript does not resolve the import at compile time.
+                    // If it does, a cyclic dependency will be created between
+                    // the database module and the core module for types, which
+                    // will cause compilation issues.
+                    DatabaseModule = (await import('@apollosoftwarexyz/cinnamon-database' as any)).default;
+                } catch(ex) {
+                    console.error(ex);
+                    throw new MissingPackageError('Cinnamon Database Connector', '@apollosoftwarexyz/cinnamon-database');
+                }
+
+                const modelsPath = toAbsolutePath(projectConfig.framework.structure.models);
+                if (!await directoryExists(modelsPath)) {
+                    framework.logger.error(`(!) The specified models path does not exist: ${projectConfig.framework.structure.models}`);
+                    framework.logger.error(`(!) Full resolved path: ${modelsPath}`);
                     process.exit(2);
                 }
 
-                // eslint-disable-next-line @typescript-eslint/no-var-requires
-                const Database = (require('@apollosoftwarexyz/cinnamon-database').default);
-
-                framework.registerModule(new Database(framework, modelsPath));
-                await framework.getModule(Database.prototype).initialize(projectConfig.framework.database);
+                framework.registerModule(framework => new DatabaseModule(framework, modelsPath, projectConfig.framework.database));
+                await framework.getModule(DatabaseModule.prototype).initialize();
                 if (autostartServices) {
-                    await framework.getModule(Database.prototype).connect();
+                    await framework.getModule(DatabaseModule.prototype).connect(true);
                 }
-                framework.getModule<LoggerModule>(LoggerModule.prototype).info('Successfully initialized database ORM and models.');
+                framework.logger.info('Successfully initialized database ORM and models.');
             }
 
             // Initialize web service controllers.
-            framework.getModule<LoggerModule>(LoggerModule.prototype).info('Initializing web service controllers...');
+            framework.logger.info('Initializing web service controllers...');
 
-            const controllersPath = cinnamonInternals.fs.toAbsolutePath(projectConfig.framework.structure.controllers);
-            if (!await cinnamonInternals.fs.directoryExists(controllersPath)) {
-                framework.getModule<LoggerModule>(LoggerModule.prototype).error(`(!) The specified controllers path does not exist: ${projectConfig.framework.structure.controllers}`);
-                framework.getModule<LoggerModule>(LoggerModule.prototype).error(`(!) Full resolved path: ${controllersPath}`);
+            const controllersPath = toAbsolutePath(projectConfig.framework.structure.controllers);
+            if (!await directoryExists(controllersPath)) {
+                framework.logger.error(`(!) The specified controllers path does not exist: ${projectConfig.framework.structure.controllers}`);
+                framework.logger.error(`(!) Full resolved path: ${controllersPath}`);
                 process.exit(2);
             }
 
             // Now, register and initialize the web server, and load the controllers.
-            framework.registerModule(new WebServerModule(framework, controllersPath, projectConfig.framework.http.trust_proxy));
+            framework.registerModule(framework => new WebServerModule(framework, controllersPath, projectConfig.framework.http.trust_proxy));
             await framework.getModule<WebServerModule>(WebServerModule.prototype).initialize();
-            framework.getModule<LoggerModule>(LoggerModule.prototype).info('Successfully initialized web service controllers.');
+            framework.logger.info('Successfully initialized web service controllers.');
 
             // Trigger 'onStart' for all plugins and wait for it to complete. This is essentially the
             // 'post-initialize' hook for the framework.
             // Once this is finished, we can consider Cinnamon fully initialized.
-            await framework.triggerPluginHook('onStart');
+            await framework.hooks.triggerAsyncHook('onStart');
 
-            if (autostartServices)
+            if (autostartServices) {
                 await framework.getModule<WebServerModule>(WebServerModule.prototype).start(projectConfig.framework.http);
+
+                // Trigger the 'afterStart' plugin hook for all plugins and wait for it to complete.
+                // This is for any plugins that need to hook into the web server module once it's
+                // started and waiting for requests (e.g., to hook into the underlying node http
+                // server).
+                // Once this is finished, we can consider Cinnamon fully started.
+                await framework.hooks.triggerAsyncHook('afterStart');
+            }
 
             // Display a warning if the framework is running in development mode. This is helpful for
             // various reasons - if development mode was erroneously enabled in production, this may
@@ -435,21 +436,24 @@ export default class Cinnamon {
             // etc., and could even help mitigate security risks due to ensuring development-only code
             // is not accidentally enabled on a production service.
             if (framework.devMode)
-                framework.getModule<LoggerModule>(LoggerModule.prototype).warn('Application running in DEVELOPMENT mode.');
+                framework.logger.warn('Application running in DEVELOPMENT mode.');
 
             return framework;
         } catch(ex: any) {
-            framework.getModule<LoggerModule>(LoggerModule.prototype).error(
-                'Failed to start Cinnamon. If you believe this is a framework error, please open an issue in the ' +
-                'Cinnamon project repository.\n' +
-                '(Apollo Software only): please consider opening an issue with the Internal Projects team.' +
-                '\n' +
-                'https://github.com/apollosoftwarexyz/cinnamon/issues/new\n'
+            framework.logger.error(
+                'Failed to start Cinnamon.\n' +
+                'If you believe this is a framework error, please open an issue ' +
+                'in the Cinnamon project repository.\n' +
+                'https://github.com/apollosoftwarexyz/cinnamon/issues/new\n' +
+                '(ASL only): please consider opening an issue with the Internal Projects team.\n'
             );
-            framework.getModule<LoggerModule>(LoggerModule.prototype).error(ex.message);
-            console.error('');
-            console.error(ex);
-            console.error(ex.stack);
+            framework.logger.error(ex.message);
+
+            if (!(ex instanceof CinnamonError) || ex.showStack) {
+                console.error('');
+                console.error(ex.stack);
+            }
+
             process.exit(1);
         }
     }
@@ -468,9 +472,13 @@ export default class Cinnamon {
      * @param exitCode The POSIX exit code to terminate with.
      */
     async terminate(inErrorState: boolean = false, message?: string, exitCode?: number) : Promise<never> {
+        if (CINNAMON_CORE_DEBUG_MODE || this.devMode) {
+            global.cinnamonDebug?.unregister(this);
+        }
+
         try {
-            if (message) this.getModule<LoggerModule>(LoggerModule.prototype)[inErrorState ? 'error' : 'warn'](message);
-            this.getModule<LoggerModule>(LoggerModule.prototype)[inErrorState ? 'error' : 'warn'](`Shutting down...`);
+            if (message) this.logger[inErrorState ? 'error' : 'warn'](message);
+            this.logger[inErrorState ? 'error' : 'warn'](`Shutting down${inErrorState ? ' due to error' : ''}...`);
         } catch (ex) {
             console.error(message);
             console.error(
@@ -482,7 +490,7 @@ export default class Cinnamon {
         // Presently, we just terminate the pertinent modules, however once the module system
         // has been refactored, we'll terminate all the modules.
         try {
-            this.modules.forEach(module => module.terminate(inErrorState));
+            await (this.modules as _CinnamonModuleRegistryImpl).terminateModules(inErrorState);
         } catch(ex) {
             process.exit(3);
         }
@@ -490,6 +498,110 @@ export default class Cinnamon {
         // Exit with a POSIX exit code of non-zero if error, or zero if no error (implied by
         // inErrorState = false).
         process.exit(exitCode ?? (inErrorState ? 1 : 0));
+    }
+
+    /* ----------------------- CinnamonModuleRegistry ----------------------- */
+
+    hasModule<T extends CinnamonModuleBase>(moduleType: T): boolean | T {
+        return this.modules.hasModule(moduleType);
+    }
+    getModule<T extends CinnamonModuleBase>(moduleType: T): T {
+        return this.modules.getModule(moduleType);
+    }
+
+    private registerModule<T extends CinnamonModuleBase>(createModule: (framework: Cinnamon) => T) : void {
+        const hooks = this.hooks;
+
+        let perModuleProxy: ProxyHandler<Cinnamon>['get'];
+
+        /**
+         * Creates a perModuleProxy bound to a specific module.
+         * This is done once, so it is okay to initialize values here (BEFORE
+         * returning the internal closure/proxy).
+         */
+        const createPerModuleProxy = (module: CinnamonModuleBase) => {
+            const humanModuleName = toLowerKebabCase(module.constructor.name).replace(/-module$/, '');
+            const moduleLogger = this.logger.fork(humanModuleName);
+
+            return (_target: any, property: string, _receiver: any): any => {
+                if (property === 'logger') return moduleLogger;
+                return undefined;
+            };
+        };
+
+        const moduleFramework = new Proxy(this, {
+            get(target, property: string, receiver: any): any {
+                // If the property is a hook trigger method, bind it to the
+                // hooks object and return it.
+                // This allows modules to trigger hooks.
+                if (['triggerHook', 'triggerAsyncHook'].includes(property)) {
+                    return hooks[property].bind(hooks);
+                }
+
+                const perModuleProxyResult = perModuleProxy?.call(this, target, property, receiver);
+                if (perModuleProxyResult !== undefined) return perModuleProxyResult;
+
+                return Reflect.get(target, property, receiver);
+            }
+        });
+
+        const module = createModule(moduleFramework);
+        // Proxy additional methods on the module to allow for per-module
+        // functionality (e.g., automatically injecting a per-module logger).
+        // The logger module does not extend CinnamonModule, so this is okay
+        // to do.
+        if (module instanceof CinnamonModule) {
+            perModuleProxy = createPerModuleProxy(module);
+        }
+        return this.modules.registerModule(module);
+    }
+
+    /* ------------------------ CinnamonHookRegistry ------------------------ */
+
+    get registeredHooks(): Set<CinnamonHook> {
+        return this.hooks.registeredHooks;
+    }
+
+    registerHook<K extends CinnamonHook>(hook: K) {
+        return this.hooks.registerHook(hook);
+    }
+
+    unregisterHook<K extends CinnamonHook>(hook: K) {
+        return this.hooks.unregisterHook(hook);
+    }
+
+    useHook<K extends CinnamonHook>(hook: K, callback: CinnamonHooks[K]): void {
+        return this.hooks.useHook(hook, callback);
+    }
+
+    cancelHook<K extends CinnamonHook>(hook: K, callback: CinnamonHooks[K]): void {
+        return this.hooks.cancelHook(hook, callback);
+    }
+
+    triggerHook<K extends CinnamonHook>(_: K, ...__: Parameters<CinnamonHooks[K]>): void {
+        throw new CinnamonError(
+            'Only modules can trigger hooks.\n\n' +
+            "You're seeing this error because you tried to trigger a hook from outside a module.\n" +
+            'For example, from within a controller, middleware or plugin.\n\n' +
+            '- If you are trying to trigger a hook from within a module, make sure you are using the\n' +
+            '  correct instance of the Cinnamon framework (passed into the module).\n\n' +
+            '- If you are trying to trigger a hook from outside a module, you should instead use\n' +
+            '  an API from a module.\n\n',
+            true
+        );
+    }
+
+    triggerAsyncHook<K extends AsyncCinnamonHook>(_: K, ...__: Parameters<AsyncCinnamonHooks[K]>): Promise<void> {
+        throw new CinnamonError(
+            'Only modules can trigger hooks.\n\n' +
+            "You're seeing this error because you tried to trigger a hook from outside a module.\n" +
+            'For example, from within a controller, middleware or plugin.\n\n' +
+            '- If you are trying to trigger a hook from within a module, make sure you are using the\n' +
+            '  correct instance of the Cinnamon framework (passed into the module).\n\n' +
+            '- If you are trying to trigger a hook from outside a module, you should instead use\n' +
+            '  an API from a module.\n\n',
+            true
+        );
     }
 
 }

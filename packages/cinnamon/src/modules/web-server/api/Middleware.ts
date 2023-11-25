@@ -1,6 +1,5 @@
 import { v5 as uuidv5 } from 'uuid';
 import Loader, { activeLoader, LOADER_ROOT_ROUTE_NAMESPACE } from '../loader';
-import LoggerModule from '../../logger';
 import { Context } from '../../../index';
 import { Next } from 'koa';
 
@@ -20,7 +19,7 @@ export default function Middleware(fn: MiddlewareFn) {
         const methodIdentifier: string = propertyKey;
 
         if (!classIdentifier || !methodIdentifier) {
-            activeLoader.framework.getModule<LoggerModule>(LoggerModule.prototype).warn(`Attempted to register middleware on invalid route.`);
+            activeLoader.framework.logger.warn(`Attempted to register middleware on invalid route.`);
             return;
         }
 

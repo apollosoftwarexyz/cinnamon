@@ -1,10 +1,10 @@
 import { CinnamonPlugin } from '../../sdk/cinnamon-plugin';
-import { CinnamonWebServerModulePlugin } from '../../modules/web-server';
 import Cinnamon, { Context, Next, WebServer } from '../../index';
 import sendFile from '../../modules/web-server/lib/files';
 
-import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
 import { ReadStream } from 'fs';
+import { directoryExists, mergeObjectDeep } from '@apollosoftwarexyz/cinnamon-internals';
+import { CinnamonHookConsumer } from '../../hooks';
 
 export interface PreprocessorContext extends Context {
 
@@ -93,15 +93,14 @@ interface ServeStaticOptions {
 /**
  * Cinnamon Web Server plugin that serves a static directory.
  */
-export class ServeStatic extends CinnamonPlugin
-    implements CinnamonWebServerModulePlugin {
+export class ServeStatic extends CinnamonPlugin implements CinnamonHookConsumer {
 
     private options: ServeStaticOptions;
 
     public constructor(framework: Cinnamon, options?: ServeStaticOptions) {
         super(framework, 'xyz.apollosoftware', 'cinnamon.static');
 
-        this.options = cinnamonInternals.data.mergeObjectDeep({
+        this.options = mergeObjectDeep({
             root: './static',
             index: true,
             indexFiles: ['index.html', 'index.htm'],
@@ -110,10 +109,9 @@ export class ServeStatic extends CinnamonPlugin
         }, options ?? {});
     }
 
-
     public async onInitialize(): Promise<boolean | void> {
         if (
-            !(await cinnamonInternals.fs.directoryExists(this.options.root!))
+            !(await directoryExists(this.options.root!))
         ) {
             this.framework.logger.error(`Missing static directory: ${this.options.root}`);
             return false;
@@ -122,7 +120,7 @@ export class ServeStatic extends CinnamonPlugin
         return true;
     }
 
-    async beforeRegisterControllers() {
+    async beforeRegisterControllers(): Promise<void> {
         this.framework.getModule<WebServer>(WebServer.prototype).server.use(
             async (ctx: Context, next: Next) => {
                 const target = await this.handleStaticRequest(ctx, next);
@@ -159,7 +157,7 @@ export class ServeStatic extends CinnamonPlugin
         );
     }
 
-    async handleStaticRequest(ctx: Context, next: Next) : Promise<string> {
+    async handleStaticRequest(ctx: Context, next: Next): Promise<string> {
         // Check if any other handlers exist in the stack for this request.
         await next();
 

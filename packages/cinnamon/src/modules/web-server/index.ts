@@ -1,13 +1,12 @@
 import type Cinnamon from '../../core';
-import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
-import { CinnamonModule } from '../../sdk/cinnamon-module';
-import LoggerModule from '../logger';
+import { CinnamonCoreModule } from '../../sdk/cinnamon-module';
 
 import * as Koa from 'koa';
 import { Server } from 'http';
 import { Socket } from 'net';
 
 import Loader from './loader';
+import { directoryExists, toAbsolutePath } from '@apollosoftwarexyz/cinnamon-internals';
 
 export * from './plugin';
 
@@ -41,10 +40,8 @@ export * from './middlewares';
 /**
  * @category Core Modules
  * @CoreModule
- * @internal
- * @private
  */
-export default class WebServerModule extends CinnamonModule {
+export default class WebServerModule extends CinnamonCoreModule {
 
     private readonly controllersPath: string;
     private readonly controllersLoader: Loader;
@@ -97,11 +94,6 @@ export default class WebServerModule extends CinnamonModule {
     }
 
     /**
-     * The current framework instance's logger.
-     */
-    public get logger() { return this.framework.getModule<LoggerModule>(LoggerModule.prototype); }
-
-    /**
      * Whether logging is enabled on the web server.
      */
     public get isLoggingEnabled() { return this.enableLogging; }
@@ -120,14 +112,14 @@ export default class WebServerModule extends CinnamonModule {
         // Ensure the controllers' directory is present.
         // We do this check in core startup, but this will ensure we're in the correct state
         // even if this module is loaded independently of the default distribution's core class.
-        if(!await cinnamonInternals.fs.directoryExists(this.controllersPath)) {
-            this.logger.error(`Unable to load web server controllers due to missing controllers directory: ${cinnamonInternals.fs.toAbsolutePath(this.controllersPath)}`);
+        if(!await directoryExists(this.controllersPath)) {
+            this.logger.error(`Unable to load web server controllers due to missing controllers directory: ${toAbsolutePath(this.controllersPath)}`);
             await this.framework.terminate(true);
             return;
         }
 
         const trackingControllersCount = await this.controllersLoader.scanForControllers();
-        this.logger.info(`Found ${trackingControllersCount} controller${trackingControllersCount !== 1 ? 's' : ''}.`, 'webserver');
+        this.logger.info(`Found ${trackingControllersCount} controller${trackingControllersCount !== 1 ? 's' : ''}.`);
 
         await this.controllersLoader.registerControllers();
 
@@ -173,13 +165,6 @@ export default class WebServerModule extends CinnamonModule {
                     });
 
                     this.currentState = WebServerModuleState.READY;
-
-                    // Trigger the 'afterStart' plugin hook for all plugins and wait for it to complete.
-                    // This is for any plugins that need to hook into the web server module once it's
-                    // started and waiting for requests (e.g., to hook into the underlying node http
-                    // server).
-                    // Once this is finished, we can consider Cinnamon fully started.
-                    await this.framework.triggerPluginHook('afterStart');
                     return resolve();
                 });
             } catch(ex) {

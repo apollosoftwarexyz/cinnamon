@@ -9,8 +9,13 @@
  */
 
 import Cinnamon from '../../core';
-import cinnamonInternals, { $Cinnamon } from '@apollosoftwarexyz/cinnamon-internals';
-import LoggerModule from '../../modules/logger';
+import {
+    $Cinnamon,
+    CinnamonError,
+    getLastModification,
+    HttpError,
+    listRecursively, resolveFullExtension
+} from '@apollosoftwarexyz/cinnamon-internals';
 
 import WebServerModule from './index';
 import { Method } from './api/Method';
@@ -25,8 +30,7 @@ import co from 'co';
 
 import * as Koa from 'koa';
 import * as KoaRouter from 'koa-router';
-import { DatabaseModuleStub } from '../_stubs/database';
-import { MissingModuleError } from '../../sdk/base';
+import { MissingPackageError } from '../../sdk/base';
 import sendFile, { SendFileOptions } from './lib/files';
 
 import { Context, Request } from '../../index';
@@ -174,9 +178,7 @@ export default class Loader {
      */
     private readonly routes: RouteIdToRouteDataDictionary;
 
-    public readonly BuiltinModuleAPI = {
-        // @ts-expect-error - this is a private API.
-        load: Module.prototype.load as any,
+    private readonly NodeModuleAPI = {
         require: Module.prototype.require as any,
     };
 
@@ -227,18 +229,38 @@ export default class Loader {
         // We use a temporary variable to make this operation atomic.
         let discoveredControllers: TrackedController[] = this.trackedControllers;
 
+        const controllersPathListing = await listRecursively(this.controllersPath);
+        const detectedExtensions = new Set(controllersPathListing
+            .map(path => resolveFullExtension(path))
+            .filter(extension => extension !== undefined));
+
+        if (detectedExtensions.has('ts') && detectedExtensions.has('js')) {
+            throw new FatalLoaderError(
+                true,
+                'Detected both TypeScript and JavaScript controller files.\n\n' +
+                'Cinnamon does not support mixing TypeScript and JavaScript controller files\n' +
+                'to prevent accidental mixing of source and compiled files.\n\n' +
+                'Please ensure that all controller files are of the same type.\n\n' +
+                '- If you are only using JavaScript, please move or delete the TypeScript files.\n' +
+                '- If you are only using TypeScript, please move or delete the JavaScript files.\n' +
+                '- If you are compiling TypeScript files to JavaScript, please ensure that you\n' +
+                '  have specified a separate `compilerOptions.outDir` in `tsconfig.json`.\n\n'
+            );
+        }
+
         // Scan for controller files.
-        for (let controllerFile of await cinnamonInternals.fs.listRecursively(this.controllersPath)) {
-            // Our supported controller files are currently only .ts files.
+        for (let controllerFile of controllersPathListing) {
+            // We want to ignore TypeScript declaration files (.d.ts) as they
+            // do not contain any executable code.
 
-            // At some point JS support could be considered, but JS is undesirable for large projects
-            // such as those which might be undertaken with this framework and ts-node can run
-            // TypeScript applications with no/negligible performance penalty; particularly in
-            // production.
+            // Otherwise, filter to .ts and .js files.
 
-            if (controllerFile.endsWith('.ts')) {
+            const isTsFile = controllerFile.endsWith('.ts') && !controllerFile.endsWith('.d.ts');
+            const isJsFile = controllerFile.endsWith('.js');
+
+            if (isTsFile || isJsFile) {
                 const existingController = discoveredControllers.find((controller) => controller.path === controllerFile);
-                const dateModified = await cinnamonInternals.fs.getLastModification(controllerFile);
+                const dateModified = await getLastModification(controllerFile);
 
                 // If the controller is not present, add it to the list of controllers.
                 if (!existingController) {
@@ -265,7 +287,7 @@ export default class Loader {
         }
 
         if (postInitial) {
-            this.framework.getModule<LoggerModule>(LoggerModule.prototype).info(`Changes detected. Reloaded ${trackingControllersCount} controller${trackingControllersCount !== 1 ? 's' : ''}.`);
+            this.framework.logger.info(`Changes detected. Reloaded ${trackingControllersCount} controller${trackingControllersCount !== 1 ? 's' : ''}.`);
         }
 
         this.trackedControllers = discoveredControllers;
@@ -290,14 +312,14 @@ export default class Loader {
                 true,
                 'Attempted to lock already locked activeLoader interface.\n\n' +
                 'This might happen if:\n' +
-                "\t- you run two web servers in development mode simultaneously (don't)\n" +
+                "\t- you run two web servers in development mode simultaneously (don't!)\n" +
                 '\t- a controller is stuck whilst loading (restart or investigate if\n' +
                 '\t\tthe problem persists)\n' +
                 '\t- a controller caused a fatal error, but for some reason, the framework' +
                 "\t\tdidn't shut down. (try restarting the framework, if the problem persists\n" +
                 '\t\tpost an issue ticket on the Cinnamon project repository with any errors\n' +
                 '\t\tyou receive before this one.)\n\n' +
-                '\t(Apollo Software only): please consider opening an issue with the Internal Projects team.'
+                '\t(ASL only): please consider opening an ticket with the Internal Projects team.'
             );
         }
 
@@ -324,7 +346,7 @@ export default class Loader {
 
                 const errorMessage = (ex as any)?.toString();
 
-                this.framework.getModule<LoggerModule>(LoggerModule.prototype).error(
+                this.framework.logger.error(
                     ((ex instanceof FatalLoaderError && ex.isControllerAgnostic)
                         ? 'Error processing controllers...'
                         : `Error loading controller: ${path.basename(controller.path)} (${controller.path})`
@@ -397,7 +419,8 @@ export default class Loader {
             throw new FatalLoaderError(
                 false,
                 'Attempted to lock missing activeLoader interface.\n' +
-                "This would imply that a route attempted to register with a loader when that loader wasn't expecting it."
+                "This would imply that a route attempted to register with a loader when that loader wasn't expecting it\n" +
+                'which is a bug within Cinnamon. Please open a ticket on the Cinnamon project repository.\n\n'
             );
         }
 
@@ -417,7 +440,8 @@ export default class Loader {
             throw new FatalLoaderError(
                 false,
                 'Attempted to lock missing activeLoader interface.\n' +
-                "This would imply that a controller attempted to register with a loader when that loader wasn't expecting it."
+                "This would imply that a controller attempted to register with a loader when that loader wasn't expecting it\n" +
+                'which is a bug within Cinnamon. Please open a ticket on the Cinnamon project repository.\n\n'
             );
         }
 
@@ -480,8 +504,8 @@ export default class Loader {
                 'EXCEPT FOR unforeseen circumstances, doing this would indicate bad code structuring or design,\n' +
                 'however IF you are receiving this error for unrelated reasons – OR you believe you have a good\n' +
                 'reason for allowing this, please open an issue ticket on the Cinnamon project repository.\n\n' +
-                '(Apollo Software only): please consider opening an issue with the Internal Projects team.\n' +
-                'https://github.com/apollosoftwarexyz/cinnamon/issues/new\n'
+                'https://github.com/apollosoftwarexyz/cinnamon/issues/new\n' +
+                '(ASL only): please consider opening an ticket with the Internal Projects team.\n'
             );
         }
     }
@@ -506,13 +530,13 @@ export default class Loader {
 
     private doRequire(request: string, caller?: NodeModule) {
         if (!caller) caller = require.main;
-        return this.BuiltinModuleAPI.require.call(caller, request);
+        return this.NodeModuleAPI.require.call(caller, request);
     }
 
     private hotRequire(request: string, caller?: NodeModule) {
         if (!caller) caller = require.main;
 
-        const exports = this.BuiltinModuleAPI.require.call(caller, request);
+        const exports = this.NodeModuleAPI.require.call(caller, request);
         const controller = this.trackedControllers.find(controller => controller.path === request);
 
         let modulePath: string;
@@ -546,7 +570,7 @@ export default class Loader {
             return await next();
         });
 
-        await this.framework.triggerPluginHook('beforeRegisterErrors');
+        await this.framework.triggerAsyncHook('beforeRegisterErrors');
 
         // Register the error handler. We do this after 'beforeRegisterControllers' to allow plugins to get
         // priority when they work with the error handler.
@@ -605,7 +629,7 @@ export default class Loader {
 
                         // In which case, we'll return a nice error page, courtesy of 'youch' if we're in
                         // development mode...
-                        if (this.inDevMode && !(err instanceof cinnamonInternals.error.HttpError)) {
+                        if (this.inDevMode && !(err instanceof HttpError)) {
                             const youch = new Youch(err, ctx.req);
                             ctx.body = await youch.toHTML();
                         } else {
@@ -617,7 +641,7 @@ export default class Loader {
                 }
 
                 // Print the error.
-                if (!(err instanceof cinnamonInternals.error.HttpError)) {
+                if (!(err instanceof HttpError)) {
                     console.error('');
                     console.error(chalk.red(err.stack.toString().replace('\n>\t', '\n\t')));
                     console.error('');
@@ -625,48 +649,31 @@ export default class Loader {
             }
         });
 
-        await this.framework.triggerPluginHook('beforeRegisterControllers');
+        const entityManagerStub = () => {
+            throw new MissingPackageError('Cinnamon Database Connector', '@apollosoftwarexyz/cinnamon-database');
+        };
+
+        // Register a placeholder for the database module that informs a user
+        // that the database module is not present or has not been initialized.
+        // If the database module (or another module that provides an entity
+        // manager) is present and initialized, this can be replaced in
+        // 'prepareContext' with a function that returns the entity
+        // manager from the request context.
+        // The type should be augmented separately to type the getEntityManager
+        // function for correct typing.
+        this.server.use((ctx: Context, next) => {
+            ctx.getEntityManager = entityManagerStub;
+            return next();
+        });
+
+        await this.framework.triggerAsyncHook('prepareContext');
+        await this.framework.triggerAsyncHook('beforeRegisterControllers');
 
         // Register lib/ functions on the request context.
         this.server.use(async (ctx: Context, next: Next) => {
             ctx.sendFile = (path: string, options: SendFileOptions) => sendFile(ctx, path, options);
             return await next();
         });
-
-        // If the database has been initialized, register the middleware with Koa to create a new request context
-        // for each request and register a middleware to add an entity manager to the context.
-        if (this.framework.hasModule<DatabaseModuleStub>(DatabaseModuleStub.prototype) &&
-            this.framework.getModule<DatabaseModuleStub>(DatabaseModuleStub.prototype).isInitialized) {
-            // Create request context.
-            this.server.use((_ctx, next) => this.framework
-                .getModule<DatabaseModuleStub>(DatabaseModuleStub.prototype)
-                .requestContext
-                .createAsync(
-                    this.framework.getModule<DatabaseModuleStub>(DatabaseModuleStub.prototype).em, next
-                )
-            );
-
-            // Add entity manager to context.
-            this.server.use(async (ctx, next) => {
-                ctx.getEntityManager = () => this.framework
-                    .getModule<DatabaseModuleStub>(DatabaseModuleStub.prototype)
-                    .requestContext.getEntityManager();
-                return await next();
-            });
-        } else {
-
-            this.server.use((ctx, next) => {
-                ctx.getEntityManager = () => {
-                    if (!this.framework.hasModule<DatabaseModuleStub>(DatabaseModuleStub.prototype)) {
-                        throw new MissingModuleError('@apollosoftwarexyz/cinnamon-database');
-                    } else {
-                        throw new Error('The database module is present but has not been initialized, so you cannot use ctx.getEntityManager.\nPlease ensure your database configuration is correct!\n');
-                    }
-                };
-                return next();
-            });
-
-        }
 
         // Register a middleware to check if the body attribute on the context is usable (because the body
         // middleware has to be registered for it to be used.)
@@ -727,7 +734,7 @@ export default class Loader {
             yield next();
         }));
 
-        await this.framework.triggerPluginHook('afterRegisterControllers');
+        await this.framework.triggerAsyncHook('afterRegisterControllers');
 
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this;
@@ -775,7 +782,7 @@ export default class Loader {
 
 }
 
-class FatalLoaderError extends Error {
+class FatalLoaderError extends CinnamonError {
 
     /**
      * Set this to true if the error was not triggered by a specific controller,

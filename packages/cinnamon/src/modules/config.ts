@@ -1,14 +1,14 @@
 import { $, ValidationSchema } from '@apollosoftwarexyz/cinnamon-validator';
-import cinnamonInternals from '@apollosoftwarexyz/cinnamon-internals';
 
 import type Cinnamon from '../core';
-import { CinnamonModule } from '../sdk/cinnamon-module';
+import { CinnamonCoreModule } from '../sdk/cinnamon-module';
+import { resolveObjectDeep, setObjectDeep } from '@apollosoftwarexyz/cinnamon-internals';
 
 /**
  * @category Core Modules
  * @CoreModule
  */
-export default class ConfigModule extends CinnamonModule {
+export default class ConfigModule extends CinnamonCoreModule {
 
     private appConfig?: any;
 
@@ -67,6 +67,9 @@ export default class ConfigModule extends CinnamonModule {
         }
     }
 
+    public async initialize() {}
+    public async terminate(_inErrorState: boolean) {}
+
     /**
      * Retrieves a value from the Cinnamon app configuration table. This can
      * retrieve nested values using a period (.) to delimit a nested object in
@@ -82,7 +85,7 @@ export default class ConfigModule extends CinnamonModule {
             'Alternatively, ensure that no validation errors occurred whilst loading the configuration *and* that you have a loadable app configuration in your cinnamon.toml.'
         );
 
-        const result = cinnamonInternals.data.resolveObjectDeep(
+        const result = resolveObjectDeep(
             key, this.appConfig
         );
 
@@ -117,7 +120,7 @@ export default class ConfigModule extends CinnamonModule {
 
         if (!this.appConfig) this.appConfig = {};
 
-        cinnamonInternals.data.setObjectDeep(key, value, this.appConfig);
+        setObjectDeep(key, value, this.appConfig);
     }
 
 }

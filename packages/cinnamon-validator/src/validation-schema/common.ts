@@ -16,6 +16,21 @@ export type ValueOrAggregateOperator<T> = {
 } | T;
 
 /**
+ * Attributes that are common to all field types.
+ */
+export type ValidationSchemaCommon = {
+
+    /**
+     * Whether or not the value must explicitly be present to pass validation.
+     * Possible values:
+     * - false: (default) value does not need to be present to pass validation.
+     * - true: value must be explicitly specified to pass validation and may not be null.
+     * - explicit: value must be present (i.e., not undefined) but may be null or nullish to pass validation.
+     */
+    required?: false | true | 'explicit';
+}
+
+/**
  * Message attributes that are common to all field types.
  */
 export type ValidationSchemaFieldCommonMessage = {
@@ -82,15 +97,9 @@ export type ValidationSchemaFieldCommon<T> = ({
      */
     matches?: ValueOrAggregateOperator<RegExp>;
 
-    /**
-     * Whether or not the value must explicitly be present to pass validation.
-     * Possible values:
-     * - false: (default) value does not need to be present to pass validation.
-     * - true: value must be explicitly specified to pass validation and may not be null.
-     * - explicit: value must be present (i.e., not undefined) but may be null or nullish to pass validation.
-     */
-    required?: false | true | 'explicit';
-} & ValidationSchemaFieldCommonOperators & ValidationSchemaFieldCommonMessage;
+} & ValidationSchemaFieldCommonOperators
+    & ValidationSchemaFieldCommonMessage
+    & ValidationSchemaCommon;
 
 /**
  * Operators that can be applied to all field types in the schema.
