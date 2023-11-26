@@ -22,6 +22,8 @@
   the request is processed and before hooks are triggered on the request.
 - Deprecate `em` alias for `entityManager` on the database module and remove
   the `requestContext` getter (use `ctx` instead).
+- Dropped support for Node.js versions below 18. Now supports Node.js 18+ and
+  tests against Node.js 18, 20.10.0 (LTS) and 21.
 
 # v0.1.5 (release candidate)
 - Bump dependencies to latest versions.

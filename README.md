@@ -4,29 +4,97 @@
 </p>
 
 <br><br>
+<hr>
+
+**(β) Cinnamon is currently in beta!** We are actively working on the framework
+and welcome feedback and contributions!
+Please feel free to open issues and pull requests on this repository.
+
+For information about the current status of the project, please see the
+[VERSIONS.md](VERSIONS.md) file.
+
+<hr>
+<br><br>
 
 > _"The line of code that's the fastest to write, that never breaks, that doesn't need maintenance, is the line you never had to write."_
 
-Cinnamon is a backend web framework with a key aim to achieve minimal code repetition between projects, allowing developers to focus on their product and not boilerplate.
+Cinnamon is our highly-opinionated, but focused, Enterprise TypeScript
+framework for building API services.
 
-👉 **Learn more on our documentation site:**
-https://cinnamon.apollosoftware.xyz/
+The key design principle of Cinnamon is to encourage use of best practices
+and patterns in a way that is natural, intuitive, and reliable. Its declarative
+programming style aims to reduce the amount of boilerplate code required to
+build a project. Collectively, these allow teams to focus their valuable time
+on building their product and user-experience and not on mundane boilerplate
+code.
+
+- Actively used and maintained by Apollo Software Limited on projects large and
+  small.
+- Builds on and incorporates many years of experience building API services.
+- Get exactly what you need for your project with Cinnamon's modular design.
+- Built to be highly dependable and reliable. Use projects built years ago as
+  though they were born yesterday.
+- We audit and review all dependencies to ensure they are secure, reliable and
+  well-maintained. We also actively monitor for security vulnerabilities and 
+  update dependencies as soon as possible. See our [security policy](SECURITY.md).
+
+
+- Cinnamon's design patterns encourage the use of dependency injection and the
+  separation of concerns.
+- Cinnamon's declarative programming style allows for a more intuitive and
+  natural development experience. Inversion of Control (IoC) is used to
+  cut down on boilerplate code.
+
+
+- Convinced? Have a project ready to go in seconds with
+  [`create-cinnamon-project`](#getting-started).
 
 <br>
 
-```ts
+👉 **Learn more on our documentation site:**
+https://docs.apollosoftware.xyz/cinnamon
+
+<br>
+
+```typescript
 import { Controller, Route, Method, Context } from '@apollosoftwarexyz/cinnamon';
+import { MaybeAuthenticated } from '../middlewares/Authentication';
 
 @Controller('api', 'v1')
 export default class IndexController {
 
+    /**
+     * Greets the user.
+     * If they are authenticated, they will be greeted by name.
+     */
+    @Middleware(MaybeAuthenticated)
     @Route(Method.GET, '/')
-    public async index(ctx: Context): Promise<void> {
-        ctx.body = 'Hello, world!';
+    public async index(ctx: Context) {
+        return {
+            body: `Hello, ${ctx.user?.smartName ?? 'Guest'}!`
+        };
     }
 
 }
 ```
+
+<small>↑ From the template project created with <a href="#getting-started">`create-cinnamon-project`</a> with the <b>Database</b> and <b>Authentication</b> features selected.</small>
+
+<br>
+
+## Getting Started
+Simply run the following command to set up a new Cinnamon project:
+
+```bash
+$ yarn create cinnamon-project my-project
+```
+
+This will create a new Cinnamon project in the `my-project` directory, prompt
+you to select features that will be automatically added, and provide
+instructions on how to run the project.
+
+Then, check out our [documentation](https://docs.apollosoftware.xyz/cinnamon)
+to learn more about how to use Cinnamon!
 
 <br>
 
@@ -38,43 +106,39 @@ export default class IndexController {
     - [x] Hot reload for API service controllers
     - [x] Middleware and Routing support
     - [x] Static file hosting support
-- [ ] WebSocket module (integrated with Web Server module)
 - [x] Database ORM module using [Mikro-ORM](https://mikro-orm.io)
 - [x] Validation module (for data validation on JavaScript/JSON objects)
     - [x] Middleware for Web Server module
-- [ ] Session Management and Authentication module
-- [ ] CLI tooling and utilities
+- [x] Session Management and Authentication module
+- [x] CLI tooling and utilities
     - [ ] CLI helpers for production and development tasks
     - [ ] Support for shell script generation
 - [ ] Additional hot reload
   - [ ] Allow specifying directories with reload 'type' (`restart`, `only-config`, `only-controllers`) on change.
   - [ ] Hot-reload `cinnamon.toml` by default.
 
+<br>
+
 ## Development
-1. Apollo Software Cinnamon uses [Yarn Berry (3.x)](https://yarnpkg.com/getting-started/install) for workspace management. You should install it with `yarn set version latest`:
-  ```bash
-  # To install Yarn 3.x globally:
-  npm i -g yarn
-  cd ~
-  yarn set version latest
-  
-  # To update the local version:
-  cd /path/to/cinnamon/repository
-  
-  # ...for compatibility reasons, this step is important for yarn 1.
-  # ...yarn 1, by default, will not install versions newer than 1.x with "yarn set version latest"
-  yarn set version stable
-  
-  # After running "yarn set version stable", run this to ensure you're on the latest release of
-  # yarn berry.
-  yarn set version latest
-  
-  # Afterwards, run yarn --version to confirm everything was installed correctly.
-  yarn --version
-  # ...should output "3.x.x"
-  ```
+1. Cinnamon uses [Yarn Berry (4.x)](https://yarnpkg.com/getting-started/install)'s built-in workspace management. If necessary, you should install it with `yarn set version stable`:
+    ```bash
+    # To update the local version:
+    cd /path/to/cinnamon/repository
+    
+    # You cannot use "yarn set version latest" reliably, because it will install
+    # the latest version of Yarn 1.x, if you don't have Yarn 2+ installed.
+    yarn set version stable
+    
+    # Afterwards, run yarn --version to confirm everything was installed correctly.
+    yarn --version
+    # ...should output "4.x.x"
+    ```
 2. Run `yarn` in the repository root to install the packages and link the workspaces.
 3. To build the project, use `yarn build`.
+
+You can also use `yarn watch` to watch for changes and rebuild the project.
+
+<br>
 
 ## License
 [MIT License](LICENSE.md)

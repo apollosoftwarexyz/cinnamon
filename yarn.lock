@@ -62,11 +62,11 @@ __metadata:
   resolution: "@apollosoftwarexyz/cinnamon-workspaces@workspace:."
   dependencies:
     "@apollosoftwarexyz/cinnamon": "workspace:^"
-    "@types/mocha": "npm:^10.0.4"
+    "@types/mocha": "npm:^10.0.6"
     "@types/node": "npm:^20.10.0"
     "@typescript-eslint/eslint-plugin": "npm:^6.12.0"
     "@typescript-eslint/parser": "npm:^6.12.0"
-    chalk: "npm:^4"
+    chalk: "npm:^4.1.2"
     eslint: "npm:^8.54.0"
     eslint-plugin-import-quotes: "npm:^0.0.1"
     mocha: "npm:^10.2.0"
@@ -74,7 +74,7 @@ __metadata:
     ts-mocha: "npm:^10.0.0"
     ts-node: "npm:^10.9.1"
     tslib: "npm:^2.6.2"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.2"
   languageName: unknown
   linkType: soft
 
@@ -98,12 +98,12 @@ __metadata:
     "@apollosoftwarexyz/cinnamon-youch": "npm:^3.2.0"
     "@types/co": "npm:^4.6.6"
     "@types/formidable": "npm:^3.4.5"
-    "@types/koa": "npm:^2.13.11"
-    "@types/koa-router": "npm:^7.4.7"
+    "@types/koa": "npm:^2.13.12"
+    "@types/koa-router": "npm:^7.4.8"
     "@types/node": "npm:^20.10.0"
     "@types/qs": "npm:^6.9.10"
     "@types/uuid": "npm:^9.0.7"
-    chalk: "npm:^4"
+    chalk: "npm:^4.1.2"
     chokidar: "npm:^3.5.3"
     co: "npm:^4.6.0"
     formidable: "npm:^3.5.1"
@@ -113,7 +113,7 @@ __metadata:
     qs: "npm:^6.11.2"
     rimraf: "npm:^5.0.5"
     toml: "npm:^3.0.0"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.2"
     uuid: "npm:^9.0.1"
   languageName: unknown
   linkType: soft
@@ -816,12 +816,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/koa-router@npm:^7.4.7":
-  version: 7.4.7
-  resolution: "@types/koa-router@npm:7.4.7"
+"@types/koa-router@npm:^7.4.8":
+  version: 7.4.8
+  resolution: "@types/koa-router@npm:7.4.8"
   dependencies:
     "@types/koa": "npm:*"
-  checksum: 4a00a873aa7bffad44be72a824c9d95845a04b0d4a6177b62b264b89f04bc2575315a0f6255c30d3a756920bed4a0178786baff6e43a4f43af3474885d8d22fe
+  checksum: d9bd6c8c8869a5757dd0b8208fdd06402359a5b8f6a40706e89f81b2c0b796ae3561761913b9743dccff5508e04bca88ce14e05c6fdf8b45b1cccec2ed996fe8
   languageName: node
   linkType: hard
 
@@ -841,9 +841,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/koa@npm:^2.13.11":
-  version: 2.13.11
-  resolution: "@types/koa@npm:2.13.11"
+"@types/koa@npm:^2.13.12":
+  version: 2.13.12
+  resolution: "@types/koa@npm:2.13.12"
   dependencies:
     "@types/accepts": "npm:*"
     "@types/content-disposition": "npm:*"
@@ -853,7 +853,7 @@ __metadata:
     "@types/keygrip": "npm:*"
     "@types/koa-compose": "npm:*"
     "@types/node": "npm:*"
-  checksum: 135b35c799c45af57514edf27375f8db83f457a3753647820052f9f328405e30954b846a558a5a7007b48e1843b4ed4ba130a0d3f72f4584d8a528b5bf29b832
+  checksum: d148fb02aa25cb239d5179211cd66f19275e7fc2563532dd2bc347163332f771dea224b7555209530abf6777afa5b5c7a2d650e752fb1126ce362fbdde4ec214
   languageName: node
   linkType: hard
 
@@ -864,10 +864,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mocha@npm:^10.0.4":
-  version: 10.0.4
-  resolution: "@types/mocha@npm:10.0.4"
-  checksum: 5bd9d6c493f3fb2f3ec8ab82c91fda8b170e41f3b358022cbec6cf4766242c616069dce9811a93c06c224d69ce33af494dd17e8cd60bda9e02d08fe13d9ae3a2
+"@types/mocha@npm:^10.0.6":
+  version: 10.0.6
+  resolution: "@types/mocha@npm:10.0.6"
+  checksum: fc73626e81e89c32d06b7ff9b72c4177b46d579cdd932f796614adc026852d84cb849d743473ba572cb4d9ea6d8c04e3749552d326c26495ec1c4b46e6e0a0c0
   languageName: node
   linkType: hard
 
@@ -1472,7 +1472,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:^4, chalk@npm:^4.0.0, chalk@npm:^4.1.0":
+"chalk@npm:^4.0.0, chalk@npm:^4.1.0, chalk@npm:^4.1.2":
   version: 4.1.2
   resolution: "chalk@npm:4.1.2"
   dependencies:
@@ -4466,16 +4466,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.2.2":
-  version: 5.2.2
-  resolution: "typescript@npm:5.2.2"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: d65e50eb849bd21ff8677e5b9447f9c6e74777e346afd67754934264dcbf4bd59e7d2473f6062d9a015d66bd573311166357e3eb07fea0b52859cf9bb2b58555
-  languageName: node
-  linkType: hard
-
 "typescript@npm:^5.3.2":
   version: 5.3.2
   resolution: "typescript@npm:5.3.2"
@@ -4483,16 +4473,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 415e5fb6611f5713e460bad48039f00bcfdbde53a2f911727862d5aa9c5d5edd250059a419df382d8f031709e15a169c41eb62b6a401da5eec7ac0f4e359d6ac
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>":
-  version: 5.2.2
-  resolution: "typescript@patch:typescript@npm%3A5.2.2#optional!builtin<compat/typescript>::version=5.2.2&hash=f3b441"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: f79cc2ba802c94c2b78dbb00d767a10adb67368ae764709737dc277273ec148aa4558033a03ce901406b35fddf4eac46dabc94a1e1d12d2587e2b9cfe5707b4a
   languageName: node
   linkType: hard
 

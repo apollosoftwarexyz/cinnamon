@@ -12,8 +12,9 @@ jobs:
 
     strategy:
       matrix:
-        # Test current major node versions to ensure cross-compatability.
-        node-version: [ 14.x, 16.x, 17.x ]
+        # Test current major node versions (and one prior active/maintenance
+        # version) to ensure general compatability.
+        node-version: [ 18.x, 20.10.0, 21.x ]
 
     steps:
       # Clone and set up the code base.
