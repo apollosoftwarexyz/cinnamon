@@ -115,6 +115,10 @@ function resolveImmediateKey(obj: Record<string, any>, key: string) {
     // be empty.
     const immediateKey = keyParts.shift() as string;
 
+    if (immediateKey === '__proto__' || immediateKey === 'constructor' || immediateKey === 'prototype') {
+        throw new ArgumentOrStateError(`Cannot deep-resolve a key that is a prototype property: ${key}`);
+    }
+
     return { keyParts, isFinalKey: isFinalKey, immediateKey };
 }
 
@@ -206,14 +210,14 @@ export function setObjectDeep(
     if (!Object.keys(obj).includes(immediateKey)) {
         if (!options.createChildrenIfNeeded) {
             throw new ArgumentOrStateError(`Failed to define key: ${_entireKey}.`);
-        } else obj[immediateKey] = {};
+        } else obj[immediateKey] = Object.create(null);
     }
 
     // If the value is not an object and overwriteParentIfNeeded is true, then
     // overwrite the parent with an object.
     if (!isFinalKey && typeof obj[immediateKey] !== 'object') {
         if (options.overwriteParentIfNeeded) {
-            obj[immediateKey] = {};
+            obj[immediateKey] = Object.create(null);
         } else {
             const fullImmediateKey = _entireKey
                 .split(NESTED_OBJECT_DELIMITER)
@@ -296,6 +300,11 @@ export function mergeObjectDeep(target: any, source: any) : any {
     // source at key are objects, or setting the target to the source if the
     // target is not an object.
     for (const key of Object.keys(source)) {
+        // Skip prototype properties.
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+            continue;
+        }
+
         // If the current item in the source object is an object, and
         // it's not set or is an object in the target, then recursively
         // attempt to merge.
