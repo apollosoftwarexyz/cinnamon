@@ -15,6 +15,9 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/cinnamon/dist/modules" />
       <excludeFolder url="file://$MODULE_DIR$/packages/cinnamon/dist/plugins" />
       <excludeFolder url="file://$MODULE_DIR$/packages/cinnamon/dist/sdk" />
+      <excludeFolder url="file://$MODULE_DIR$/.vscode" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/cinnamon-internals/dist/internals" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/cinnamon/dist/hooks" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
