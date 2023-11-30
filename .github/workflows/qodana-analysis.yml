@@ -18,11 +18,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}  # to check out the actual pull request commit, not the merge commit
           fetch-depth: 0  # a full history is required for pull request analysis
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          # Run Qodana with Node.js LTS 20.10.0
-          node-version: 20.10.0
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2023.2
         env:
