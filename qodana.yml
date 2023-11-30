@@ -2,16 +2,13 @@ version: "1.0"
 linter: jetbrains/qodana-js:2023.2
 
 bootstrap: |+
-  # Install Yarn
-  npm install -g yarn
-
-  # Use Yarn to install dependencies
+  # Install dependencies
   YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
-  yarn build
 
 include:
   - name: CheckDependencyLicenses
   - name: VulnerableLibrariesGlobal
+  - name: Eslint
 
 exclude:
   - name: All
