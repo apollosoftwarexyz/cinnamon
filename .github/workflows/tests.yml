@@ -3,8 +3,14 @@ name: "Test Cinnamon"
 on:
   push:
     branches: [ master ]
+    paths:
+      - package.json
+      - packages/**
   pull_request:
     branches: [ master ]
+    paths:
+      - package.json
+      - packages/**
 
 jobs:
   test:
