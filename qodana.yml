@@ -2,3 +2,10 @@ version: "1.0"
 linter: jetbrains/qodana-js:2023.2
 include:
   - name: CheckDependencyLicenses
+exclude:
+  - name: All
+    paths:
+      - .yarn
+      - .idea
+      - .vscode
+      - scripts
