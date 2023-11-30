@@ -2,6 +2,8 @@
  * Runs pre-release checks to ensure the package is ready for distribution.
  */
 
+/// <reference types="@apollosoftwarexyz/cinnamon/src/internals" />
+
 import * as chalk from 'chalk';
 import { CINNAMON_CORE_DEBUG_MODE } from '@apollosoftwarexyz/cinnamon/src/core';
 

@@ -3,7 +3,19 @@
     Built with ❤︎ by <a href="https://apollosoftware.xyz/">Apollo Software Limited</a>
 </p>
 
-<br><br>
+<br>
+
+<p align="center">
+<b>Cinnamon is our opinionated Enterprise TypeScript framework for building API services.</b>
+<br>
+📚 <b>Learn more on our documentation site: https://docs.apollosoftware.xyz/cinnamon</b> 📚
+</p>
+
+<br>
+
+<p align="center"><i>"The line of code that's the fastest to write, that never breaks, that doesn't need maintenance, is the line you never had to write."</i></p>
+
+<br>
 <hr>
 
 **(β) Cinnamon is currently in beta!** We are actively working on the framework
@@ -11,15 +23,10 @@ and welcome feedback and contributions!
 Please feel free to open issues and pull requests on this repository.
 
 For information about the current status of the project, please see the
-[VERSIONS.md](VERSIONS.md) file.
+[VERSIONS](VERSIONS.md) file.
 
 <hr>
 <br><br>
-
-> _"The line of code that's the fastest to write, that never breaks, that doesn't need maintenance, is the line you never had to write."_
-
-Cinnamon is our highly-opinionated, but focused, Enterprise TypeScript
-framework for building API services.
 
 The key design principle of Cinnamon is to encourage use of best practices
 and patterns in a way that is natural, intuitive, and reliable. Its declarative
@@ -38,21 +45,8 @@ code.
   well-maintained. We also actively monitor for security vulnerabilities and 
   update dependencies as soon as possible. See our [security policy](SECURITY.md).
 
-
-- Cinnamon's design patterns encourage the use of dependency injection and the
-  separation of concerns.
-- Cinnamon's declarative programming style allows for a more intuitive and
-  natural development experience. Inversion of Control (IoC) is used to
-  cut down on boilerplate code.
-
-
-- Convinced? Have a project ready to go in seconds with
+**Convinced?** Have a project ready to go in seconds with
   [`create-cinnamon-project`](#getting-started).
-
-<br>
-
-👉 **Learn more on our documentation site:**
-https://docs.apollosoftware.xyz/cinnamon
 
 <br>
 
@@ -78,7 +72,7 @@ export default class IndexController {
 }
 ```
 
-<small>↑ From the template project created with <a href="#getting-started">`create-cinnamon-project`</a> with the <b>Database</b> and <b>Authentication</b> features selected.</small>
+<sup>↑ A controller from the template project created with <a href="#getting-started">`create-cinnamon-project`</a> with the <b>Database</b> and <b>Authentication</b> features selected.</sup>
 
 <br>
 

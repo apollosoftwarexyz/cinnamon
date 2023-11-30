@@ -76,7 +76,7 @@ export default class ConfigModule extends CinnamonCoreModule {
      * the key.
      *
      * @param key The key of the value to look up in the app configuration.
-     * @return {T} value - The retrieved value from the configuration file.
+     * @return value - The retrieved value from the configuration file.
      */
     public get<T = any>(key: string) : T {
         if (!this.appConfig) throw new Error(

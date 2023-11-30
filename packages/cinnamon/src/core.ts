@@ -599,7 +599,7 @@ export default class Cinnamon implements CinnamonModuleRegistryAccess, CinnamonH
             '- If you are trying to trigger a hook from within a module, make sure you are using the\n' +
             '  correct instance of the Cinnamon framework (passed into the module).\n\n' +
             '- If you are trying to trigger a hook from outside a module, you should instead use\n' +
-            '  an API from a module.\n\n',
+            '  an API exposed by a module that will trigger the hook system on your behalf, if necessary.\n\n',
             true
         );
     }

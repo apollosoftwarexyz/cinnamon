@@ -33,8 +33,10 @@
         "@typescript-eslint/no-unused-vars": [
             "error",
             {
-                "varsIgnorePattern": "^_",      // ignore unused variables starting with _
-                "argsIgnorePattern": "(^_|ctx)" // ignore unused variables starting with _, or the request context.
+                "varsIgnorePattern": "^_",
+                // ignore unused variables starting with _
+                "argsIgnorePattern": "(^_|ctx)"
+                // ignore unused variables starting with _, or the request context.
             }
         ],
         "linebreak-style": [
@@ -72,14 +74,22 @@
         ],
         "spaced-comment": [
             "error",
-            "always"
+            "always",
+            {
+                "markers": [
+                    "/"
+                ]
+            }
         ],
         "no-multi-spaces": [
             "error"
         ],
         "prefer-const": "off",
         "no-inner-declarations": "off",
-        "object-curly-spacing": ["error", "always"],
+        "object-curly-spacing": [
+            "error",
+            "always"
+        ],
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-non-null-assertion": "off"
     }

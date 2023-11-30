@@ -1,27 +1,23 @@
 {
-  "name": "@apollosoftwarexyz/cinnamon-database",
-  "version": "0.2.0",
-  "license": "MIT",
-  "main": "dist/index.js",
-  "types": "types/cinnamon-database.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",
-    "directory": "packages/cinnamon-database/"
-  },
-  "dependencies": {
-    "@apollosoftwarexyz/cinnamon": "^0.2.0",
-    "@apollosoftwarexyz/cinnamon-internals": "^0.2.0",
-    "@mikro-orm/core": "^5.9.4",
-    "@mikro-orm/reflection": "^5.9.4"
-  },
-  "scripts": {
-    "build": "tsc --build",
-    "watch": "tsc --watch --preserveWatchOutput",
-    "publish": "yarn npm publish --access public"
-  },
-  "devDependencies": {
-    "@types/node": "^20.10.0",
-    "rimraf": "^5.0.5"
-  }
+    "name": "@apollosoftwarexyz/cinnamon-database",
+    "version": "0.2.0",
+    "license": "MIT",
+    "main": "dist/index.js",
+    "types": "types/cinnamon-database.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/apollosoftwarexyz/cinnamon.git",
+        "directory": "packages/cinnamon-database/"
+    },
+    "dependencies": {
+        "@apollosoftwarexyz/cinnamon": "^0.2.0",
+        "@apollosoftwarexyz/cinnamon-internals": "^0.2.0",
+        "@mikro-orm/core": "^5.9.4",
+        "@mikro-orm/reflection": "^5.9.4"
+    },
+    "scripts": {
+        "build": "tsc --build",
+        "watch": "tsc --watch --preserveWatchOutput",
+        "publish": "yarn npm publish --access public"
+    }
 }

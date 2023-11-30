@@ -1,3 +1,7 @@
+// noinspection JSDeprecatedSymbols - if we export deprecated symbols in this
+// file, it's because they're part of the public API so there's no point in
+// warning about them. We'll remove them in a future major release.
+
 /**
  * Cinnamon Web Framework
  *
@@ -32,7 +36,10 @@ export { HttpError } from '@apollosoftwarexyz/cinnamon-internals';
 // //////////////
 export { CinnamonModule, CinnamonModuleBase } from './sdk/cinnamon-module';
 export { CinnamonPlugin } from './sdk/cinnamon-plugin';
-export { default as WebServer, CinnamonWebServerModulePlugin } from './modules/web-server';
+export {
+    default as WebServer,
+    CinnamonWebServerModulePlugin
+} from './modules/web-server';
 
 export { CinnamonModuleRegistry } from './modules';
 export { CinnamonHooks, CinnamonHook, CinnamonHookConsumer, CinnamonHookRegistry } from './hooks';
